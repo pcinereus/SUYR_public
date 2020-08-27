@@ -1,0 +1,303 @@
+td,th {
+	padding-right:5pt;
+}
+.table-condensed {
+    display: block;
+	max-width: 100%;
+	width: auto;
+}
+.table-condensed thead {
+    background-color: white;
+    color: 2pt solid black;
+    font-weight: normal;
+    padding: 20px 30px;
+    text-align: center;
+	border-top: 1.5pt solid #000000;
+	border-bottom: 1pt solid #000000;
+}
+.table-condensed tbody {
+    //background-color: rgb(238, 238, 238);
+    color: rgb(111,111,111);
+    padding: 20px 30px;
+	border-bottom: 1.5pt solid black;
+}
+.table-condensed tbody tr:hover {
+    background: #e0edf9;
+}     
+.table-condensed>tbody>tr>td {
+	border-top: 0px;
+}
+.table-condensed>thead>tr>th {
+	border-bottom: 0px;
+}
+
+.pagedtable .table-condensed {
+	width: 100%;
+	display: table;
+}
+
+.pagedtable .table-condensed thead {
+	color: rgb(102, 102, 102);
+	border-top: 0px;
+	border-bottom: 0px;
+	//background-color: #446e9b;
+}
+.pagedtable .table-condensed tbody {
+    color: rgb(111,111,111);
+    padding: 20px 30px;
+	border-bottom: 0px;
+}
+
+@font-face{  
+	font-family:'FFF';
+	src:  local("☺"),
+		  url("FFF Tusj.ttf") format('truetype'); 
+}
+
+@font-face{  
+	font-family:'CabinSketch';
+	src:  local("☺"),
+		  url("CabinSketch-Bold.ttf") format('truetype'); 
+}
+
+@font-face{  
+	font-family:'VeteranTypewriter';
+	src:  local("☺"),
+		  url("veteran_typewriter.ttf") format('truetype'); 
+}
+
+/*Slides specific*/
+
+.segue hgroup {
+    position: absolute;
+    top: 100px;
+}
+.title-slide hgroup p {
+    font-size: 40px;
+    color: #797979;
+    line-height: 1.3;
+    margin-top: 3em;
+}
+
+slides > slide {
+	background-image: url(NotebookPaper.jpg);
+	background-size:cover;
+	background-position:center;
+}
+
+slides > slide.title-slide h1 {
+	font-family: FFF, Arial, serif;
+}
+slides > slide.title-slide p[data-config-presenter] {
+	font-family: CabinSketch, Arial, serif;
+}
+slides > slide.title-slide p {
+	font-family: CabinSketch, Arial, serif;
+}
+
+slides h1,h2,h3 {
+	font-weight:100;
+}
+slides h2 {
+    font-size: 60px;
+    line-height: 65px;
+    letter-spacing: -2px;
+	font-family: CabinSketch, Arial, serif;
+	color: #3E769A;
+}
+slides h3 {
+    font-size: 40px;
+    line-height: 65px;
+    letter-spacing: -2px;
+	font-family: CabinSketch, Arial, serif;
+	color: #515151;
+}
+slides > slide {
+	padding-left:100px;
+	padding-top:20px;
+	padding-right:5px;
+	font-family: VeteranTypewriter,Arial, serif;
+	font-size:30pt;
+}
+slides > slide > hgroup + article {
+    margin-top: 5px; 
+}
+slides > slide ul {
+	list-style: disc;
+	margin-left:0.5em;
+}
+slides > slide ul ul {
+	list-style: circle;
+	margin-left:0.5em;
+	margin-top:0px;
+}
+slides > slide ul > li:before {
+	content: '';
+    margin-left: -1em;
+    position: absolute;
+    font-weight: 600;
+}
+/*Two tone blue*/
+table.rmdtable  {font-size:50%;background:#e8f1f6;text-align:left;border:0;border-spacing:0;}
+table.rmdtable th {display:table-header;color:white;font-size:1em;font-weight: bold; border:1.0pt solid rgb(0,0,127);padding:3.6pt 5pt;background:rgb(0,120,230) none repeat scroll 0% 50%;}
+table.rmdtable td {font-size:0.8em;padding:3pt;border-left: 1.0pt solid rgb(0,0,127);border-right: 1.0pt solid rgb(0,0,127);border-bottom: 1.0pt solid rgb(0,0,127)}
+  
+slides > slide strong {
+    color: #e17727;
+}
+
+slides > slide > hgroup + article p {
+    margin-bottom: 0em;
+}
+
+slides > slide pre.prettyprint {
+    margin: 5px 15px 0px 5px;
+	left: 0px;
+    /* margin: 0 0 5px; */
+    padding: 0px;
+    padding-top: 2px;
+    padding-left: 10px;
+    border: 1px solid #d6d6d6;
+    border-left: 5px solid #3E769A;
+    background: #FFFFE4;
+    overflow: hidden;
+    font-size: 0.5em;
+    width: auto;
+	line-height: 1.5em;
+    /* clear: both; */
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+}
+.prettyprint .pln {
+    color: #007020;
+    font-weight: bold;
+}
+.prettyprint .com {
+    color: #60a0b0;
+    font-style: italic;
+}
+slides > slide pre {
+	margin-bottom:0px;
+}
+
+slides > slide ol,ul {
+	margin-bottom:0px;
+}
+slides > slide ol li, ul li {
+	margin-bottom:0px;
+}
+
+slides > slide pre.lang-bash {
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    margin: 5px 15px 0px 5px;
+    /* margin: 0 0 5px; */
+    padding: 0px;
+    padding-top: 2px;
+    padding-left: 10px;
+    border: none;
+    margin: 5px 15px 0px 5px;
+    /* margin: 0 0 5px; */
+    background: #000000;
+    color: white;
+    overflow: hidden;
+    font-size: 0.5em;
+    width: auto;
+    /* clear: both; */
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+}
+
+slides > slide pre.lang-bash .pln {
+    color: white;
+    font-weight: bold;
+}
+slides > slide pre.lang-bash .com {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash .str {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash .pun {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash .kwd {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash .typ {
+    color: white;
+    font-style: italic;
+}
+
+slides > slide pre.lang-bash1 {
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    margin: 5px 15px 0px 5px;
+    /* margin: 0 0 5px; */
+    padding: 0px;
+    padding-top: 2px;
+    padding-left: 10px;
+    border: none;
+    margin: 5px 15px 0px 5px;
+    /* margin: 0 0 5px; */
+    background: #000000;
+    color: white;
+    overflow: hidden;
+    font-size: 0.5em;
+    width: auto;
+    /* clear: both; */
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+}
+slides > slide pre.lang-bash1 .pln {
+    color: white;
+    font-weight: bold;
+}
+slides > slide pre.lang-bash1 .com {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash1 .str {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash1 .pun {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash1 .kwd {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash1 .typ {
+    color: white;
+    font-style: italic;
+}
+slides > slide pre.lang-bash1 .lit {
+    color: white;
+    font-style: italic;
+}
+
+.two-columns {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+}
+.three-columns {
+    columns: 3 100px;
+    -webkit-columns: 3 100px;
+    -moz-columns: 3 100px;
+}
