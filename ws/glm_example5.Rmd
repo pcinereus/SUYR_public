@@ -1,0 +1,258 @@
+---
+title: "GLM Part5"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(emmeans)   #for estimating marginal means
+library(MASS)      #for glm.nb
+library(MuMIn)     #for AICc
+library(tidyverse) #for data wrangling
+library(modelr)    #for auxillary modelling functions
+```
+
+# Scenario
+
+Here is a modified example from @Quinn-2002-2002. Day and Quinn
+(1989) described an experiment that examined how rock surface type
+affected the recruitment of barnacles to a rocky shore. The experiment
+had a single factor, surface type, with 4 treatments or levels: algal
+species 1 (ALG1), algal species 2 (ALG2), naturally bare surfaces (NB)
+and artificially scraped bare surfaces (S). There were 5 replicate plots
+for each surface type and the response (dependent) variable was the
+number of newly recruited barnacles on each plot after 4 weeks.
+
+![Six-plated barnacle](../resources/barnacles.jpg){width="224" height="308"}
+
+Format of day.csv data files
+
+TREAT   BARNACLE
+------- ----------
+ALG1    27
+..      ..
+ALG2    24
+..      ..
+NB      9
+..      ..
+S       12
+..      ..
+
+-------------- ----------------------------------------------------------------------------------------------------------------------------------------------
+**TREAT**      Categorical listing of surface types. ALG1 = algal species 1, ALG2 = algal species 2, NB = naturally bare surface, S = scraped bare surface.
+**BARNACLE**   The number of newly recruited barnacles on each plot after 4 weeks.
+-------------- ----------------------------------------------------------------------------------------------------------------------------------------------
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+day = read_csv('../data/day.csv', trim_ws=TRUE)
+glimpse(day)
+```
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+y_i \sim{} \mathcal{Pois}(\lambda_i)\\
+\mu_i = \boldsymbol{\beta} \bf{X_i}
+$$
+
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the intercept and treatment contrasts for the effects of Treatment on barnacle recruitment.
+
+
+# Fit the model
+
+```{r fitModel, results='markdown', eval=TRUE}
+#Effects model
+#contrasts(day$TREAT)
+model.matrix(~TREAT, data=day)
+
+mm <- model.matrix(~TREAT, data=day)
+
+##latex-math-preview-expression
+##$Barnacle_{i} = \mu + \alpha_{Treatment_j} +\varepsilon_i \hspace{1cm} \varepsilon \sim{} \mathcal{N}(0, \sigma^2)$
+#we could solve the whole thing as
+# solve(X'X)X'Y
+solve(t(mm) %*% mm) %*% t(mm) %*% day$BARNACLE
+
+```
+
+```{r fitModel1, results='markdown', eval=TRUE}
+day.glm <- glm(BARNACLE~TREAT, data=day, family='gaussian')
+day.glm1 <- glm(BARNACLE~TREAT, data=day, family='poisson')
+```
+
+# Model validation {.tabset .tabset-faded}
+
+## Gaussian
+
+```{r validateModel, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
+autoplot(day.glm)
+```
+
+## Poisson
+
+```{r validateModel1, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
+autoplot(day.glm1, which=1:6)
+```
+
+```{r validateModel2, results='markdown', eval=TRUE}
+## overdispersion
+1-pchisq(day.glm1$deviance,day.glm1$df.residual)
+day.glm1$deviance/day.glm1$df.residual
+```
+
+
+```{r AIC, results='markdown', eval=TRUE}
+## AIC(day,glm, day.glm1)
+```
+
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+## Gaussian
+
+```{r effectsPlot, results='markdown', eval=TRUE}
+plot(allEffects(day.glm))
+```
+
+```{r summariseModel, results='markdown', eval=TRUE}
+summary(day.glm)
+tidy(day.glm,conf.int=TRUE) #Gaussian
+anova(day.glm, test='Chisq')
+```
+
+## Poisson
+
+```{r effectsPlot1, results='markdown', eval=TRUE}
+plot(allEffects(day.glm1))
+plot(allEffects(day.glm1), type='link')
+```
+
+```{r summariseModel1, results='markdown', eval=TRUE}
+summary(day.glm1)
+tidy(day.glm1,conf.int=TRUE) #Poisson
+tidy(day.glm1,conf.int=TRUE, exponentiate=TRUE) #Poisson
+exp(coef(day.glm1))
+##log(A) + log(B) = log(A*B)
+##exp(A)*exp(B) = exp(A+B)
+22.4+6
+22.4*1.268
+summary(day.glm1)
+confint(day.glm1)
+anova(day.glm1, test='Chisq')
+
+```
+
+# Predictions
+
+## Post-hoc test (Tukey's)
+
+```{r predictions, results='markdown', eval=TRUE}
+emmeans(day.glm1,pairwise ~TREAT, type='response')
+confint(emmeans(day.glm1,pairwise ~TREAT, type='response'))
+```
+
+## Planned contrasts
+
+Define your own
+
+Compare:
+
+a) ALG1 vs ALG2
+b) NB vs S
+c) average of ALG1+ALG2 vs NB+S
+
+```{r planned, results='markdown', eval=TRUE}
+##      Alg1_Alg2 NB_S Alg_Bare
+## ALG1         1    0      0.5
+## ALG2        -1    0      0.5
+## NB           0    1     -0.5
+## S            0   -1     -0.5
+cmat<-(cbind('Alg1_Alg2'=c(1,-1,0,0),
+              'NB_S'=c(0,0,1,-1),
+             'Alg_Bare'=c(0.5,0.5,-0.5,-0.5)))
+cmat
+crossprod(cmat)
+#emmeans(day.lm, ~TREAT, contr=list(TREAT=cmat))
+                                        #confint(emmeans(day.lm, ~TREAT, contr=list(TREAT=cmat)))
+#emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat), type='link')
+emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat), type='response')
+confint(emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat)),
+                type='response')
+```
+
+# Summary figures
+
+```{r summaryFig, results='markdown', eval=TRUE}
+newdata = emmeans(day.glm1, ~TREAT, type='response') %>%
+    as.data.frame
+newdata
+ggplot(newdata, aes(y=rate, x=TREAT)) +
+    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL)) +
+    theme_classic()
+
+ggplot(newdata, aes(y=rate, x=TREAT)) +
+    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL))+
+    geom_point()+
+    scale_x_discrete('Treatment', breaks=c('ALG1','ALG2','NB','S'),
+       labels=c('Algae spp 1', 'Algae spp 2', 'Naturally bare', 'Scraped bare'))+
+    scale_y_continuous(expression(Number~of~newly~recruited~barnacles~(cm^2)))+
+    theme_classic()
+
+```
+
+
+# References
