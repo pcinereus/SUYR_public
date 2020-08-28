@@ -1,0 +1,6 @@
+h1, h2, h3 {
+	color: lightblue;
+}
+h1.title {
+	color: #446e9b;
+}

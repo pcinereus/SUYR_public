@@ -1,0 +1,20 @@
+---
+title: The title
+output:
+  bookdown::word_document2:
+    toc: no
+...
+
+# Section 1
+
+Bla bla (see Table \@ref(tab:BODData)).
+
+(ref:tab-cap) Biochemical oxygen demand
+
+```{r BODData, echo=FALSE, tab.cap='(ref:tab-cap)'}
+library(tidyverse)
+library(flextable)
+flextable::flextable(BOD) %>%
+	fontsize(size=8, part='all') %>%
+	bold(part='header')
+```

@@ -1,0 +1,16 @@
+---
+title: The title
+output:
+  bookdown::html_document2:
+    toc: no
+...
+
+# Section 1
+
+Bla bla (see Table \@ref(tab:BODData)).
+
+(ref:tab-cap) Biochemical oxygen demand
+
+```{r BODData, echo=FALSE}
+knitr::kable(BOD, caption="(ref:tab-cap)", format='html', booktabs=TRUE)
+```

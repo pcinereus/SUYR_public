@@ -1,0 +1,30 @@
+---
+title: The title
+output:
+  bookdown::html_document2:
+    toc: no
+  bookdown::word_document2:
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: no
+geometry: paperwidth=12cm,paperheight=15cm,hmargin=1cm,vmargin=1cm
+documentclass: article
+mainfont: Arial
+...
+
+```{r packages, message=FALSE, echo=FALSE}
+library(knitr)
+library(ggplot2)
+```
+
+# Section 1
+
+Bla bla (see Figure \@ref(fig:BODfig)).
+
+(ref:fig-cap) Biochemical oxygen demand
+
+```{r BODfig, echo=FALSE, out.width='60%', fig.cap='(ref:fig-cap)'}
+ggplot(BOD) +
+ geom_point(aes(y=demand, x=Time))
+```

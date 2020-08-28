@@ -1,0 +1,47 @@
+---
+title: This is the title
+author: D. Author
+date: 14-02-2013
+output:
+  bookdown::html_document2:
+    toc: yes
+    toc_depth: 2
+    number_sections: yes
+    fig_width: 5
+    fig_height: 5
+    df_print: kable
+    highlight: zenburn
+    code_folding: hide
+    theme: spacelab
+    toc_float: yes
+    collapse: no
+    css: my-style.css
+---
+
+# Section 1
+Text with embedded R code.
+
+```{r Summary}
+mean(rnorm(10))
+```
+```{r head}
+head(cars)
+```
+
+## Output {.tabset .tabset-fade}
+	
+### Figure
+We can include a figure
+
+```{r Plot, fig.cap='Gaussian density.',message=FALSE}
+library(tidyverse)
+data.frame(x=rnorm(1000)) %>%
+    ggplot(aes(x=x)) + geom_density()
+```
+
+### Table
+
+```{r table}
+library(knitr)
+kable(summary(cars), caption='Summary of the cars data set')
+```

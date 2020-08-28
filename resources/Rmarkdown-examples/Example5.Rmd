@@ -1,0 +1,28 @@
+---
+title: The title
+output:
+  bookdown::html_document2:
+    toc: no
+  bookdown::word_document2:
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: no
+geometry: paperwidth=12cm,paperheight=15cm,hmargin=1cm,vmargin=1cm
+documentclass: article
+mainfont: Arial
+...
+
+```{r packages, message=FALSE, echo=FALSE}
+library(knitr)
+```
+
+# Section 1
+
+Bla bla (see Figure \@ref(fig:AIMSwq)).
+
+(ref:fig-cap) Biochemical oxygen demand
+
+```{r AIMSwq, echo=FALSE, out.width='60%', fig.cap='(ref:fig-cap)'}
+include_graphics('AIMS_wq.jpg')
+```

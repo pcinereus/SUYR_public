@@ -1,0 +1,38 @@
+---
+title: The title
+output:
+  bookdown::html_document2:
+    toc: no
+  bookdown::word_document2:
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: no
+geometry: paperwidth=12cm,paperheight=15cm,hmargin=1cm,vmargin=1cm
+documentclass: article
+mainfont: Arial
+...
+
+```{r packages, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(flextable)
+```
+
+# Section 1
+
+Bla bla (see Table \@ref(tab:BODData)).
+(ref:tab-cap) Biochemical oxygen demand
+```{r BODData, echo=FALSE, tab.cap='(ref:tab-cap)'}
+if (knitr:::pandoc_to('latex')) {
+ kable(BOD, caption="(ref:tab-cap)", format='latex', booktabs=TRUE) %>%
+    kable_styling(latex_options = "HOLD_position")
+} else if (knitr:::pandoc_to('html')) {
+ kable(BOD, caption="(ref:tab-cap)", format='html', booktabs=TRUE)
+} else if (knitr:::pandoc_to('docx')) { 
+ flextable(BOD) %>%
+    fontsize(size=8, part='all') %>%
+	bold(part='header')
+}
+```

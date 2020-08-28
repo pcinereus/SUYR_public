@@ -1,0 +1,11 @@
+---
+title: This is the title
+author: D. Author
+date: 14-02-2013
+geometry: paperwidth=8cm,paperheight=11cm,hmargin=0.5cm,vmargin=0.1cm
+documentclass: article
+---
+
+```{r BODData}
+knitr::kable(BOD)
+```

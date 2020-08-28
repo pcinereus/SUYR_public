@@ -1,0 +1,20 @@
+---
+output:
+  bookdown::pdf_document2:
+    template: latex.template
+    latex_engine: xelatex
+    highlight: null
+documentclass: article
+...
+
+Section
+===========
+Text with embedded R code.
+
+```{r head}
+head(cars)
+```
+
+$$
+y_i = \beta_0 + \beta_1 x_i
+$$

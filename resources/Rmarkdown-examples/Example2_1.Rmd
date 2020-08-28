@@ -1,0 +1,25 @@
+---
+title: The title
+output:
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: no
+geometry: paperwidth=12cm,paperheight=15cm,hmargin=1cm,vmargin=1cm,footskip=0.1cm
+documentclass: article
+mainfont: Arial
+...
+
+```{r packages, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+# Section 1
+
+Bla bla (see Table \@ref(tab:BODData)).
+(ref:tab-cap) Biochemical oxygen demand
+```{r BODData, echo=FALSE, tab.pos='h'}
+kable(BOD, caption="(ref:tab-cap)", format='latex', booktabs=TRUE) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
