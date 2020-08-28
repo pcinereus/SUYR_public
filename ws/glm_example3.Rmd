@@ -1,0 +1,141 @@
+---
+title: "GLM Part3"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(emmeans)   #for estimating marginal means
+library(MASS)      #for glm.nb
+library(MuMIn)     #for AICc
+library(tidyverse) #for data wrangling
+library(modelr)    #for auxillary modelling functions
+```
+
+# Scenario
+
+Here is a modified example from @Peake-1993-269.  @Peake-1993-269 investigated the relationship between the number of individuals of invertebrates living in amongst clumps of mussels on a rocky intertidal shore and the area of those mussel clumps.
+
+![](../resources/mussels.jpg)
+
+Format of peakquinn.csv data files
+
+| AREA      | INDIV   |
+| --------- | ------- |
+| 516.00    | 18      |
+| 469.06    | 60      |
+| 462.25    | 57      |
+| 938.60    | 100     |
+| 1357.15   | 48      |
+| \...      | \...    |
+
+----------- --------------------------------------------------------------
+**AREA**    Area of mussel clump mm^2^ - Predictor variable
+**INDIV**   Number of individuals found within clump - Response variable
+----------- --------------------------------------------------------------
+
+
+
+The aim of the analysis is to investigate the relationship between mussel clump area and the number of non-mussel invertebrate individuals supported in the mussel clump.
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+peake = read_csv('../data/peakquinn.csv', trim_ws=TRUE)
+glimpse(peake)
+```
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+y_i \sim{} \mathcal{Pois}(\lambda_i)\\
+ln(\lambda_i) = \beta_0 + \beta_1 ln(x_i)
+$$
+
+
+# Fit the model
+
+## Candidate models {.tabset .tabset-faded}
+
+### LM
+
+#### Model validation
+
+### Poisson (GLM)
+#### Model validation
+Explore a lack of fit
+
+Explore overdispersion
+
+### Negative Binomial (GLM)
+
+#### Model validation
+
+Explore a lack of fit
+
+Explore overdispersion
+
+## Comparisons (model selection)
+
+
+# Model investigation / hypothesis testing
+
+# Predictions
+
+# Summary figures
+
+
+# References
