@@ -1,0 +1,180 @@
+---
+title: "Introduction to grammar of graphics"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse) #for data wrangling
+library(grid)
+library(scales)
+library(gridExtra)
+```
+
+Graphics infrastructure
+========================
+
+- **layers** of data driven objects
+- **coord**inate system
+- **scales**
+- **faceting**
+- **themes**
+
+
+Motivating data
+-----------------
+
+```{r, results='markup'}
+head(BOD)
+summary(BOD)
+```
+
+Layers
+==========
+
+- **layers** of data driven objects
+    - **geom**etric objects to represent data
+    - **stat**istical methods to summarize the data
+    - **mapping** of aesthetics
+    - **position** control
+
+## geom_point
+
+Primary geometric objects
+===========================
+
+`geom_bar`
+------------
+
+
+`geom_boxplot`
+----------------
+
+
+`geom_line`
+-------------
+
+
+`geom_point`
+------------
+
+`geom_smooth`
+------------
+
+`geom_polygon`
+----------------
+
+`geom_tile`
+----------------
+
+`geom_raster`
+----------------
+
+Secondary geometric objects
+============================
+
+`geom_errorbar`
+------------------
+
+`geom_pointrange`
+------------------
+
+Coordinate systems
+====================
+
+
+Scales
+==========
+
+`scale_x_` and `scale_y_`
+----------------------------
+
+Other scales
+---------------
+
+- **size** of points (thickness of lines)
+- **shape** of points
+- **linetype** of lines
+- **color** of lines or points
+- **fill** of shapes
+
+`scale_size`
+----------------
+
+`scale_shape`
+----------------
+
+`scale_linetype`
+----------------
+
+`scale_fill` and `scale_color`
+-------------------------------
+
+Facets
+==========
+
+Themes
+==========
+
+`theme_classic`
+----------------
+
+`theme_bw`
+----------------
+
+`theme_grey`
+----------------
+
+`theme_minimal`
+----------------
+
+`theme_linedraw`
+----------------
+
+Practice
+===========
