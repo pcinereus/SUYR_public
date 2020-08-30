@@ -1,0 +1,128 @@
+---
+title: "Data wrangling"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse) #for data wrangling
+```
+
+Link to the data transformation cheatsheet
+
+https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf
+
+Important data manipulation functions:
+
+| Task                      | Function                    | Package   |
+|---------------------------|-----------------------------|-----------|
+| Sorting                   | `arrange()`                 | **dplyr** |
+| Re-ordering factor levels | `factor()`                  | **base**  |
+| Re-labelling              | `recode()`                  | **dplyr** |
+| Re-naming columns         | `rename()`                  | **dplyr** |
+| Filtering/subsetting      | `select()`                  | **dplyr** |
+| Transformations           | `mutate()`                  | **dplyr** |
+| Adding columns            | `mutate()`                  | **dplyr** |
+| Re-shaping data           | `gather()`/`spread()`       | **tidyr** |
+| Aggregating               | `summarize()`, `group_by()` | **dplyr** |
+| Merging/joining           | `*_join()`                  | **dplyr** |
+|                           |                             |           |
+
+# Piping
+
+# Data files
+
+```{r getData, results='markdown', eval=TRUE}
+load(file='../data/manipulationDatasets.RData')
+data.1 %>% head
+```
+
+Sorting data
+================
+
+
+Manipulating factors
+=======================
+
+
+Subset columns
+=================
+
+## Regular expressions (regex)
+
+https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf
+
+
+Filtering
+=============
+
+Adding columns - mutate
+===========================
+
+
+Summarising (aggregating) data
+=================================
+
+Piping
+=======
+
+Grouping (=aggregating)
+=========================
+
+Reshaping data
+=================
+
+## Gathering
+
+## Spread
+
+Combining data
+=================
+
+Applied examples
+===================
