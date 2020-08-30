@@ -120,36 +120,7 @@ $\bf{Z}$ represents a cell means model matrix for the random intercepts associat
 # Summary figures
 
 # Fit the model (lmer)
-```{r fitModellmer, results='markdown', eval=FALSE}
-tobacco.lmer <- lmer(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco,  REML=TRUE)
-tobacco.lmer1 <- lmer(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco,  REML=TRUE)
-                                        #AIC(tobacco.lmer,  tobacco.lmer1)
-plot_grid(plot_model(tobacco.lmer,  type='diag')[-2])
-summary(tobacco.lmer)
-tidy(tobacco.lmer)
-glance(tobacco.lmer)
-r.squaredGLMM(tobacco.lmer)
-emmeans(tobacco.lmer,  ~TREATMENT) %>%
-  as.data.frame() %>%
-  ggplot() +
-  geom_pointrange(aes(y=emmean,  x=TREATMENT,  ymin=lower.CL,  ymax=upper.CL))
-```
 
 # Fit the model (glmmTMB)
-```{r fitModelglmm, results='markdown', eval=FALSE}
-tobacco.glmmTMB <- glmmTMB(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco,  REML=TRUE)
-tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco,  REML=TRUE)
-                                        #AIC(tobacco.glmmTMB,  tobacco.glmmTMB1)
-plot_grid(plot_model(tobacco.glmmTMB,  type='diag')[-2])
-summary(tobacco.glmmTMB)
-confint(tobacco.glmmTMB)
-tidy(tobacco.glmmTMB)
-glance(tobacco.glmmTMB)
-r.squaredGLMM(tobacco.glmmTMB)
-emmeans(tobacco.glmmTMB,  ~TREATMENT) %>%
-  as.data.frame() %>%
-  ggplot() +
-  geom_pointrange(aes(y=emmean,  x=TREATMENT,  ymin=lower.CL,  ymax=upper.CL))
-```
 
 # References

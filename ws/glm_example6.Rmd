@@ -110,10 +110,6 @@ glimpse(quinn)
 summary(quinn)
 ```
 
-```{r dataprep, results='markdown', eval=TRUE}
-quinn = quinn %>% mutate(SEASON = factor(SEASON),
-                         DENSITY = factor(DENSITY))
-```
 
 	
 # Exploratory data analysis
@@ -129,136 +125,30 @@ $$
 where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$
 is a model matrix representing the intercept and effects of season, density and their interaction on mussel recruitment.
 
-```{r eda}
-ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
-     geom_boxplot()
-
-ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
-geom_boxplot() +
-scale_y_log10()
-```
 
 # Fit the model
 
-```{r fitModel}
-quinn.glm <- glm(log(RECRUITS+1) ~ DENSITY*SEASON, data=quinn, family=gaussian)
-quinn.glm1 <- glm(RECRUITS ~ DENSITY*SEASON, data=quinn,
-                  family=poisson(link='log'))
-AICc(quinn.glm, quinn.glm1)
-```
 
 # Model validation
 
-```{r ValidateModel, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
-autoplot(quinn.glm,which=1:6)
-autoplot(quinn.glm1,which=1:6)
-```
 
-```{r modelValidation2, results='markdown', eval=TRUE}
-## goodness of fit
-1-pchisq(quinn.glm1$deviance, df=quinn.glm1$df.residual)
-## any evidence of overdispersion
-quinn.glm1$deviance/quinn.glm1$df.residual
-```
 
-```{r modelValidation3, results='markdown', eval=TRUE}
-## is this due to excessive zeros (zero-inflation)
-tab=table(quinn$RECRUITS==0)
-tab/sum(tab)
-## 5% is not many.. so it cant be zero-inflated
-## how many 0's would we expect from a poisson distribution with a mean similar to our mean
-mean(quinn$RECRUITS)
-x=rpois(100000,lambda=mean(quinn$RECRUITS))
-tab.1 = table(x==0)
-tab.1/sum(tab.1)
-```
 
-```{r fitModel2, results='markdown', eval=TRUE}
-library(MASS)
-quinn.nb = glm.nb(RECRUITS ~ DENSITY*SEASON, data=quinn)
-```
 
-```{r modelValidation4, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
-autoplot(quinn.nb,which=1:6)
-```
 
-```{r modelValidation5, results='markdown', eval=TRUE}
-## goodness of fit
-1-pchisq(quinn.nb$deviance, df=quinn.nb$df.residual)
-## any evidence of overdispersion
-quinn.nb$deviance/quinn.nb$df.residual
-```
 
-```{r modelValidation6, results='markdown', eval=TRUE}
-AICc(quinn.glm, quinn.glm1,quinn.nb)
-```
 
 # Model investigation / hypothesis testing
 
-```{r partialplots, results='markdown', eval=TRUE}
-library(effects)
-plot(allEffects(quinn.glm),multiline=TRUE, ci.style='bar')
-summary(quinn.glm)
-
-
-plot(allEffects(quinn.nb),multiline=TRUE, ci.style='bar')
-plot(allEffects(quinn.nb),multiline=TRUE, ci.style='bar', type='link')
-summary(quinn.nb)
-tidy(quinn.glm, conf.int=TRUE)
-tidy(quinn.nb, conf.int=TRUE, exponentiate=FALSE)
-```
 
 
 # Predictions
 
-```{r mainEffects, results='markdown', eval=TRUE}
-emmeans(quinn.nb, pairwise~DENSITY|SEASON)
-
-emmeans(quinn.nb, pairwise~DENSITY|SEASON, type='response')
-
-confint(emmeans(quinn.nb, pairwise~DENSITY|SEASON), type='response')
-
-eff = confint(emmeans(quinn.nb, pairwise~DENSITY|SEASON), type='response')
-
-eff$contrasts %>% as.data.frame
-
-eff$contrasts %>% as.data.frame %>%
-    ggplot(aes(y=ratio, x=SEASON)) +
-    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL)) +
-    geom_hline(yintercept=1, linetype='dashed') +
-    coord_flip() +
-    theme_classic()
-```
 
 # Summary figures
 
-```{r summaryFig, results='markdown', eval=TRUE}
-
-newdata = emmeans(quinn.nb, ~DENSITY|SEASON, type='response') %>% as.data.frame
-head(newdata)
-ggplot(newdata, aes(y=response, x=SEASON, fill=DENSITY)) +
-  geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL), shape=21,
-                  position=position_dodge(width=0.2)) +
-  theme_classic() +
-  annotate(geom='text', x='Summer', y=70, label='*', size=7)
-```
 
 
-```{r junk, results='markdown', eval=TRUE}
-newdata = emmeans(quinn.nb, ~DENSITY|SEASON, type='response') %>% as.data.frame
-head(newdata)
-newdata = newdata %>% mutate(SEASON=factor(SEASON, levels=c('Autumn','Winter','Spring','Summer')))
-ggplot(newdata, aes(y=response, x=SEASON, fill=DENSITY)) +
-    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL), shape=21,
-                    position=position_dodge(width=0.2)) +
-    theme_classic() +
-    annotate(geom='text', x='Summer', y=70, label='*', size=7) +
-    scale_y_continuous('Number of Mussel recruits') +
-    theme(axis.title.x=element_blank(),
-          legend.position=c(0.01,1), legend.justification = c(0,1)) +
-    scale_fill_manual('Density',values=c('white','black'))
-    
-```
 
 
 

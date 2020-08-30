@@ -115,95 +115,33 @@ where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a m
 
 # Fit the model
 
-```{r fitModel, results='markdown', eval=TRUE}
-#Effects model
-#contrasts(day$TREAT)
-model.matrix(~TREAT, data=day)
 
-mm <- model.matrix(~TREAT, data=day)
-
-##latex-math-preview-expression
-##$Barnacle_{i} = \mu + \alpha_{Treatment_j} +\varepsilon_i \hspace{1cm} \varepsilon \sim{} \mathcal{N}(0, \sigma^2)$
-#we could solve the whole thing as
-# solve(X'X)X'Y
-solve(t(mm) %*% mm) %*% t(mm) %*% day$BARNACLE
-
-```
-
-```{r fitModel1, results='markdown', eval=TRUE}
-day.glm <- glm(BARNACLE~TREAT, data=day, family='gaussian')
-day.glm1 <- glm(BARNACLE~TREAT, data=day, family='poisson')
-```
 
 # Model validation {.tabset .tabset-faded}
 
 ## Gaussian
 
-```{r validateModel, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
-autoplot(day.glm)
-```
 
 ## Poisson
 
-```{r validateModel1, results='markdown', eval=TRUE, fig.width=7, fig.height=7}
-autoplot(day.glm1, which=1:6)
-```
-
-```{r validateModel2, results='markdown', eval=TRUE}
-## overdispersion
-1-pchisq(day.glm1$deviance,day.glm1$df.residual)
-day.glm1$deviance/day.glm1$df.residual
-```
 
 
-```{r AIC, results='markdown', eval=TRUE}
-## AIC(day,glm, day.glm1)
-```
+
 
 # Model investigation / hypothesis testing {.tabset .tabset-faded}
 
 ## Gaussian
 
-```{r effectsPlot, results='markdown', eval=TRUE}
-plot(allEffects(day.glm))
-```
 
-```{r summariseModel, results='markdown', eval=TRUE}
-summary(day.glm)
-tidy(day.glm,conf.int=TRUE) #Gaussian
-anova(day.glm, test='Chisq')
-```
 
 ## Poisson
 
-```{r effectsPlot1, results='markdown', eval=TRUE}
-plot(allEffects(day.glm1))
-plot(allEffects(day.glm1), type='link')
-```
 
-```{r summariseModel1, results='markdown', eval=TRUE}
-summary(day.glm1)
-tidy(day.glm1,conf.int=TRUE) #Poisson
-tidy(day.glm1,conf.int=TRUE, exponentiate=TRUE) #Poisson
-exp(coef(day.glm1))
-##log(A) + log(B) = log(A*B)
-##exp(A)*exp(B) = exp(A+B)
-22.4+6
-22.4*1.268
-summary(day.glm1)
-confint(day.glm1)
-anova(day.glm1, test='Chisq')
-
-```
 
 # Predictions
 
 ## Post-hoc test (Tukey's)
 
-```{r predictions, results='markdown', eval=TRUE}
-emmeans(day.glm1,pairwise ~TREAT, type='response')
-confint(emmeans(day.glm1,pairwise ~TREAT, type='response'))
-```
 
 ## Planned contrasts
 
@@ -215,44 +153,9 @@ a) ALG1 vs ALG2
 b) NB vs S
 c) average of ALG1+ALG2 vs NB+S
 
-```{r planned, results='markdown', eval=TRUE}
-##      Alg1_Alg2 NB_S Alg_Bare
-## ALG1         1    0      0.5
-## ALG2        -1    0      0.5
-## NB           0    1     -0.5
-## S            0   -1     -0.5
-cmat<-(cbind('Alg1_Alg2'=c(1,-1,0,0),
-              'NB_S'=c(0,0,1,-1),
-             'Alg_Bare'=c(0.5,0.5,-0.5,-0.5)))
-cmat
-crossprod(cmat)
-#emmeans(day.lm, ~TREAT, contr=list(TREAT=cmat))
-                                        #confint(emmeans(day.lm, ~TREAT, contr=list(TREAT=cmat)))
-#emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat), type='link')
-emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat), type='response')
-confint(emmeans(day.glm1, ~TREAT, contr=list(TREAT=cmat)),
-                type='response')
-```
 
 # Summary figures
 
-```{r summaryFig, results='markdown', eval=TRUE}
-newdata = emmeans(day.glm1, ~TREAT, type='response') %>%
-    as.data.frame
-newdata
-ggplot(newdata, aes(y=rate, x=TREAT)) +
-    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL)) +
-    theme_classic()
-
-ggplot(newdata, aes(y=rate, x=TREAT)) +
-    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL))+
-    geom_point()+
-    scale_x_discrete('Treatment', breaks=c('ALG1','ALG2','NB','S'),
-       labels=c('Algae spp 1', 'Algae spp 2', 'Naturally bare', 'Scraped bare'))+
-    scale_y_continuous(expression(Number~of~newly~recruited~barnacles~(cm^2)))+
-    theme_classic()
-
-```
 
 
 # References
