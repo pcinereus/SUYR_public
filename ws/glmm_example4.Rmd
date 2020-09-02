@@ -1,5 +1,5 @@
 ---
-title: "GLMM example 3"
+title: "GLMM example 4"
 author: "Murray Logan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -43,8 +43,8 @@ bibliography: ../resources/references.bib
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-options(tinytex.engine = 'xelatex')
 ```
+
 # Preparations
 
 Load the necessary libraries
@@ -60,60 +60,35 @@ library(emmeans)   #for estimating marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
 library(tidyverse) #for data wrangling
-library(broom.mixed)
 ```
 
 # Scenario
 
-![Starlings](../resources/starlings.jpg){width="200" height="274"}
-
-![Sampling design](../resources/ws9.4aQ1.diag.png)
-
-Format of starling\_full.RSV data files
-
-SITUATION   MONTH   MASS   BIRD
------------ ------- ------ -----------
-tree        Nov     78     tree1
-..          ..      ..     ..
-nest-box    Nov     78     nest-box1
-..          ..      ..     ..
-inside      Nov     79     inside1
-..          ..      ..     ..
-other       Nov     77     other1
-..          ..      ..     ..
-tree        Jan     85     tree1
-..          ..      ..     ..
-
---------------- ------------------------------------------------------------------------------
-**SITUATION**   Categorical listing of roosting situations (tree, nest-box, inside or other)
-**MONTH**       Categorical listing of the month of sampling.
-**MASS**        Mass (g) of starlings.
-**BIRD**        Categorical listing of individual bird repeatedly sampled.
---------------- ------------------------------------------------------------------------------
-
-
-
-<!-- ![Sampling design](../docs/figures/samplingDesign-1.png){width="700"} -->
+Someone did something for some reason.....
 
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-starling = read_csv('../data/starling_full.csv', trim_ws=TRUE)
-glimpse(starling)
+mckeon = read_csv('../data/mckeon.csv', trim_ws=TRUE)
+glimpse(mckeon)
 ```
+
+
 # Exploratory data analysis
 
 Model formula:
 $$
-y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
+y_i \sim{} \mathcal{N}(n, p_i)\\
+ln\left(\frac{p_i}{1-p_1}\right) =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
 where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the model matrix representing the overall intercept and effects of roosting situation and month on starling mass.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual birds.
+and $\bf{X}$ is the model matrix representing the overall intercept and effects of symbionts on the probability of the colony experiencing predation.
+$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual coral colonies.
 
 # Fit the model
+
+
 # Model validation
 
 # Model investigation / hypothesis testing

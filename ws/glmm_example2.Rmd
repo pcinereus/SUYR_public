@@ -82,6 +82,8 @@ Fish mass was also recorded as a covariate as this is known to influence metabol
 
 ![Barramundi](../resources/barramundi.png){width="310"}
 
+![Sampling design](../resources/ws9.3aQ3.diag.png)
+
 Format of norin.csv data files
 
 FISHID   MASS    TRIAL             SMR\_contr   CHANGE
