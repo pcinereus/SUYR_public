@@ -73,6 +73,8 @@ A plant pathologist wanted to examine the effects of two different strengths of 
 
 ![Tobacco plant](../resources/TobaccoPlant.jpg){height="300"}
 
+![Sampling design](../resources/ws9.3aQ1.1.png)
+
 Format of tobacco.csv data files
 
 LEAF   TREAT    NUMBER
