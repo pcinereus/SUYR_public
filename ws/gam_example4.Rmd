@@ -1,0 +1,131 @@
+---
+title: "GAM Part4"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, warning=TRUE, message=FALSE}
+library(mgcv)      #for GAMs
+library(gratia)    #for GAM plots
+library(emmeans)   #for marginal means etc
+library(broom)     #for tidy output
+library(MuMIn)     #for model selection and AICc
+library(lubridate) #for processing dates
+library(mapdata)
+library(maps)
+library(tidyverse) #for data wrangling
+library(DHARMa)    #for residual diagnostics
+```
+ 
+# Scenario
+
+@Paruelo-1996-1212 analyzed the geographic distribution and the effects of climate variables on the 
+relative abundance of a number of plant functional types (PFT's) including shrubs, forbs, succulents (e.g. cacti), 
+C3 grasses and C4 grasses. They used data from 73 sites across temperate central North America (see pareulo.csv) 
+and calculated the relative abundance of C3 grasses at each site as a response variable
+
+![grass](../resources/grass.jpg){width="251" height="290"}
+
+Format of paruelo.csv data file
+
+C3    LAT       LONG       MAP           MAT    JJAMAP    DJFMAP
+----- --------- ---------- ------------- ------ --------- ---------
+\...  \...      \...       \...          \...   \...      \...
+
+--------------     ---------------------------------------------------------------------
+**C3**             - Relative abundance of C3 grasses at each site - response variable
+**LAT**            - Latitudinal coordinate
+**LONG**           - Longitudinal coordinate
+**MAP**            - Mean annual precipitation
+**MAT**            - Mean annual temperature
+**JJAMAP**         - Mean annual precipitation in June, July, August
+**DJFMAP**         - Mean annual precipitation in December, January, February
+--------------     ---------------------------------------------------------------------
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+paruelo = read_csv('../data/paruelo.csv', trim_ws=TRUE)
+glimpse(paruelo)
+```
+ 
+# Exploratory data analysis
+
+We will focus on the spatial components.
+
+Model formula:
+$$
+y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
+\mu_i =\beta_0 + f(Lat_i) + f(Long_i)
+$$
+
+where $\beta_0$ is the y-intercept. $f(Lat)$ and $f(Long)$ indicate the additive smoothing functions of the spatial predictors. 
+
+
+
+
+
+# Fit the model {.tabset .tabset-faded}
+
+## s(LONG,LAT)
+
+## te(LONG,LAT) 
+
+## ti(LONG,LAT)
+
+#
+
+
+
+# Model validation
+
+# Model investigation / hypothesis testing
+
+# Predictions
+
+# Summary figures
