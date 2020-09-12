@@ -147,17 +147,6 @@ where $\beta_0$ is the y-intercept. $f(Date)$ and $f(Month)$ indicate the additi
 ## Fit the model
 
 
-```{r process3, results='markdown', eval=TRUE}
-reef=wq %>% group_by(reef.alias) %>%
-    dplyr:::summarise(Min=min(Dt.num)) %>%
-    filter(Min<2012) %>% pull(reef.alias)
-reef
-wq=wq %>% filter(reef.alias %in% reef) %>% droplevels
-ggplot(wq, aes(y=NOx,x=Dt.num)) +
-    geom_point() +
-    facet_wrap(~reef.alias)
-
-```
 
 
  
