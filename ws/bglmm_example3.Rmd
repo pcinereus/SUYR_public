@@ -101,7 +101,13 @@ glimpse(starling)
 Model formula:
 $$
 y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
+\mu_i = \beta_0 + \boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}\\
+\boldsymbol{\gamma} = \gamma_0\\
+\beta_0 \sim{} \mathcal{N}(0, 100)\\
+\beta \sim{} \mathcal{N}(0, 10)\\
+\gamma_0 \sim{} \mathcal{N}(0, \sigma_1^2)\\
+\simga \mathcal{cauchy}(0, 2)\\
+\sigma_1 \sim{} \mathcal{cauchy}(0, 2)\\
 $$
 
 where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
