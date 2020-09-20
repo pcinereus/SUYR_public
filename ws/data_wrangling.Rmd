@@ -53,7 +53,7 @@ Load the necessary libraries
 library(tidyverse) #for data wrangling
 ```
 
-Link to the data transformation cheatsheet
+Link to the data transformation cheatsheet 
 
 https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf
 
