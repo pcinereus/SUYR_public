@@ -44,7 +44,7 @@ bibliography: ../resources/references.bib
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+ 
 # Preparations
 
 Load the necessary libraries
@@ -76,7 +76,7 @@ Important data manipulation functions:
 # Piping
 
 # Data files
-
+ 
 ```{r getData, results='markdown', eval=TRUE}
 load(file='../data/manipulationDatasets.RData')
 data.1 %>% head
