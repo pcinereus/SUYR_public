@@ -1,0 +1,130 @@
+---
+title: "GLM Part2"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(emmeans)   #for estimating marginal means
+library(ggeffects) #for partial effects plots
+library(tidyverse) #for data wrangling
+library(modelr)    #for auxillary modelling functions
+library(DHARMa)    #for residual diagnostics plots
+```
+
+# Scenario
+
+@Polis-1998-490 were intested in modelling the presence/absence of lizards (<i>Uta sp.</i>) against the perimeter to area ratio of 19 islands in the Gulf of California.
+
+![Uta lizard](../resources/uta.jpg){width="200" height="137"}
+
+Format of polis.csv data file
+
+ISLAND       RATIO   PA
+------------ ------- ----
+Bota         15.41   1
+Cabeza       5.63    1
+Cerraja      25.92   1
+Coronadito   15.17   0
+..           ..      ..
+
+------------ -----------------------------------------------------------------------------------------
+**ISLAND**   Categorical listing of the name of the 19 islands used - variable not used in analysis.
+**RATIO**    Ratio of perimeter to area of the island.
+**PA**       Presence (1) or absence (0) of *Uta* lizards on island.
+------------ -----------------------------------------------------------------------------------------
+
+
+
+
+The aim of the analysis is to investigate the relationship between island parimeter to area ratio and the presence/absence of Uta lizards.
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+polis = read_csv('../data/polis.csv', trim_ws=TRUE)
+glimpse(polis)
+head(polis)
+str(polis)
+```
+
+ 
+# Exploratory data analysis
+
+Model formula:
+$$
+y_i \sim{} \mathcal{Bin}(n, p_i)\\
+ln\left(\frac{p_i}{1-p_i}\right) = \beta_0 + \beta_1 x_i
+$$
+
+
+# Fit the model
+
+# Model validation
+
+Explore a lack of fit
+
+
+# Model investigation / hypothesis testing
+
+
+# Predictions
+
+
+
+# Summary figures
+
+
+
+# References
