@@ -1,0 +1,176 @@
+---
+title: "GLM example 9"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(DHARMa)    #for residual diagnostics
+library(emmeans)   #for estimating marginal means
+library(ggeffects) #for diagnostic plots in ggplotjk pR
+library(MASS)      #for glm.nb
+library(MuMIn)     #for AICc
+library(pscl)      #for zero inflated models
+library(glmmTMB)
+library(nlme)
+library(tidyverse) #for data wrangling
+library(modelr)    #for auxillary modelling functions
+```
+
+# Scenario
+
+To investigate visitor fishing habits in a state park, some wildlife biologists
+surveyed the visitors and asked them how many fish they had caught, how many
+people were in their group, the number of children in their group and whether
+they had brought a camper (caravan) to the park.  As a possible oversight, they
+did not ask the visitors whether they had attempted to go fishing and they were
+rightly concerned that this might compilate their investigation.
+
+Format of fish.csv data files
+
+CAMPER  CHILDREN  PERSONS    COUNT
+------- --------- ---------- ------
+0       0         1          0
+1       0         1          0
+0       0         1          0
+1       1         2          0
+0       0         1          1
+
+------------------ --------------------------------------------------------------------------------------------
+**CAMPER**         Categorical listing of whether or not the visitor had brought
+                   a camper to the park ­ independent variable
+**CHILDREN**       Categorical listing of the number of children in the
+                   visitor's group ­ independent variable
+**PERSONS**        The number of people in the visitor's group ­ response variable
+**COUNT**          The number of fish the visitor had caught
+------------------ --------------------------------------------------------------------------------------------
+
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+fish = read_csv('../data/fish1.csv', trim_ws=TRUE)
+glimpse(fish)
+```
+# Exploratory data analysis
+
+
+# Fit the model
+
+
+
+# Model validation
+
+ 
+
+
+
+# Model investigation / hypothesis testing
+
+
+
+
+# Predictions
+
+
+
+fish.glm1 <- glmmTMB(COUNT ~ CHILDREN * CAMPER, ziform=~PERSONS, data=fish,
+                family=poisson(link='log'))
+
+fish.resids <- simulateResiduals(fish.glm1, integerResponse = TRUE)
+plot(fish.resids)
+testZeroInflation(fish.resids)
+testDispersion(fish.resids)
+
+#library(pscl)
+#fish.glm2 <- zeroinfl(COUNT ~ CHILDREN * CAMPER | PERSONS,
+#                      data=fish,  dist='negbin')
+
+#fish.glm2 <- zeroinfl(COUNT ~ CHILDREN * CAMPER | 1,
+#                      data=fish,  dist='negbin')
+#summary(fish.glm2)
+
+#fish.glm2 <- glmmTMB(COUNT ~ CHILDREN + CAMPER, ziform=~1, data=fish %>% filter(CHILDREN!='3') %>% droplevels,
+#                     family=nbinom2(link='log'))
+fish.glm2 <- glmmTMB(COUNT ~ CHILDREN * CAMPER, ziform=~PERSONS, data=fish,
+                     family=nbinom2(link='log'))
+fish.resids <- simulateResiduals(fish.glm2, integerResponse = TRUE)
+plot(fish.resids)
+ggemmeans(fish.glm2,  ~CHILDREN|CAMPER) %>% plot
+
+ggemmeans(fish.glm2,  ~CHILDREN|CAMPER) %>% plot
+
+summary(fish.glm2)
+
+
+fish.glm3 <- glmmTMB(COUNT ~ CHILDREN + CAMPER, ziform=~PERSONS, data=fish,
+                     family=nbinom2(link='log'))
+#testZeroInflation(fish.resids)
+fish.resids <- simulateResiduals(fish.glm3, integerResponse = TRUE)
+plot(fish.resids)
+AICc(fish.glm2, fish.glm3)
+
+ggemmeans(fish.glm3,  ~CHILDREN|CAMPER) %>% plot
+
+summary(fish.glm3)
+
+emmeans(fish.glm3, pairwise~CHILDREN, type='response') %>%
+  confint
+
+newdata <- emmeans(fish.glm3, ~CHILDREN|CAMPER, type='response') %>%
+  as.data.frame
+ggplot(newdata,  aes(y=response,  x=CHILDREN)) +
+  geom_pointrange(aes(ymin=lower.CL,  ymax=upper.CL,  color=CAMPER)) +
+  theme_classic()
+```
