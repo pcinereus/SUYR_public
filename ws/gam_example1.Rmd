@@ -1,0 +1,122 @@
+---
+title: "GAM Part1"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, warning=TRUE, message=FALSE}
+library(mgcv)      #for GAMs
+library(gratia)    #for GAM plots
+library(DHARMa)    #for residual diagnostics
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
+library(emmeans)   #for marginal means etc
+library(MuMIn)     #for model selection and AICc
+library(tidyverse) #for data wrangling
+```
+
+# Scenario
+
+This is an entirely fabricated example (how embarrising).
+So here is a picture of some Red Grouse Chicks to compensate..
+
+![Red grouse chicks](../resources/redgrousechicks.jpg){width="251" height="290"}
+
+Format of data.gp.csv data file
+
+x  y
+-- --
+2  3
+4  5
+8  6
+10 7
+14 4
+
+------    -----------------------------
+**x**     - a continuous predictor
+**y**     - a continuous response
+------    -----------------------------
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+data_gam = read_csv('../data/data_gam.csv', trim_ws=TRUE)
+glimpse(data_gam)
+```
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
+\mu_i =\beta_0 + f(x_i)\\
+f(x_i) = \sum^k_{j=1}{b_j(x_i)\beta_j}
+$$
+
+where $\beta_0$ is the y-intercept, and $f(x)$ indicates an additive smoothing function of $x$. 
+
+
+# Fit the model
+
+
+
+
+# Model validation
+
+
+
+
+# Model investigation / hypothesis testing
+
+
+# Predictions
+
+# Summary figures
+
+# References
