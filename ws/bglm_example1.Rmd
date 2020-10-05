@@ -1,0 +1,177 @@
+---
+title: "Bayesian GLM Part1"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE}
+library(rstanarm)   #for fitting models in STAN
+library(brms)       #for fitting models in STAN
+library(coda)       #for diagnostics
+library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
+library(DHARMa)     #for residual diagnostics
+library(rstan)      #for interfacing with STAN
+library(emmeans)    #for marginal means etc
+library(broom)      #for tidying outputs
+library(tidybayes)  #for more tidying outputs
+library(ggeffects)  #for partial plots
+library(tidyverse)  #for data wrangling etc
+theme_set(theme_grey()) #put the default ggplot theme back
+```
+
+# Scenario
+
+Here is an example from @Fowler-1998-1998. An agriculturalist was interested in the effects of fertilizer load on the yield of grass.  Grass seed was sown uniformly over an area and different quantities of commercial fertilizer were applied to each of ten 1 m<sup>2</sup> randomly located plots.  Two months later the grass from each plot was harvested, dried and weighed.  The data are in the file **fertilizer.csv** in the **data** folder.
+
+![](../resources/turf.jpg)
+
+| FERTILIZER   | YIELD   |
+| ------------ | ------- |
+| 25           | 84      |
+| 50           | 80      |
+| 75           | 90      |
+| 100          | 154     |
+| 125          | 148     |
+| \...         | \...    |
+
+---------------- ---------------------------------------------------
+**FERTILIZER**:   Mass of fertilizer (g.m^-2^) - Predictor variable
+**YIELD**:        Yield of grass (g.m^-2^) - Response variable
+---------------- ---------------------------------------------------
+ 
+ 
+The aim of the analysis is to investigate the relationship between fertilizer concentration and grass yield.
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+fert = read_csv('../data/fertilizer.csv', trim_ws=TRUE)
+glimpse(fert)
+```
+
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+\begin{align}
+y_i &\sim{} \mathcal{N}(\mu_i, \sigma^2)\\
+\mu_i &= \beta_0 + \beta_1 x_i\\
+\beta_0 &\sim{} \mathcal{N}(0,100)\\
+\beta_1 &\sim{} \mathcal{N}(0,10)\\
+\sigma &\sim{} \mathcal{cauchy}(0,5)\\
+OR\\
+\sigma &\sim{} \mathcal{Exp}(1)\\
+\end{align}
+$$
+
+# Fit the model
+
+
+
+[https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations]
+
+
+
+
+
+# Model validation
+
+
+
+
+
+
+# Model investigation / hypothesis testing
+
+
+
+
+
+```{r mcmcpvalue, results='markdown', eval=FALSE}
+mcmcpvalue <- function(samp)
+{
+    ## elementary version that creates an empirical p-value for the
+    ## hypothesis that the columns of samp have mean zero versus a
+    ## general multivariate distribution with elliptical contours.
+    
+    ## differences from the mean standardized by the observed
+    ## variance-covariance factor
+    
+    ## Note, I put in the bit for single terms
+    if (length(dim(samp))==0) {
+        std <- backsolve(chol(var(samp)),cbind(0, t(samp)) - mean(samp),transpose = TRUE)
+        sqdist <- colSums(std * std)
+        sum(sqdist[-1] > sqdist[1])/length(samp)
+    }
+    else {
+        std <- backsolve(chol(var(samp)),cbind(0, t(samp)) - colMeans(samp),transpose = TRUE)
+        sqdist <- colSums(std * std)
+        sum(sqdist[-1] > sqdist[1])/nrow(samp)
+    }
+    
+}
+```
+
+
+
+# Predictions
+
+
+
+
+
+# Summary figures
+
+
+
+# References
+
+                                 
