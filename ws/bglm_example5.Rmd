@@ -1,0 +1,135 @@
+---
+title: "Bayesian GLM Part5"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../public/resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../public/resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE}
+library(rstanarm)   #for fitting models in STAN
+library(brms)       #for fitting models in STAN
+library(coda)       #for diagnostics
+library(bayesplot)  #for diagnostics
+library(rstan)      #for interfacing with STAN
+library(DHARMa)     #for residual diagnostics
+library(emmeans)    #for marginal means etc
+library(broom)      #for tidying outputs
+library(tidybayes)  #for more tidying outputs
+library(ggeffects)  #for partial plots
+library(tidyverse)  #for data wrangling etc
+```
+
+# Scenario
+
+Here is a modified example from @Quinn-2002-2002. Day and Quinn
+(1989) described an experiment that examined how rock surface type
+affected the recruitment of barnacles to a rocky shore. The experiment
+had a single factor, surface type, with 4 treatments or levels: algal
+species 1 (ALG1), algal species 2 (ALG2), naturally bare surfaces (NB)
+and artificially scraped bare surfaces (S). There were 5 replicate plots
+for each surface type and the response (dependent) variable was the
+number of newly recruited barnacles on each plot after 4 weeks.
+
+![Six-plated barnacle](../public/resources/barnacles.jpg){width="224" height="308"}
+
+Format of day.csv data files
+
+TREAT   BARNACLE
+------- ----------
+ALG1    27
+..      ..
+ALG2    24
+..      ..
+NB      9
+..      ..
+S       12
+..      ..
+
+-------------- ----------------------------------------------------------------------------------------------------------------------------------------------
+**TREAT**      Categorical listing of surface types. ALG1 = algal species 1, ALG2 = algal species 2, NB = naturally bare surface, S = scraped bare surface.
+**BARNACLE**   The number of newly recruited barnacles on each plot after 4 weeks.
+-------------- ----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+day = read_csv('../public/data/day.csv', trim_ws=TRUE)
+glimpse(day)
+```
+
+```{r prepare, results='markdown', eval=TRUE, hidden=TRUE}
+day = day %>% mutate(TREAT=factor(TREAT))
+```
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+\begin{align}
+y_i &\sim{} \mathcal{Pois}(\lambda_i)\\
+ln(\mu_i) &= \boldsymbol{\beta} \bf{X_i}\\
+\beta_0 &\sim{} \mathcal{N}(0,10)\\
+\beta_{1,2,3} &\sim{} \mathcal{N}(0,1)\\
+\end{align}
+$$
+
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the intercept and treatment contrasts for the effects of Treatment on barnacle recruitment.
+
+# Fit the model
+
+# Model validation
+
+# Model investigation / hypothesis testing
+
+# Predictions
+
+# Summary figures
+
+# References
