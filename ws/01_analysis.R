@@ -9,8 +9,8 @@ library(scales)
 ## ----
 
 ## ---- ReadData
-data <- read_csv('../public/data/data.csv', trim_ws=TRUE)
+data <- read_csv('../data/data.csv', trim_ws=TRUE)
 head(data) 
-enviro <- read_csv('../public/data/enviro.csv', trim_ws=TRUE)
+enviro <- read_csv('../data/enviro.csv', trim_ws=TRUE)
 head(enviro)
 ## ----
