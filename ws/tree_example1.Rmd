@@ -1,0 +1,142 @@
+---
+title: "Regression Trees Part1"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE}
+library(gbm)         #for gradient boosted models
+library(car)
+library(dismo)
+library(pdp)
+library(ggfortify)
+library(randomForest)
+library(tidyverse)
+library(patchwork)
+```
+
+# Scenario
+
+Abalone are an important aquaculture shell fish that are farmed
+for both their meat and their shells.  Abalone can live up to 50 
+years, although their longevity is known to be influenced by a 
+range of environmental factors.  Traditionally, abalone are aged
+by counting thier growth rings, however, this method is very
+laborious and expensive.  Hence a study was conducted in which abalone
+growth ring counts were matched up with a range of other more easily
+measured physical characteristics (such as shell dimesions and weights)
+in order to see if any of these other parameters could be used as
+proxies for the number of growth rings (or age).
+
+![abalone](../resources/abalone.jpg){width="251" height="290"}
+
+Format of abalone.csv data file
+
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+abalone = read_csv('../data/abalone.csv', trim_ws=TRUE)
+glimpse(abalone)
+```
+
+
+
+# Exploratory data analysis
+
+
+
+# Fit the model
+
+
+```{r}
+interact.gbm(abalone.gbm, abalone,1:5, n.tree=best.iter)
+
+terms <- attr(abalone.gbm$Terms,"term.labels")
+abalone.int <- NULL
+for (i in 1:(length(terms)-1)) {
+    for (j in (i+1):length(terms)) {
+        print(paste('i=',i, ' Name = ', terms[i]))
+        print(paste('j=',j, ' Name = ', terms[j]))
+        abalone.int <- rbind(abalone.int,
+                             data.frame(Var1=terms[i], Var2=terms[j],
+                                        "H.stat"=interact.gbm(abalone.gbm, abalone,c(i,j),
+                                                              n.tree=best.iter)
+                                        ))
+    }
+}
+abalone.int %>% arrange(-H.stat)
+terms
+plot(abalone.gbm, c(1,4), n.tree=best.iter)
+plot(abalone.gbm, c(5,6), n.tree=best.iter)
+
+abalone.grid = plot(abalone.gbm, c(5,6), n.tree=best.iter, return.grid=TRUE)
+head(abalone.grid)
+
+ggplot(abalone.grid, aes(y=MEAT_WEIGHT, x=WHOLE_WEIGHT)) +
+    geom_tile(aes(fill=y)) +
+    geom_contour(aes(z=y)) +
+   scale_fill_gradientn(colors=heat.colors(10))
+
+```
+
+  
+
+
+
+
+# Model validation
+
+# Model investigation / hypothesis testing
+
+
+
+
+# Predictions
+
+# Summary figures

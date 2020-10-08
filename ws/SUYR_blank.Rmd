@@ -1,0 +1,101 @@
+---
+title: "Blank Template"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../public/resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../public/resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.engine = 'xelatex')
+```
+   
+```{r readRScripts, results='markdown', eval=TRUE, echo=FALSE}
+knitr::read_chunk('01_analysis.R')
+```   
+   
+# Preparations
+
+Load the necessary libraries
+
+```{r loadLibraries, eval=TRUE, warning=TRUE, message=FALSE}
+```
+
+# Algorithmic approaches
+
+## R-mode analyses
+
+We will use a single common dataset across a whole range of analyses.  Whilst this does
+mean that we do not need to keep introducing new datasets, it does give the impression
+that each of the analyses are equally suitable for this same dataset.  That is not necessarily
+the case...
+
+```{r ReadData}
+```
+
+### Principle Components Analysis
+
+#### Unconstrained
+
+#### Constrained (RDA)
+
+### Correspondance Analysis
+
+#### Unconstrained
+
+#### Constrained
+
+### Principle Coordinates Analysis
+
+#### Unconstrained
+
+#### Constrained
+
+## Q-mode analyses
+
+### Multivariate analysis (NMDS)
+
+# Model based approach
+
+# Production information
+
+```{r}
+sessionInfo()
+```
+
