@@ -43,8 +43,9 @@ bibliography: ../resources/references.bib
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.engine = 'xelatex')
 ```
-
+   
 # Preparations
 
 Load the necessary libraries
@@ -53,12 +54,16 @@ Load the necessary libraries
 library(car)       #for regression diagnostics
 library(broom)     #for tidy output
 library(ggfortify) #for model diagnostics
+library(DHARMa)    #for residual diagnostics
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
+library(ggeffects) #for partial effects plots
 library(emmeans)   #for estimating marginal means
-library(tidyverse) #for data wrangling
 library(modelr)    #for auxillary modelling functions
+library(tidyverse) #for data wrangling
 ```
 
 # Scenario
@@ -80,20 +85,27 @@ Here is an example from @Fowler-1998-1998. An agriculturalist was interested in 
 **FERTILIZER**:  Mass of fertilizer (g.m^-2^) - Predictor variable
 **YIELD**:       Yield of grass (g.m^-2^) - Response variable
 ---------------- ---------------------------------------------------
- 
+
  
 The aim of the analysis is to investigate the relationship between fertilizer concentration and grass yield.
 
 # Read in the data
 
+
 ```{r readData, results='markdown', eval=TRUE}
 fert = read_csv('../data/fertilizer.csv', trim_ws=TRUE)
+```
+
+
+```{r examinData}
 glimpse(fert)
+## Explore the first 6 rows of the data
 head(fert)
 str(fert)
 ```
 
 # Exploratory data analysis
+
 
 Model formula:
 $$
@@ -101,16 +113,62 @@ y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
 \mu_i = \beta_0 + \beta_1 x_i
 $$
 
+where $y_i$ represents the $i$ observed values, $\beta_0$ and $\beta_1$
+represent the intercept and slope respectively, and $\sigma^2$ represents the
+estimated variance.
+
+
+
+```{r EDA, results='markdown', eval=TRUE, hidden=TRUE, message=FALSE}
+ggplot(fert, aes(y=YIELD, x=FERTILIZER)) +
+  geom_point() +
+  geom_smooth()
+ggplot(fert, aes(y=YIELD, x=FERTILIZER)) +
+  geom_point() +
+  geom_smooth(method='lm')
+ggplot(fert, aes(y=YIELD)) +
+  geom_boxplot(aes(x=1))
+```
+
+
+
 
 # Fit the model
 
-# Model validation
-
-# Model investigation / hypothesis testing
 
 
-# Predictions
-# Summary figures
+
+
+```{r fitModel, results='markdown', eval=TRUE, hidden=TRUE}
+fert.lm<-lm(YIELD~1+FERTILIZER, data=fert)
+fert.lm<-lm(YIELD~FERTILIZER, data=fert)
+```
+
+
+# Model validation {.tabset .tabset-faded}
+
+
+
+
+
+
+
+
+
+
+
+# Model outputs {.tabset .tabset-faded}
+
+
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+
+# Predictions {.tabset .tabset-faded}
+
+
+# Additional analyses {.tabset .tabset-faded}
+ 
+# Summary figures {.tabset .tabset-faded}
 
 # References
  
