@@ -57,8 +57,12 @@ library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
 library(emmeans)   #for estimating marginal means
-library(tidyverse) #for data wrangling
+library(ggeffects) #for partial effects plots
 library(modelr)    #for auxillary modelling functions
+library(DHARMa)    #for residual diagnostics plots
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
+library(tidyverse) #for data wrangling
 ```
 
 # Scenario
@@ -83,15 +87,15 @@ Coronadito   15.17   0
 **PA**       Presence (1) or absence (0) of *Uta* lizards on island.
 ------------ -----------------------------------------------------------------------------------------
 
-
-
-
 The aim of the analysis is to investigate the relationship between island parimeter to area ratio and the presence/absence of Uta lizards.
 
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
 polis = read_csv('../data/polis.csv', trim_ws=TRUE)
+```
+
+```{r examinData}
 glimpse(polis)
 head(polis)
 str(polis)
@@ -106,22 +110,35 @@ y_i \sim{} \mathcal{Bin}(n, p_i)\\
 ln\left(\frac{p_i}{1-p_i}\right) = \beta_0 + \beta_1 x_i
 $$
 
+where $y_i$ represents the $i$ observed values, $n$ represents the number of
+trials (in the case of logistic, this is always 1), $p_i$ represents the
+probability of lizards being present in the $i^{th}$ poluation, and $\beta_0$ and $\beta_1$
+represent the intercept and slope respectively.
 
-# Fit the model
+```{r EDA, results='markdown', eval=TRUE, hidden=TRUE}
+ggplot(polis, aes(y=PA, x=RATIO))+
+  geom_point()
+ggplot(polis, aes(y=PA, x=RATIO))+
+  geom_point()+
+  geom_smooth(method='glm', formula=y~x,
+              method.args=list(family='binomial'))
+```
 
-# Model validation
+# Fit the model {.tabset .tabset-faded}
 
-Explore a lack of fit
-
-# Model investigation / hypothesis testing
-
-
-# Predictions
-
-
-
-# Summary figures
+# Model validation {.tabset .tabset-faded}
 
 
+
+# Partial plots {.tabset .tabset-faded}
+
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+
+
+# Predictions {.tabset .tabset-faded}
+
+
+# Summary figures {.tabset .tabset-faded}
 
 # References
