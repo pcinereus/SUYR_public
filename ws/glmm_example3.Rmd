@@ -42,8 +42,83 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 options(tinytex.engine = 'xelatex')
+```
+```{r customEngine, results='markdown', eval=TRUE, echo=FALSE, hidden=TRUE}
+copy_img = function(path,  options) {
+  print(path)
+  print(options$label)
+    print(options$fig.path)
+    print(options$fig.ext)
+    src_file = paste0(options$fig.path, options$label, '-1.', options$fig.ext)
+    out_file = paste0('figures/', options$label, '.', options$fig.ext)
+    print(src_file)
+    print(out_file)
+    print(file.exists(paste0(options$fig.path, options$label, '-1', options$fig.ext)))
+    file.rename(paste0(options$fig.path, options$label, '-1', options$fig.ext),  paste0('figures/', options$label, options$fig.ext)) 
+}
+
+## knitr::knit_hooks$set(copy_tikz_img=function(before,  options,  envir) {
+##   if (!before){
+##     if(!dir.exists('figures')) dir.create('figures')
+##     print(options$label)
+##     print(options$fig.path)
+##     print(options$fig.ext)
+##     src_file = paste0(options$fig.path, options$label, '-1.', options$fig.ext)
+##     out_file = paste0('figures/', options$label, '.', options$fig.ext)
+##     print(src_file)
+##     print(out_file)
+##     print(file.exists(paste0(options$fig.path, options$label, '-1', options$fig.ext)))
+##     file.rename(paste0(options$fig.path, options$label, '-1', options$fig.ext),  paste0('figures/', options$label, options$fig.ext)) 
+##   }
+## })
+
+knitr::knit_engines$set(mytikz = function(options) {
+  `%n%` = function(x, y) {
+    ifelse(!is.null(x),  x,  y)
+  }
+  if (!options$eval) 
+    return(engine_output(options, options$code, ""))
+  lines = xfun::read_utf8(options$engine.opts$template %n% system.file("misc", 
+                                                                 "tikz2pdf.tex", package = "knitr"))
+  i = grep("%% TIKZ_CODE %%", lines)
+  if (length(i) != 1L) 
+    stop("Couldn't find replacement string; or the are multiple of them.")
+  s = append(lines, options$code, i)
+  xfun::write_utf8(s, texf <- knitr:::wd_tempfile("tikz", ".tex"))
+  on.exit(unlink(texf), add = TRUE)
+  ext = tolower(options$fig.ext %n% knitr:::dev2ext(options$dev))
+  to_svg = ext == "svg"
+  outf = if (to_svg) 
+           tinytex::latexmk(texf, "latex")
+         else tinytex::latexmk(texf)
+  fig = knitr:::fig_path(if (to_svg) 
+                   ".dvi"
+                 else ".pdf", options)
+  dir.create(dirname(fig), recursive = TRUE, showWarnings = FALSE)
+  file.rename(outf, fig)
+  fig2 = xfun:::with_ext(fig, ext)
+  if (to_svg) {
+    if (Sys.which("dvisvgm") == "") 
+      tinytex::tlmgr_install("dvisvgm")
+    if (system2("dvisvgm", c("-o", shQuote(fig2), fig)) != 
+        0) 
+      stop("Failed to compile ", fig, " to ", fig2)
+  }
+  else {
+    if (ext != "pdf") 
+      magick::image_write(do.call(magick::image_convert, 
+                                  c(list(magick::image_read_pdf(fig), ext), options$engine.opts$convert.opts)), 
+                          fig2)
+  }
+  fig = fig2
+  options$fig.num = 1L
+  options$fig.cur = 1L
+  extra = (knit_hooks$get("plot"))(fig, options)
+  options$engine = "tex"
+  engine_output(options, options$code, "", extra)
+})
 ```
 # Preparations
 
@@ -56,11 +131,19 @@ library(ggfortify) #for model diagnostics
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
+library(ggeffects) #for partial effects plots
 library(emmeans)   #for estimating marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
 library(tidyverse) #for data wrangling
 library(broom.mixed)
+library(nlme)      #for lme
+library(lme4)      #for lmer
+library(lmerTest)  #for Satterthwaite's p-values
+library(glmmTMB)   #for glmmTMB
+library(DHARMa)   #for residuals and diagnostics
+library(performance) #for diagnostic plots
+library(see)         #for diagnostic plots
 ```
 
 # Scenario
@@ -92,8 +175,80 @@ tree        Jan     85     tree1
 --------------- ------------------------------------------------------------------------------
 
 
+```{tikz samplingDesign, engine='tikz', results='markdown', echo=FALSE, eval=TRUE, hidden=TRUE, engine.opts = list(template = "../resources/tikz-standalone.tex"), out.width=700, fig.ext='png', include=FALSE, copy_tikz_img=TRUE,fig.process=copy_img}
+\tikzstyle{Messy} = [decorate,decoration={random steps,segment length=3pt, amplitude=0.3pt},thick]
+\setmainfont[ExternalLocation=../resources/]{desyrel}
+\begin{tikzpicture}[every node/.style={draw,Messy,fill=blue!20},
+edge from parent/.style={Messy,anchor=south},
+edge from parent 3/.style={draw,-latex},
+parent anchor=south,
+child anchor=north,
+level 1/.style={sibling distance=4cm, level distance=1cm},
+level 2/.style={sibling distance=2cm, level distance=2cm}, 
+level 3/.style={sibling distance=0.5cm, level distance=2.0cm},
+level 4/.style={sibling distance=0.5cm, level distance=1cm},
+level 5/.style={sibling distance=0.5cm, level distance=1.5cm},
+every tree node/.style={align=north,anchor=north},
+mystyle/.style={-latex}
+]
+\path
+ node [draw=none, fill=none](top) {}
+  child { node (A) {A}
+    child { node (Aa) {a}
+      child { node (Aa1) {} edge from parent[draw,-latex]}
+      child { node (Aa2) {} edge from parent[draw,-latex]}
+      child { node (Aa3) {} edge from parent[draw,-latex]}
+      child { node (Aa4) {} edge from parent[draw,-latex]}
+    }
+    child { node (Ab) {b}
+ 	  child { node (Ab1) {} edge from parent[draw,-latex]}	
+      child { node (Ab2) {} edge from parent[draw,-latex]}
+      child { node (Ab3) {} edge from parent[draw,-latex]}
+      child { node (Ab4) {} edge from parent[draw,-latex]}
+    } 
+  }
+  child { node (B) {B}
+    child { node (Bc) {c}
+      child { node (Bc1) {} edge from parent[draw,-latex]}	
+      child { node (Bc2) {} edge from parent[draw,-latex]}
+      child { node (BC3) {} edge from parent[draw,-latex]}
+      child { node (Bc4) {} edge from parent[draw,-latex]}
+    }	
+    child { node (Bd) {d}
+      child { node (Bd1) {} edge from parent[draw,-latex]}	
+      child { node (Bd2) {} edge from parent[draw,-latex]}
+      child { node (Bd3) {} edge from parent[draw,-latex]}
+      child { node (Bd4) {} edge from parent[draw,-latex]}
+    } 
+  };
+
+\draw [Messy,-latex](A.south)--(Aa.north);
+\draw [Messy,-latex](A.south)--(Ab.north);
+\draw [Messy,-latex](B.south)--(Aa.north);
+\draw [Messy,-latex](B.south)--(Ab.north);
+\draw [Messy,-latex](A.south)--(Bc.north);
+\draw [Messy,-latex](A.south)--(Bd.north);
+\draw [Messy,-latex](B.south)--(Bc.north);
+\draw [Messy,-latex](B.south)--(Bd.north);
+
+\node[Messy,anchor=east,draw=none,fill=none] at ($(A.west) + (-2cm,0)$) (Factor1) {Factor 1};
+\node[Messy,anchor=east,draw=none,fill=none] at ($(Factor1.east|-Aa.west) + (0cm,0)$) (Factor2) {Factor 2};
+\node[Messy,anchor=east,draw=none,fill=none] at ($(Factor2.east|-Aa1.west) + (0cm,0)$) (Observations) {Observations};
+\end{tikzpicture}
+```
 
 <!-- ![Sampling design](../docs/figures/samplingDesign-1.png){width="700"} -->
+
+This is a split-plot (or repeated measures) design.  The individual birds are the blocks, the Situation
+is the between block effect and the Month is the within block effect.  Repeated
+measures analyses involve a within block effect that represents time (in this
+case Month).  Since it is not possible to randomize the order of time, repeated
+measures designs have the potential for the residuals to be autocorrelated.
+That is, rather than being independent, residuals from observations that are
+closer in time, tend to be more similar (correlated) than the residuals
+associated with observations that are further apart in time.
+
+That said, with only two time points, autocorrelation is not possible.
 
 # Read in the data
 
@@ -101,6 +256,16 @@ tree        Jan     85     tree1
 starling = read_csv('../data/starling_full.csv', trim_ws=TRUE)
 glimpse(starling)
 ```
+
+Lets prepare the data:
+
+```{r dataPrep, results='markdown', eval=TRUE, hidden=TRUE}
+starling = starling %>% mutate(MONTH=factor(MONTH,levels=c('Nov','Jan')),
+                               SITUATION=factor(SITUATION),
+                               BIRD=factor(BIRD)
+                               )
+```
+
 # Exploratory data analysis
 
 Model formula:
@@ -113,13 +278,43 @@ where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed an
 and $\bf{X}$ is the model matrix representing the overall intercept and effects of roosting situation and month on starling mass.
 $\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual birds.
 
-# Fit the model
-# Model validation
+## Exploratory data analysis
 
-# Model investigation / hypothesis testing
+```{r eda1, results='markdown', eval=TRUE, hidden=TRUE}
+ggplot(starling, aes(y=MASS, x=MONTH)) +
+    geom_boxplot() +
+    facet_grid(~SITUATION)
+## Better still
+ggplot(starling, aes(y=MASS, x=MONTH, group=BIRD)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(~SITUATION) 
+```
 
-# Predictions
+**Conclusions:**
 
-# Summary figures
+- it is clear that the Nov mass of each bird is different - so random intercepts
+- the degree to which they change between Nov and Dec is also relatively
+  different per bird - perhaps random intercept/random slope
+
+# Fit the model {.tabset .tabset-faded}
+
+
+
+# Model validation {.tabset .tabset-faded}
+
+
+# Partial plots {.tabset .tabset-faded}
+
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+
+# Further analyses {.tabset .tabset-faded}
+
+
+
+# Summary figures {.tabset .tabset-faded}
+
 
 # References
+

@@ -57,10 +57,14 @@ library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
 library(emmeans)   #for estimating marginal means
+library(ggeffects) #for partial effects plots
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
-library(tidyverse) #for data wrangling
+library(DHARMa)    #for residual diagnostics plots
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
 library(modelr)    #for auxillary modelling functions
+library(tidyverse) #for data wrangling
 ```
 
 # Scenario
@@ -104,38 +108,23 @@ $$
 y_i \sim{} \mathcal{Pois}(\lambda_i)\\
 ln(\lambda_i) = \beta_0 + \beta_1 ln(x_i)
 $$
-
+where the number of individuals in the $i^th$ observation is assumed to be drawn
+from a Poisson distribution with a $\lambda$ (=mean) of $\lambda_i$.  The
+natural log of these expected values is modelled against a linear predictor that
+includes an intercept ($\beta_0$) and slope ($\beta_i$) for natural log
+transformed area.
+expected values are 
 
 # Fit the model
 
-## Candidate models {.tabset .tabset-faded}
 
-### LM
+## Partial plots {.tabset .tabset-faded}
 
-#### Model validation
-
-### Poisson (GLM)
-#### Model validation
-Explore a lack of fit
-
-Explore overdispersion
-
-### Negative Binomial (GLM)
-
-#### Model validation
-
-Explore a lack of fit
-
-Explore overdispersion
-
-## Comparisons (model selection)
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
 
 
-# Model investigation / hypothesis testing
-
-# Predictions
+# Predictions {.tabset .tabset-faded}
 
 # Summary figures
-
 
 # References

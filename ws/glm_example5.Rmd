@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,  warning=FALSE, message=FALSE)
 ```
 
 # Preparations
@@ -57,10 +57,16 @@ library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
 library(emmeans)   #for estimating marginal means
+library(ggeffects) #for plotting marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
 library(tidyverse) #for data wrangling
 library(modelr)    #for auxillary modelling functions
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
+library(DHARMa)    #for residual diagnostics plots
+library(patchwork) #grid of plots
+library(scales)    #for more scales
 ```
 
 # Scenario
@@ -96,9 +102,14 @@ S       12
 
 # Read in the data
 
+As we are going to treat Treatment as a categorical predictor, we will
+specifically declare it as such straight after importing the data.
+
 ```{r readData, results='markdown', eval=TRUE}
 day = read_csv('../data/day.csv', trim_ws=TRUE)
 glimpse(day)
+day <- day %>%
+  mutate(TREAT = factor(TREAT))
 ```
 
 
@@ -112,33 +123,29 @@ $$
 
 where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the intercept and treatment contrasts for the effects of Treatment on barnacle recruitment.
 
+```{r EDA, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8, hidden=TRUE}
+ggplot(day, aes(y=BARNACLE, x=TREAT)) +
+    geom_boxplot()+
+    geom_point(color='red')
+ggplot(day, aes(y=BARNACLE, x=TREAT)) +
+    geom_violin()+
+    geom_point(color='red')
+```
 
 # Fit the model
 
 
-
 # Model validation {.tabset .tabset-faded}
 
-## Gaussian
 
-
-## Poisson
-
-
-
+# Partial plots {.tabset .tabset-faded}
 
 
 # Model investigation / hypothesis testing {.tabset .tabset-faded}
 
-## Gaussian
 
+# Predictions {.tabset .tabset-faded}
 
-
-## Poisson
-
-
-
-# Predictions
 
 ## Post-hoc test (Tukey's)
 
@@ -154,8 +161,7 @@ b) NB vs S
 c) average of ALG1+ALG2 vs NB+S
 
 
-# Summary figures
-
+# Summary figures {.tabset .tabset-faded}
 
 
 # References

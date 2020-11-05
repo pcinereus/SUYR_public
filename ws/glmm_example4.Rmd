@@ -52,19 +52,45 @@ Load the necessary libraries
 ```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
 library(car)       #for regression diagnostics
 library(broom)     #for tidy output
+library(broom.mixed)
 library(ggfortify) #for model diagnostics
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
+library(ggeffects) #for effects plots in ggplot
 library(emmeans)   #for estimating marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
 library(tidyverse) #for data wrangling
+library(DHARMa)   #for residuals and diagnostics
+library(nlme)     #for lme
+library(lme4)      #for glmer
+library(glmmTMB)    #for glmmTMB
+library(performance) #for diagnostic plots
+library(see)         #for diagnostic plots
 ```
 
 # Scenario
 
-Someone did something for some reason.....
+To investigate synergistic coral defence by mutualist crustaceans,
+@Mckeon-2012-1095 conducted an aquaria experiment in which colonies of a coral
+species were placed in a tank along with a preditory seastar and one of four
+symbiont combinations:
+
+- no symbiont,
+- a crab symbiont
+- a shrimp symbiont
+- both a crab and shrimp symbiont.
+
+The experiments were conducted in a large octagonal flow-through seawater tank
+that was partitioned into eight sections, which thereby permitted two of each of
+the four symbiont combinations to be observed concurrently. The tank was left
+overnight and in the morning, the presence of feeding scars on each coral colony
+was scored as evidence of predation.  The experiments were repeated ten times,
+each time with fresh coral colonies, seastars and symbiont.
+
+The ten experimental times represent blocks (random effects) within which the
+symbiont type (fixed effect) are nested.
 
 # Read in the data
 
@@ -74,7 +100,7 @@ glimpse(mckeon)
 ```
 
 
-# Exploratory data analysis
+# Exploratory data analysis {.tabset .tabset-faded}
 
 Model formula:
 $$
@@ -86,15 +112,266 @@ where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed an
 and $\bf{X}$ is the model matrix representing the overall intercept and effects of symbionts on the probability of the colony experiencing predation.
 $\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual coral colonies.
 
-# Fit the model
+
+```{r eda1a, results='markdown', eval=TRUE, hidden=TRUE}
+ggplot(mckeon, aes(y=PREDATION, x=SYMBIONT)) +
+    geom_point(position=position_jitter(width=0.2, height=0))+
+    facet_wrap(~BLOCK)
+```
+
+# Fit the model {.tabset .tabset-faced}
 
 
-# Model validation
+# Model validation {.tabset .tabset-faded}
 
-# Model investigation / hypothesis testing
 
-# Predictions
+# Partial plots {.tabset .tabset-faded}
 
-# Summary figures
+## glmer (lme4) {.tabset .tabset-pills}
 
+### plot_model
+
+```{r partialPlots1a, results='markdown', eval=TRUE, hidden=TRUE}
+plot_model(mckeon.glmer1,  type='eff')
+```
+
+### allEffects
+
+```{r partialPlots1b, results='markdown', eval=TRUE, hidden=TRUE}
+plot(allEffects(mckeon.glmer1))
+```
+
+### ggpredict
+
+```{r partialPlots1c, results='markdown', eval=TRUE, hidden=TRUE}
+ggpredict(mckeon.glmer1) %>% plot
+```
+
+### ggemmeans
+
+```{r partialPlots1d, results='markdown', eval=TRUE, hidden=TRUE}
+ggemmeans(mckeon.glmer1,  ~SYMBIONT) %>% plot
+```
+
+## glmmTMB (glmmTMB) {.tabset .tabset-pills}
+
+### plot_model
+
+```{r partialPlots2a, results='markdown', eval=TRUE, hidden=TRUE}
+plot_model(mckeon.glmmTMB1,  type='eff')
+```
+
+### allEffects
+
+```{r partialPlots2b, results='markdown', eval=TRUE, hidden=TRUE}
+plot(allEffects(mckeon.glmmTMB1))
+```
+
+### ggpredict
+
+```{r partialPlots2c, results='markdown', eval=TRUE, hidden=TRUE}
+ggpredict(mckeon.glmmTMB1) %>% plot
+```
+
+### ggemmeans
+
+```{r partialPlots2d, results='markdown', eval=TRUE, hidden=TRUE}
+ggemmeans(mckeon.glmmTMB1,  ~SYMBIONT) %>% plot
+```
+
+
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+## glmer (lme4) {.tabset .tabset-pills}
+
+### summary
+
+```{r summary1a, results='markdown', eval=TRUE, hidden=TRUE}
+summary(mckeon.glmer1)
+```
+```{r summary1a1, results='markdown', eval=TRUE, echo=FALSE,hidden=TRUE}
+mckeon.tidy <- tidy(mckeon.glmer1)
+```
+
+**Conclusions:**
+
+- the coefficients are presented on a logit scale.  Whilst this is not relavant
+  for the purpose of inference testing, it does make it difficult to interpret
+  the coefficients.
+- if we exponentiate the coefficients ($log(\frac{\rho}{1-\rho})$ ->
+  $\frac{\rho}{1-\rho}$), they will be presented on a odds ratio scale, and thus:
+  - the intercept (none symbionts) will be 
+    `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))`.  That is, corals without a
+    symbiont are `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))` times more
+    likely to be preditated on than not predated on.  The odds of predation in
+    this the absence of symbionts is `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))`:1.
+  - in the presence of a crab symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[2, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of a crab symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[2, 4]),2)))`%.
+  - in the presence of a shrimp symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[3, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of a shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[3, 4]),2)))`%.
+  - in the presence of both crab and shrimp symbionts, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[4, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of both crab and shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[4, 4]),2)))`%.
+- if we backtransform the intercept full to the response scale (probability
+  scale), ($log(\frac{\rho}{1-\rho})$ -> $\rho$), the intercept is interpreted
+  as the probability that corals will be predated in the absence of of symbionts
+  is `r round(plogis(as.numeric(mckeon.tidy[1, 4]),2))`
+  
+
+### tidy
+
+```{r summary1b, results='markdown', eval=TRUE, hidden=TRUE}
+tidy(mckeon.glmer1, effect='fixed', conf.int=TRUE, infer=c(TRUE, TRUE))
+tidy(mckeon.glmer1, effect='fixed', conf.int=TRUE, infer=c(TRUE, TRUE),  exponentiate=TRUE)
+tidy(mckeon.glmer1, effect='fixed', conf.int=TRUE, infer=c(TRUE, TRUE),  exponentiate=TRUE) %>% kable
+```
+
+**Conclusions:**
+
+- the coefficients are presented on a logit scale.  Whilst this is not relavant
+  for the purpose of inference testing, it does make it difficult to interpret
+  the coefficients.
+- if we exponentiate the coefficients ($log(\frac{\rho}{1-\rho})$ ->
+  $\frac{\rho}{1-\rho}$), they will be presented on a odds ratio scale, and thus:
+  - the intercept (none symbionts) will be 
+    `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))`.  That is, corals without a
+    symbiont are `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))` times more
+    likely to be preditated on than not predated on.  The odds of predation in
+    this the absence of symbionts is `r as.numeric(round(exp(mckeon.tidy[1, 4]),2))`:1.
+  - in the presence of a crab symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[2, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of a crab symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[2, 4]),2)))`%.
+  - in the presence of a shrimp symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[3, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of a shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[3, 4]),2)))`%.
+  - in the presence of both crab and shrimp symbionts, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[4, 4]),2))` times that of the none
+    symbiont group.  That is, in the presence of both crab and shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[4, 4]),2)))`%.
+- if we backtransform the intercept full to the response scale (probability
+  scale), ($log(\frac{\rho}{1-\rho})$ -> $\rho$), the intercept is interpreted
+  as the probability that corals will be predated in the absence of of symbionts
+  is `r round(plogis(as.numeric(mckeon.tidy[1, 4]),2))`
+  
+### tab_model
+
+```{r summary1c, results='markdown', eval=TRUE, hidden=TRUE}
+# warning this is only appropriate for html output
+sjPlot::tab_model(mckeon.glmer1, show.se=TRUE, show.aic=TRUE)
+```
+
+## glmmTMB (glmmTMB) {.tabset .tabset-pills}
+
+### summary
+
+```{r summary2a, results='markdown', eval=TRUE, hidden=TRUE}
+summary(mckeon.glmmTMB1)
+```
+
+```{r summary2a1, results='markdown', eval=TRUE, echo=FALSE,hidden=TRUE}
+mckeon.tidy <- tidy(mckeon.glmmTMB1)
+```
+
+**Conclusions:**
+
+- the coefficients are presented on a logit scale.  Whilst this is not relavant
+  for the purpose of inference testing, it does make it difficult to interpret
+  the coefficients.
+- if we exponentiate the coefficients ($log(\frac{\rho}{1-\rho})$ ->
+  $\frac{\rho}{1-\rho}$), they will be presented on a odds ratio scale, and thus:
+  - the intercept (none symbionts) will be 
+  `r as.numeric(round(exp(mckeon.tidy[1, 5]), 2))`.  That is, corals without a
+    symbiont are `r as.numeric(round(exp(mckeon.tidy[1, 5]), 2))` times more
+    likely to be preditated on than not predated on.  The odds of predation in
+    this the absence of symbionts is `r as.numeric(round(exp(mckeon.tidy[1, 5]), 2))`:1.
+  - in the presence of a crab symbiont, the odds of being predated on are only 
+  `r as.numeric(round(exp(mckeon.tidy[2, 5]), 2))` times that of the none
+    symbiont group.  That is, in the presence of a crab symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[2, 5]), 2)))`%.
+  - in the presence of a shrimp symbiont, the odds of being predated on are only 
+  `r as.numeric(round(exp(mckeon.tidy[3, 5]), 2))` times that of the none
+    symbiont group.  That is, in the presence of a shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[3, 5]), 2)))`%.
+  - in the presence of both crab and shrimp symbionts, the odds of being predated on are only 
+  `r as.numeric(round(exp(mckeon.tidy[4, 5]),2))` times that of the none
+    symbiont group.  That is, in the presence of both crab and shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[4, 5]),2)))`%.
+- if we backtransform the intercept full to the response scale (probability
+  scale), ($log(\frac{\rho}{1-\rho})$ -> $\rho$), the intercept is interpreted
+  as the probability that corals will be predated in the absence of of symbionts
+  is `r round(plogis(as.numeric(mckeon.tidy[1, 5])),2)`
+  
+### tidy
+
+```{r summary2b, results='markdown', eval=TRUE, hidden=TRUE}
+tidy(mckeon.glmmTMB1, effect='fixed', conf.int=TRUE, infer=c(TRUE, TRUE))
+tidy(mckeon.glmmTMB1, effect='fixed', conf.int=TRUE, infer=c(TRUE, TRUE),  exponentiate=TRUE)
+```
+
+**Conclusions:**
+
+- the coefficients are presented on a logit scale.  Whilst this is not relavant
+  for the purpose of inference testing, it does make it difficult to interpret
+  the coefficients.
+- if we exponentiate the coefficients ($log(\frac{\rho}{1-\rho})$ ->
+  $\frac{\rho}{1-\rho}$), they will be presented on a odds ratio scale, and thus:
+  - the intercept (none symbionts) will be 
+    `r as.numeric(round(exp(mckeon.tidy[1, 5]),2))`.  That is, corals without a
+    symbiont are `r as.numeric(round(exp(mckeon.tidy[1, 5]),2))` times more
+    likely to be preditated on than not predated on.  The odds of predation in
+    this the absence of symbionts is `r as.numeric(round(exp(mckeon.tidy[1, 5]),2))`:1.
+  - in the presence of a crab symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[2, 5]),2))` times that of the none
+    symbiont group.  That is, in the presence of a crab symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[2, 5]),2)))`%.
+  - in the presence of a shrimp symbiont, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[3, 5]),2))` times that of the none
+    symbiont group.  That is, in the presence of a shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[3, 5]),2)))`%.
+  - in the presence of both crab and shrimp symbionts, the odds of being predated on are only 
+    `r as.numeric(round(exp(mckeon.tidy[4, 5]),2))` times that of the none
+    symbiont group.  That is, in the presence of both crab and shrimp symbiont, the odds of
+    predation decline by `r 100*(1-as.numeric(round(exp(mckeon.tidy[4, 5]),2)))`%.
+- if we backtransform the intercept full to the response scale (probability
+  scale), ($log(\frac{\rho}{1-\rho})$ -> $\rho$), the intercept is interpreted
+  as the probability that corals will be predated in the absence of of symbionts
+  is `r round(plogis(as.numeric(mckeon.tidy[1, 5]),2))`
+  
+### tab_model
+
+```{r summary2c, results='markdown', eval=TRUE, hidden=TRUE}
+# warning this is only appropriate for html output
+sjPlot::tab_model(mckeon.glmmTMB1, show.se=TRUE, show.aic=TRUE)
+```
+
+# Further analyses {.tabset .tabset-faded}
+
+
+
+# Summary figure {.tabset .tabset-faded}
+
+## glmer (lme4)
+
+```{r summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE}
+emmeans(mckeon.glmer1, ~SYMBIONT, type='response') %>%
+  as.data.frame %>%
+  ggplot(aes(y=prob,  x=SYMBIONT)) +
+  geom_pointrange(aes(ymin=asymp.LCL,  ymax=asymp.UCL))
+```
+
+## glmmTMB (glmmTMB)
+
+```{r summaryFig2a, results='markdown', eval=TRUE, hidden=TRUE}
+emmeans(mckeon.glmmTMB1, ~SYMBIONT, type='response') %>% 
+  as.data.frame %>%
+  ggplot(aes(y=prob,  x=SYMBIONT)) +
+  geom_pointrange(aes(ymin=lower.CL,  ymax=upper.CL))
+```
 # References

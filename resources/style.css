@@ -301,3 +301,8 @@ slides > slide pre.lang-bash1 .lit {
     -webkit-columns: 3 100px;
     -moz-columns: 3 100px;
 }
+
+.tab-content {
+    border: solid 1px #dddddd;   
+    padding: 5px;
+}

@@ -57,10 +57,15 @@ library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
 library(emmeans)   #for estimating marginal means
+library(ggeffects) #for partial effects plots
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
-library(tidyverse) #for data wrangling
+library(DHARMa)    #for residual diagnostics plots
 library(modelr)    #for auxillary modelling functions
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
+library(patchwork)   #for grids of plots
+library(tidyverse) #for data wrangling
 ```
 
 # Scenario
@@ -97,12 +102,15 @@ loyn = read_csv('../data/loyn.csv', trim_ws=TRUE)
 glimpse(loyn)
 ```
 
-# Exploratory data analysis
+# Exploratory data analysis {.tabset .tabset-faded}
+
+
+# Fit the model
 
 Model formula:
 $$
 y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i = \boldsymbol{\beta} \bf{X_i}
+log(\mu_i) = \boldsymbol{\beta} \bf{X_i}
 $$
 
 where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the additive effects of
@@ -110,34 +118,21 @@ the scaled versions of distance (ln), distance to the nearest large patch (ln), 
 altitude on the abundance of forest birds.
 
 
+# Model validation {.tabset .tabset-faded}
 
 
-# Fit the model
+# Partial plots {.tabset .tabset-faded}
+
+# Caterpillar plot
+
+```{r plotModel4a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8, message=FALSE, warning=FALSE}
+plot_model(loyn.glm,  type='est')
+plot_model(loyn.glm,  type='est', transform='exp', show.values=TRUE)
+```
 
 
-# Model validation
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
 
 
+# Further analyses {.tabset .tabset-faded}
 
-# Model investigation / hypothesis testing
-
-
-# Predictions {.tabset .tabset-faded}
-
-
-## Option 1 - dredge
-
-
-## Option 2 - model averaging
-
-
-## Option 3 - explore a small set of models
-
-
-# Summary figures
-
-
-# Further/alternative analyses
-
-
-# References

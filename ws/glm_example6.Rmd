@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,  warning=FALSE,  message=FALSE)
 ```
 
 # Preparations
@@ -57,10 +57,16 @@ library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
 library(emmeans)   #for estimating marginal means
+library(ggeffects) #for plotting marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
 library(tidyverse) #for data wrangling
 library(modelr)    #for auxillary modelling functions
+library(DHARMa)    #for residual diagnostics plots
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
+library(patchwork) #grid of plots
+library(scales)    #for more scales
 ```
 
 # Scenario
@@ -110,10 +116,16 @@ glimpse(quinn)
 summary(quinn)
 ```
 
+Since we intend to model both SEASON and DENSITY as categorical variables, 
+we need to explicitly declair them as factors.
 
-	
+```{r dataprep, results='markdown', eval=TRUE, hidden=TRUE}
+quinn = quinn %>% mutate(SEASON = factor(SEASON, levels=c('Spring', 'Summer', 'Autumn', 'Winter')),
+                         DENSITY = factor(DENSITY))
+```
+
 # Exploratory data analysis
-	
+
 Model formula:
 $$
 \begin{align}
@@ -125,21 +137,46 @@ $$
 where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$
 is a model matrix representing the intercept and effects of season, density and their interaction on mussel recruitment.
 
+```{r eda, hidden=TRUE}
+ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
+     geom_boxplot()
+```
 
-# Fit the model
+**Conclusions:**
+
+- there is clear evidence of non-homogeneity of variance
+- specifically, there is evidence that the variance is related to the mean in
+  that boxplots that are lower on the y-axis (low mean) also have lower variance
+  (shorter boxplots)
+- this might be expected for count data and we might consider that a Poisson
+  distribution (which assumes that mean and variance are equal - and thus
+  related in a very specific way).
+
+Lets mimic the effect of using a log link, by using log scaled y-axis.
+
+```{r eda1, hidden=TRUE}
+ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+**Conclusions:**
+
+- that is an improvement
 
 
-# Model validation
+# Fit the model {.tabset .tabset-faded}
 
 
+# Model validation {.tabset .tabset-faded}
 
 
+# Different model {.tabset .tabset-faded}
+
+# Parial plots {.tabset .tabset-faded}
 
 
-
-
-# Model investigation / hypothesis testing
-
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
 
 
 # Predictions
@@ -149,7 +186,23 @@ is a model matrix representing the intercept and effects of season, density and 
 
 
 
+```{r zeroinflate, results='markdown', eval=TRUE, hidden=TRUE}
+library(pscl)
+quinn.zip <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='poisson')
+#quinn.resid <- simulateResiduals(quinn.zip,  plot=TRUE)
+summary(quinn.zip)
+#tidy(quinn.zip,  conf.int=TRUE, exponentiate = TRUE)
+exp(-3.0037)
+quinn.zip1 <- zeroinfl(RECRUITS ~ DENSITY*SEASON | SEASON, data=quinn,  dist='poisson')
+                                        #quinn.resid <- simulateResiduals(quinn.zip)
+summary(quinn.zip1)
+exp(-3.0037)
 
+quinn.zinb <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='negbin')
+AICc(quinn.zip,  quinn.zinb)
 
+summary(quinn.zinb)
+exp(-15.29)
+```
 
 # References
