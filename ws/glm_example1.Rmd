@@ -172,3 +172,4 @@ fert.lm<-lm(YIELD~FERTILIZER, data=fert)
 
 # References
  
+ 
