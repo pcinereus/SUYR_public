@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
 
 # Preparations
@@ -58,17 +58,26 @@ library(MuMIn)     #for model selection and AICc
 library(lubridate) #for processing dates
 library(tidyverse) #for data wrangling
 library(DHARMa)    #for residuals diagnostics
+library(performance) #for residual disagnostics
+library(see)        # to visualize residual diagnostics
+library(patchwork)  #for grids of plots
 ```
  
 # Scenario
 
 The Australian Institute of Marine Science (AIMS) have a long-term
 inshore marine water quality monitoring program in which water samples
-are collected and analysed from sites across the GBR numerous times 
+are collected and analysed from sites (reef.alias) across the GBR numerous times 
 per year.  The focus of this program is to report long-term condition and change
 in water quality parameters.
 
-![AIMS water quality monitoring](../resources/AIMS_wq.jpg){width="251" height="290"}
+Although we do have latitude and longitudes, the nature of the spatial design
+predominantly reflects a series of transects that start near the mouth of a
+major river and extend northwards, yet mainly within the open coastal zone.  As
+a result, this design is not well suited to any specific spatial analyses (since
+they are mainly one dimensional).
+
+![AIMS water quality monitoring](../resources/AIMS_wq.jpg){width="600" height="325"}
 
 Format of aims.wq.csv data file
 
@@ -91,6 +100,7 @@ LATITUDE LONGITUDE reef.alias Water_Samples Region Subregion Season waterYear NO
 **Subregion**      - The MMP subregion
 **Season**         - A categorical listing of Wet or Dry
 **waterYear**      - The water year (1st Oct - 30 Sept) to which the data are attached
+**Date**           - The date the sample was collected
 **NOx**            - Nitrite and Nitrate
 --------------     ---------------------------------------------------------------------
 
@@ -99,13 +109,6 @@ LATITUDE LONGITUDE reef.alias Water_Samples Region Subregion Season waterYear NO
 ```{r readData, results='markdown', eval=TRUE}
 wq = read_csv('../data/aims.wq.csv', trim_ws=TRUE)
 glimpse(wq)
-```
-
-```{r prepareData, results='markdown', eval=TRUE}
-wq = wq %>% mutate(reef.alias=factor(reef.alias),
-                   Region=factor(Region),
-                   Subregion=factor(Subregion),
-                   Season=factor(Season))
 ```
 
 
@@ -121,44 +124,27 @@ where $\beta_0$ is the y-intercept. $f(Date)$ and $f(Month)$ indicate the additi
 
 
 
-
-# Simple model (Pandora only)
-
-
-## Fit the model
+# Data preparations
 
 
-
-## Model validation
-
+# Simple model (Pandora only) {.tabset .tabset-faded}
 
 
-
-## Model investigation / hypothesis testing
-
-## Predictions
-
-## Summary figures
+# Exploring more models {.tabset .tabset-faded}
 
 
+# Mixed model (all reefs) {.tabset .tabset-faded}
 
-# Mixed model (all reefs)
 
-## Fit the model
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+
+# Further analyses
+
+
+# Summary figures
 
 
 
-
- 
-
-
-## Model validation
-
-## Model investigation / hypothesis testing
-
-
-## Predictions
-
-## Summary figures
-
+# References
 

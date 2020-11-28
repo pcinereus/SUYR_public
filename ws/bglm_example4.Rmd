@@ -50,16 +50,20 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 Load the necessary libraries
 
 ```{r libraries, results='markdown', eval=TRUE}
+library(car)
 library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
 library(rstan)      #for interfacing with STAN
 library(emmeans)    #for marginal means etc
 library(DHARMa)     #for residual diagnostics
 library(broom)      #for tidying outputs
 library(tidybayes)  #for more tidying outputs
 library(ggeffects)  #for partial plots
+library(broom.mixed)#for summarising models
+library(ggeffects)  #for partial effects plots
 library(tidyverse)  #for data wrangling etc
 ```
 
@@ -97,29 +101,37 @@ loyn = read_csv('../data/loyn.csv', trim_ws=TRUE)
 glimpse(loyn)
 ```
 
+
+
 # Exploratory data analysis
+
 
 Model formula:
 $$
 y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i = \boldsymbol{\beta} \bf{X_i}
+log(\mu_i) = \boldsymbol{\beta} \bf{X_i}
 $$
 
 where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the additive effects of
 the scaled versions of distance (ln), distance to the nearest large patch (ln), patch area (ln), grazing intensity, year of isolation and 
 altitude on the abundance of forest birds.
 
-# Fit model
+
+# Fit the model {.tabset .tabset-faded}
+
+
+# MCMC sampling diagnostics {.tabset .tabset-faded}
 
 
 
 
-# Model validation
 
-# Model investigation / hypothesis testing
+# Model validation {.tabset .tabset-faded}
 
-# Predictions
 
-# Summary figures
 
-# References
+# Partial effects plots {.tabset .tabset-faded}
+
+
+# Model investigation {.tabset .tabset-faded}
+

@@ -51,7 +51,11 @@ Load the necessary libraries
 
 ```{r libraries, results='markdown', eval=TRUE, warning=TRUE, message=FALSE}
 library(mgcv)      #for GAMs
+library(broom)     #for tidy results
 library(gratia)    #for GAM plots
+library(DHARMa)    #for residual diagnostics
+library(performance) #for residuals diagnostics
+library(see)         #for plotting residuals
 library(emmeans)   #for marginal means etc
 library(MuMIn)     #for model selection and AICc
 library(tidyverse) #for data wrangling
@@ -68,11 +72,11 @@ Format of data.gp.csv data file
 
 x  y
 -- --
--8 -2
--6 0
--2 1
-0  2
-4  -1
+2  3
+4  5
+8  6
+10 7
+14 4
 
 ------    -----------------------------
 **x**     - a continuous predictor
@@ -82,8 +86,8 @@ x  y
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-data.gp = read_csv('../data/data.gp.csv', trim_ws=TRUE)
-glimpse(data.gp)
+data_gam = read_csv('../data/data_gam.csv', trim_ws=TRUE)
+glimpse(data_gam)
 ```
 
 
@@ -102,18 +106,50 @@ where $\beta_0$ is the y-intercept, and $f(x)$ indicates an additive smoothing f
 # Fit the model
 
 
+# Model validation {.tabset .tabset-faded}
 
 
-# Model validation
+# Partial plots
 
 
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
 
 
-# Model investigation / hypothesis testing
+# Further analyses {.tabset .tabset-faded}
 
-
-# Predictions
 
 # Summary figures
 
+
+```{r SummaryFig, results='markdown', eval=TRUE, hidden=TRUE}
+data_gam.list=with(data_gam, list(x=seq(min(x), max(x), len=100)))
+
+newdata = emmeans(data_gam.gam, ~x, at=data_gam.list) %>%
+    as.data.frame
+head(newdata)
+
+ggplot(newdata, aes(y=emmean, x=x)) +
+    geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
+    geom_line() +
+    geom_point(data=data_gam, aes(y=y,x=x))+
+    theme_bw()
+
+## Partials
+#resid.list = list(x=data_gam$x)
+newdata.partial = data_gam %>%
+  mutate(Pred = predict(data_gam.gam,  type='link'),
+         Res = resid(data_gam.gam),
+         Resid = Pred + Res)
+#newdata.partial = emmeans(data_gam.gam, ~x, at=resid.list) %>%
+#    as.data.frame %>%
+#    mutate(Resid = emmean + resid(data_gam.gam))
+
+ggplot(newdata, aes(y=emmean, x=x)) +
+    geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
+    geom_line() +
+    geom_point(data=newdata.partial, aes(y=Resid,x=x))+
+    theme_bw()
+
+
+```
 # References

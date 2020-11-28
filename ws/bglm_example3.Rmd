@@ -54,13 +54,17 @@ library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
+library(DHARMa)     #for residual diagnostics
 library(rstan)      #for interfacing with STAN
 library(emmeans)    #for marginal means etc
-library(DHARMa)     #for residual diagnostics
 library(broom)      #for tidying outputs
 library(tidybayes)  #for more tidying outputs
 library(ggeffects)  #for partial plots
 library(tidyverse)  #for data wrangling etc
+library(broom.mixed)#for summarising models
+library(ggeffects)  #for partial effects plots
+theme_set(theme_grey()) #put the default ggplot theme back
 ```
 
 # Scenario
@@ -99,48 +103,43 @@ glimpse(peake)
 
 # Exploratory data analysis
 
+
 Model formula:
 $$
 \begin{align}
 y_i &\sim{} \mathcal{NB}(\lambda_i, \theta)\\
 ln(\lambda_i) &= \beta_0 + \beta_1 ln(x_i)\\
-\beta_0 & \sim\mathcal{N}(0,10)\\
-\beta_1 & \sim\mathcal{N}(0,2.03)\\
+\beta_0 & \sim\mathcal{N}(0,5)\\
+\beta_1 & \sim\mathcal{N}(0,2)\\
 \theta &\sim{} \mathcal{Exp}(1)
 \end{align}
 $$
 
-# Fit the model
+# Fit the model {.tabset .tabset-faded}
+
+
+# MCMC sampling diagnostics {.tabset .tabset-faded}
 
 
 
+# Model validation {.tabset .tabset-faded}
 
 
-# Model validation
-
-
-
-
+# Fit Negative Binomial model {.tabset .tabset-faded}
 
 
 
+# Partial effects plots {.tabset .tabset-faded}
+
+
+# Model investigation {.tabset .tabset-faded}
 
 
 
-
-# Model investigation / hypothesis testing
-
+# Hypothesis testing {.tabset .tabset-faded}
 
 
-
-
-
-# Predictions
-
-
-
-# Summary figures
-
+# Summary figure {.tabset .tabset-faded}
 
 
 # References

@@ -54,6 +54,7 @@ library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
 library(DHARMa)     #for residual diagnostics
 library(rstan)      #for interfacing with STAN
 library(emmeans)    #for marginal means etc
@@ -61,6 +62,8 @@ library(broom)      #for tidying outputs
 library(tidybayes)  #for more tidying outputs
 library(ggeffects)  #for partial plots
 library(tidyverse)  #for data wrangling etc
+library(broom.mixed)#for summarising models
+library(ggeffects)  #for partial effects plots
 theme_set(theme_grey()) #put the default ggplot theme back
 ```
 
@@ -102,6 +105,7 @@ str(polis)
 
 # Exploratory data analysis
 
+
 Model formula:
 $$
 \begin{align}
@@ -112,29 +116,28 @@ ln\left(\frac{p_i}{1-p_i}\right) &= \beta_0 + \beta_1 x_i\\
 \end{align}
 $$
 
-# Fit the model
+
+# Fit the model {.tabset .tabset-faded}
+
+
+# MCMC sampling diagnostics {.tabset .tabset-faded}
 
 
 
+# Model validation {.tabset .tabset-faded}
 
 
-# Model validation
-
-
-
-
+# Partial effects plots {.tabset .tabset-faded}
 
 
 
-# Model investigation / hypothesis testing
+# Model investigation {.tabset .tabset-faded}
 
 
+# Further analyses {.tabset .tabset-faded}
 
 
-# Predictions
-
-# Summary figures
-
+# Summary figure {.tabset .tabset-faded}
 
 
 # References

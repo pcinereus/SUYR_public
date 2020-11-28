@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, mesage=FALSE)
 ```
 
 # Preparations
@@ -52,10 +52,13 @@ Load the necessary libraries
 ```{r libraries, results='markdown', eval=TRUE, warning=TRUE, message=FALSE}
 library(mgcv)      #for GAMs
 library(gratia)    #for GAM plots
+library(broom)     #for tidy output#
 library(emmeans)   #for marginal means etc
 library(MuMIn)     #for model selection and AICc
 library(tidyverse) #for data wrangling
-library(DHARMa)    #for residual diagnositics
+library(DHARMa)    #for simulated residuals
+library(performance) #for residual disagnostics
+library(see)        # to visualize residual diagnostics
 ```
  
 # Scenario
@@ -105,24 +108,72 @@ $$
 where $\beta_0$ is the y-intercept. $f(Year)$ and $f(Rainfall)$ indicate the additive smoothing functions of Year and Rainfall respectively. 
 
 
-# Fit the model
+# Refit and validate models {.tabset .tabset}
+
+
+# Partial plots {.tabset .tabset-faded}
+
+## draw
+
+```{r partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
+draw(reed.gam3)
+```
+
+## plot
+
+```{r partialPlot1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
+#plot(reed.gam3, pages=1)
+#plot(reed.gam3, pages=1, shift=coef(reed.gam3)[1])
+#plot(reed.gam3, pages=1, shift=coef(reed.gam3)[1], scale=0)
+plot(reed.gam3, pages=1, shift=coef(reed.gam3)[1], trans=exp,
+     resid=TRUE, cex=4, scale=0)
+```
 
 
 
-# Model validation
+# Model investigation / hypothesis testing {.tabset .tabset-faded}
+
+## summary
+
+```{r modelSummary1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
+summary(reed.gam3)
+```
+
+**Conclusions:**
+
+- the average number of Moorhen is `r round(summary(reed.gam3)$p.table[1, 1],2)`
+  on the link scale or `r round(exp(summary(reed.gam3)$p.table[1, 1]),2)` on the
+  response scale. This number corresponds to the average number of Moorhens
+  expected for the average year with the average rainfall.
+- there is evidence of a signficantly wiggly change in Moorhen numbers over
+  time.
+- there is no evidence of a wiggly rainfall trend
+- we might consider dropping the smoother for rainfall in preference for a
+  regular linear parametric term.
+
+## tidy
+ 
+```{r modelSummary1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
+tidy(reed.gam3)
+```
+
+**Conclusions:**
+
+- the average number of Moorhen is `r round(summary(reed.gam3)$p.table[1, 1],2)`
+  on the link scale or `r round(exp(summary(reed.gam3)$p.table[1, 1]),2)` on the
+  response scale. This number corresponds to the average number of Moorhens
+  expected for the average year with the average rainfall.
+- there is evidence of a signficantly wiggly change in Moorhen numbers over
+  time.
+- there is no evidence of a wiggly rainfall trend
+- we might consider dropping the smoother for rainfall in preference for a
+  regular linear parametric term.
+
+# Further modelling {.tabset .tabset-faded} 
 
 
 
-
-
-# Model investigation / hypothesis testing
-
-
-
-
-# Predictions
-
-# Summary figures
+# Summary figures {.tabset .tabset-faded}
 
 
 # References 

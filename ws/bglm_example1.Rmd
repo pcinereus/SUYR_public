@@ -54,6 +54,7 @@ library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
 library(DHARMa)     #for residual diagnostics
 library(rstan)      #for interfacing with STAN
 library(emmeans)    #for marginal means etc
@@ -61,6 +62,8 @@ library(broom)      #for tidying outputs
 library(tidybayes)  #for more tidying outputs
 library(ggeffects)  #for partial plots
 library(tidyverse)  #for data wrangling etc
+library(broom.mixed)#for summarising models
+library(ggeffects)  #for partial effects plots
 theme_set(theme_grey()) #put the default ggplot theme back
 ```
 
@@ -68,7 +71,7 @@ theme_set(theme_grey()) #put the default ggplot theme back
 
 Here is an example from @Fowler-1998-1998. An agriculturalist was interested in the effects of fertilizer load on the yield of grass.  Grass seed was sown uniformly over an area and different quantities of commercial fertilizer were applied to each of ten 1 m<sup>2</sup> randomly located plots.  Two months later the grass from each plot was harvested, dried and weighed.  The data are in the file **fertilizer.csv** in the **data** folder.
 
-![](../resources/turf.jpg)
+![](../resources/turf.jpg){width=70%}
 
 | FERTILIZER   | YIELD   |
 | ------------ | ------- |
@@ -89,14 +92,14 @@ The aim of the analysis is to investigate the relationship between fertilizer co
 
 # Read in the data
 
+
 ```{r readData, results='markdown', eval=TRUE}
 fert = read_csv('../data/fertilizer.csv', trim_ws=TRUE)
 glimpse(fert)
 ```
 
-
-
 # Exploratory data analysis
+
 
 Model formula:
 $$
@@ -111,62 +114,89 @@ OR\\
 \end{align}
 $$
 
-# Fit the model
+# Fit the model {.tabset .tabset-faded}
 
 
-
-[https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations]
-
+# MCMC sampling diagnostics {.tabset .tabset-faded}
 
 
-
-# Model validation
-
+# Model validation {.tabset .tabset-faded}
 
 
+# Partial effects plots {.tabset .tabset-faded}
 
 
-
-# Model investigation / hypothesis testing
+# Model investigation {.tabset .tabset-faded}
 
 
 
 
+# Predictions {.tabset .tabset-faded}
 
-```{r mcmcpvalue, results='markdown', eval=FALSE}
-mcmcpvalue <- function(samp)
-{
-    ## elementary version that creates an empirical p-value for the
-    ## hypothesis that the columns of samp have mean zero versus a
-    ## general multivariate distribution with elliptical contours.
-    
-    ## differences from the mean standardized by the observed
-    ## variance-covariance factor
-    
-    ## Note, I put in the bit for single terms
-    if (length(dim(samp))==0) {
-        std <- backsolve(chol(var(samp)),cbind(0, t(samp)) - mean(samp),transpose = TRUE)
-        sqdist <- colSums(std * std)
-        sum(sqdist[-1] > sqdist[1])/length(samp)
-    }
-    else {
-        std <- backsolve(chol(var(samp)),cbind(0, t(samp)) - colMeans(samp),transpose = TRUE)
-        sqdist <- colSums(std * std)
-        sum(sqdist[-1] > sqdist[1])/nrow(samp)
-    }
-    
-}
+
+
+# Hypothesis testing {.tabset .tabset-faded}
+
+
+
+
+# Summary figures {.tabset .tabset-faded}
+
+## rstanarm {.tabset .tabset-pills}
+
+```{r summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE}
+fert.list = with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len=100)))
+newdata = emmeans(fert.rstanarm3, ~FERTILIZER, at=fert.list) %>% as.data.frame
+head(newdata)
+
+ggplot(newdata, aes(y=emmean, x=FERTILIZER)) + 
+geom_point(data=fert, aes(y=YIELD)) +
+geom_line() + 
+geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
+scale_y_continuous('YIELD') +
+scale_x_continuous('FERTILIZER') +
+theme_classic()
+
+## spaghetti plot
+newdata = emmeans(fert.rstanarm3, ~FERTILIZER, at=fert.list) %>%
+  gather_emmeans_draws()
+newdata %>% head
+ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
+  geom_line(aes(group=.draw),  alpha=0.01) +
+  geom_point(data=fert,  aes(y=YIELD))
+```
+
+## brms {.tabset .tabset-pills}
+
+
+```{r summaryFig2a, results='markdown', eval=TRUE, hidden=TRUE}
+fert.list = with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len=100)))
+newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>% as.data.frame
+head(newdata)
+
+ggplot(newdata, aes(y=emmean, x=FERTILIZER)) + 
+geom_point(data=fert, aes(y=YIELD)) +
+geom_line() + 
+geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
+scale_y_continuous('YIELD') +
+scale_x_continuous('FERTILIZER') +
+theme_classic()
+
+## spaghetti plot
+newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>%
+  gather_emmeans_draws()
+newdata %>% head
+ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
+  geom_line(aes(group=.draw),  alpha=0.01) +
+  geom_point(data=fert,  aes(y=YIELD))
+  
 ```
 
 
 
-# Predictions
 
 
 
-
-
-# Summary figures
 
 
 
