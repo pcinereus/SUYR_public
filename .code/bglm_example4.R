@@ -70,15 +70,15 @@ ggemmeans(loyn.rstanarm1,  ~AREA) %>% plot(add.data=TRUE) + scale_y_log10()
 
 
 ## ----fitModel1h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
-loyn.rstanarm2 <- stan_glm(ABUND ~ scale(log(DIST), scale=FALSE)+
-                              scale(log(LDIST), scale=FALSE)+
-                              scale(log(AREA), scale=FALSE)+
+loyn.rstanarm2 <- stan_glm(ABUND ~ scale(log(DIST))+
+                              scale(log(LDIST))+
+                              scale(log(AREA))+
                               fGRAZE+
-                              scale(ALT, scale=FALSE)+
-                              scale(YR.ISOL, scale=FALSE), data=loyn,
+                              scale(ALT)+
+                              scale(YR.ISOL), data=loyn,
                           family=gaussian(link='log'),
                           prior_intercept = normal(3, 10,  autoscale=FALSE),
-                          prior = normal(0, 5, autoscale=FALSE),
+                          prior = normal(0, 2.5, autoscale=FALSE),
                           prior_aux = cauchy(0, 5),
                           prior_PD=TRUE, 
                           iter = 5000, thin=5,chains = 3, warmup=2000, 
@@ -100,7 +100,7 @@ posterior_vs_prior(loyn.rstanarm3, color_by='vs', group_by=TRUE,
 
 
 ## ----modelFit1l, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-ggemmeans(loyn.rstanarm3,  ~AREA) %>% plot(add.data=TRUE) + scale_y_log10()
+#ggemmeans(loyn.rstanarm3,  ~AREA) %>% plot(add.data=TRUE) + scale_y_log10()
 
 
 ## ----fitModel2a, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
@@ -110,7 +110,7 @@ loyn.brm = brm(bf(ABUND ~ scale(log(DIST))+
                      fGRAZE+
                      scale(ALT)+
                      scale(YR.ISOL),
-                   family=gaussian(link='log')),
+                   family=lognormal()),
                 data=loyn,
                 iter = 5000, warmup = 1000,
                 chains = 3, thin = 5, refresh = 0)
@@ -132,7 +132,7 @@ loyn.brm1 = brm(bf(ABUND ~ scale(log(DIST))+
                    family=gaussian(link='log')),
                 data=loyn, 
                 prior=c(
-                  prior(normal(0, 2), class='b')), 
+                  prior(normal(0, 2.5), class='b')), 
                 sample_prior = 'only', 
                 iter = 5000, warmup = 1000,
                 chains = 3, thin = 5, refresh = 0)
@@ -153,8 +153,8 @@ loyn.brm2 = brm(bf(ABUND ~ scale(log(DIST))+
                    family=gaussian(link='log')),
                 data=loyn, 
                 prior=c(
-                   prior(normal(0, 5),  class='Intercept'),
-                  prior(normal(0, 2), class='b'), 
+                   prior(normal(0, 10),  class='Intercept'),
+                  prior(normal(0, 2.5), class='b'), 
                   prior(cauchy(0, 5), class='sigma')
                 ), 
                 sample_prior = 'only', 
@@ -407,11 +407,11 @@ plot(loyn.resids)
 
 
 ## ----partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-loyn.rstanarm3 %>% ggpredict() %>% plot(add.data=TRUE, facet=TRUE) + scale_y_log10()
+loyn.rstanarm3 %>% ggpredict() %>% plot(add.data=TRUE, facet=TRUE) 
 
 
 ## ----partialPlot1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-loyn.rstanarm3 %>% ggemmeans(~AREA,  type='fixed') %>% plot(add.data=TRUE) + scale_y_log10()
+#loyn.rstanarm3 %>% ggemmeans(~AREA,  type='fixed') %>% plot(add.data=TRUE) + scale_y_log10()
 
 
 ## ----partialPlot1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -424,16 +424,20 @@ loyn.rstanarm3 %>% fitted_draws(newdata=loyn) %>%
   scale_y_log10()
 
 
-## ----partialPlot2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-loyn.brm3 %>% conditional_effects() 
+## ----partialPlot2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
+loyn.brm3 %>%
+  conditional_effects() %>%
+  plot(ask=FALSE, points=TRUE) %>%
+  sjPlot::plot_grid()
 #loyn.brm3 %>% conditional_effects(spaghetti=TRUE,nsamples=200) 
 
 
-## ----partialPlot2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-loyn.brm3 %>% ggpredict() %>% plot(add.data=TRUE)
+## ----partialPlot2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
+loyn.brm3 %>% ggpredict() %>% plot(add.data=TRUE) %>%
+  sjPlot::plot_grid()
 
 
-## ----partialPlot2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+## ----partialPlot2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
 loyn.brm3 %>% ggemmeans(~AREA) %>% plot(add.data=TRUE)
 
 
@@ -444,7 +448,7 @@ loyn.brm3 %>% fitted_draws(newdata=loyn) %>%
   geom_ribbon(aes(ymin=.lower, ymax=.upper), fill='blue', alpha=0.3) + 
   geom_line() +
   geom_point(data=loyn,  aes(y=ABUND,  x=AREA)) +
-  scale_y_log10()
+  scale_y_log10() 
 
 
 ## ----summariseModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -456,334 +460,247 @@ loyn.sum <- summary(loyn.rstanarm3)
 
 
 ## ----summariseModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tidyMCMC(loyn.brm3$fit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+tidyMCMC(loyn.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
 
 ## ----summariseModel1b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
+loyn.tidy <- tidyMCMC(loyn.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+
+
+## ----summariseModel1c1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% get_variables()
+
+
+## ----summariseModel1c2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.draw <- loyn.rstanarm3 %>% gather_draws(`.Intercept.*|.*AREA.*|.*DIST.*|.*GRAZE.*|.*ALT.*|.*YR.*`,  regex=TRUE)
+loyn.draw
+
+
+## ----summariseModel1d1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% plot(plotfun='mcmc_intervals') 
+
+
+## ----summariseModel1e1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% tidy_draws() 
+
+
+## ----summariseModel1f1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% spread_draws(`.Intercept.*|.*DIST.*|.*AREA.*|.*GRAZE.*|.*ALT.*|.*YR.*`,  regex=TRUE) 
+
+
+## ----summariseModel1g1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% posterior_samples() %>% as.tibble() 
+
+
+## ----summariseModel1h1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% bayes_R2() %>% median_hdci 
+
+
+## ----summariseModel2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+summary(loyn.brm3)
+
+
+## ----summariseModel2a1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=FALSE----
+loyn.sum <- summary(loyn.brm3)
+
+
+## ----summariseModel2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+tidyMCMC(loyn.brm3$fit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+
+## ----summariseModel2b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
 loyn.tidy <- tidyMCMC(loyn.brm3$fit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
 
 
-## ----fitModel, results='markdown', eval=FALSE, hidden=TRUE--------------------
-## median(log(loyn$ABUND))
-## #mad(log(loyn$ABUND))
-## loyn.rstanarm <- stan_glm(ABUND ~ scale(log(DIST))+
-##                               scale(log(LDIST))+
-##                               scale(log(AREA))+
-##                               fGRAZE+
-##                               scale(ALT)+
-##                               scale(YR.ISOL), data=loyn,
-##                           family=gaussian(link='log'),
-##                           prior_intercept = normal(3, 10,  autoscale=FALSE),
-##                           prior = normal(0, 2.5, autoscale=FALSE),
-##                           prior_aux = cauchy(0, 5),
-##                           iter = 5000, thin=5,chains = 3, warmup=2000,
-##                           refresh=0)
-##                           #control=list(adapt_delta=0.99))
-## prior_summary(loyn.rstanarm)
-## 
-## 
-## preds <- posterior_predict(loyn.rstanarm,  nsamples=250,  summary=FALSE)
-## loyn.resids <- createDHARMa(simulatedResponse = t(preds),
-##                             observedResponse = loyn$ABUND,
-##                             fittedPredictedResponse = apply(preds, 2, median),
-##                             integerResponse = FALSE)
-## plot(loyn.resids)
-## 
-## plot(loyn.rstanarm,  plotfun='trace')
-## plot(loyn.rstanarm,  plotfun='acf_bar')
-## plot(loyn.rstanarm,  plotfun='rhat_hist')
-## plot(loyn.rstanarm,  plotfun='neff_hist')
-## 
-## plot(loyn.rstanarm, plotfun='mcmc_intervals')
-## 
-## ggpredict(loyn.rstanarm)
-## 
-## 
-##                                         #ggplot() +
-## #  geom_point(data=NULL,  aes(x=peake$INDIV,  y=peake.resids$scaledResiduals))
-## 
-## #fit = fitted(loyn.rstanarm)
-## #res = residuals(loyn.rstanarm)
-## #ggplot(data=NULL) +
-## #    geom_point(aes(y=res, x=fit))
-## 
-## #ggplot(data=NULL) +
-## #    geom_point(aes(y=resid(loyn.rstanarmG), x=fitted(loyn.rstanarmG)))
-## #plot(residuals(loyn.rstanarm) ~ fitted(loyn.rstanarm))
-## #ndata=data.frame(Fitted=fitted(loyn.rstanarm),
-## #    Residuals=residuals(loyn.rstanarm))
-## #ggplot(data=ndata, aes(y=Residuals, x=Fitted)) +
-## #    geom_point() +
-## #        geom_hline(yintercept=0)
-## 
-## #loo(loyn.rstanarm)
-## #loo(loyn.rstanarmG)
-## #waic(loyn.rstanarm)
-## 
-## #ggpredict(loyn.rstanarm)
-## 
-## tidyMCMC(loyn.rstanarm$stanfit,
-##          estimate.method = 'median',
-##          conf.int=TRUE,
-##          conf.method='HPDinterval',
-##          rhat=TRUE, ess=TRUE)
-## 
-## loyn.rstanarm1 <- stan_glm(ABUND ~ scale(log(AREA))+
-##                              fGRAZE+
-##                              scale(YR.ISOL), data=loyn,
-##                            family=gaussian(link='log'),
-##                            prior_intercept = normal(3, 10,  autoscale=FALSE),
-##                            prior = normal(0, 2.5, autoscale=FALSE),
-##                           prior_aux = cauchy(0, 5),
-##                           iter = 5000, thin=5,chains = 3, warmup=1000,
-##                           refresh=0)
-## loyn.null <- stan_glm(ABUND~1, data=loyn,
-##                            family=gaussian(link='log'),
-##                            prior_intercept = normal(3, 10,  autoscale=FALSE),
-##                           prior_aux = cauchy(0, 5),
-##                           iter = 5000, thin=5,chains = 3, warmup=1000,
-##                           refresh=0)
-## waic(loyn.rstanarm)
-## waic(loyn.rstanarm1)
-## waic(loyn.null)
-## ## elpd_loo: expected log pointwise density
-## ## p_loo: effective number of parameters.  It is the difference between elpd_loo
-## ## and elpd (without loo cv) and is a measure of how much more difficult it is
-## ## to measure predictive new data than observed data.
-## ## looic: -2 * elpd_loo (e.g. converted to deviance scale)
-## loo(loyn.rstanarm)
-## loo(loyn.rstanarm1)
-## loo(loyn.null)
-## 
-## loo_compare(waic(loyn.rstanarm), waic(loyn.rstanarm1), waic(loyn.null))
-## loo_compare(loo(loyn.rstanarm), loo(loyn.rstanarm1), loo(loyn.null))
-## 
-## #as.matrix(loyn.rstanarmG)
-## tidyMCMC(loyn.rstanarm1$stanfit, conf.int=TRUE,
-##          conf.method='HPDinterval',rhat=TRUE, ess=TRUE)
-## 
-## 
-## loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
-## newdata = emmeans(loyn.rstanarm1, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-##     as.data.frame
-## head(newdata)
-## ggplot(newdata, aes(y= response, x=AREA)) +
-## geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
-## geom_line(aes(color=fGRAZE)) +
-## theme_bw() +
-## scale_x_log10() + scale_y_log10()
-## 
-## ggplot(newdata, aes(y=response, x=AREA)) +
-## geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
-## geom_line(aes(color=fGRAZE)) +
-## theme_bw() +
-## scale_x_log10()
-## 
-## ##  loyn.rstanarmG <- stan_glm(ABUND ~ scale(log(AREA))+fGRAZE+scale(YR.ISOL), data=loyn,
-## ##                           family=Gamma(link='log'), refresh=0,
-## ##                           iter = 2000, thin=2,chains = 3, warmup=500)
-## ## loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
-## ## newdata = emmeans(loyn.rstanarmG, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-## ##     as.data.frame
-## ## head(newdata)
-## ## ggplot(newdata, aes(y=response, x=AREA)) +
-## ## geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
-## ## geom_line(aes(color=fGRAZE)) +
-## ## theme_bw() +
-## ## scale_x_log10() + scale_y_log10()
-## 
-## 
-## ## library(tidybayes)
-## ## spaghetti = emmeans(loyn.rstanarmG, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-## ##     gather_emmeans_draws() %>% mutate(Fit=exp(.value))
-## ## wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
-## ## spaghetti = spaghetti %>% filter(.draw %in% wch)
-## ## ggplot(newdata) +
-## ##     geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
-## ##                                   group=interaction(fGRAZE,.draw)), alpha=0.05) +
-## ##     geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
-## ##     theme_bw() +
-## ##     scale_x_log10() + scale_y_log10()
-## 
-## ## summary(loyn.rstanarmG)
-## 
-## bayes_R2(loyn.rstanarm) %>% median_hdi
+## ----summariseModel2c1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm3 %>% get_variables()
 
 
-## ----fitModeli.brms, results='markdown', eval=FALSE, hidden=TRUE--------------
-## loyn = loyn %>% mutate(fGRAZE=factor(GRAZE))
-## 
-## library(car)
-## scatterplotMatrix(~ABUND+DIST+LDIST+AREA+fGRAZE+ALT+YR.ISOL, data=loyn,
-##                   diagonal = list(method='boxplot'))
-## 				
-## scatterplotMatrix(~ABUND+log(DIST)+log(LDIST)+log(AREA)+fGRAZE+ALT+YR.ISOL, data=loyn,
-##                   diagonal = list(method='boxplot'))
-## 
-## ## loyn.lm<-glm(ABUND~scale(log(DIST))+scale(log(LDIST))+scale(log(AREA))+
-## ##                fGRAZE + scale(ALT) + scale(YR.ISOL), data=loyn,  family=Gamma(link='log'))
-## ## car::vif(loyn.lm)
-## 
-## ## summary(loyn.lm)
-## ## loyn.form <- bf(ABUND ~ scale(log(DIST))+
-## ##                     scale(log(LDIST))+
-## ##                     scale(log(AREA))+
-## ##                     fGRAZE+
-## ##                     scale(ALT)+
-## ##                     scale(YR.ISOL),
-## ##                 family=Gamma(link='log'))
-## ## get_prior(loyn.form,  data=loyn)
-## ## loyn.priors <- c(
-## ##   prior(normal(3, 10), class='Intercept'),
-## ##   prior(normal(0, 2.5),  class='b')
-## ## )
-## 
-## loyn.form <- bf(ABUND ~ scale(log(DIST))+
-##                     scale(log(LDIST))+
-##                     scale(log(AREA))+
-##                     fGRAZE+
-##                     scale(ALT)+
-##                     scale(YR.ISOL),
-##                 family=gaussian(link='log'))
-## 
-## ## loyn.form <- bf(ABUND ~ scale(log(DIST))+
-## ##                     scale(log(LDIST))+
-## ##                     scale(log(AREA))+
-## ##                     fGRAZE+
-## ##                     scale(ALT)+
-## ##                     scale(YR.ISOL),
-## ##                 family=lognormal(link='log'))
-## loyn.priors <- c(
-##   prior(normal(3, 10), class='Intercept'),
-##   prior(normal(0, 2.5),  class='b'),
-##   prior(cauchy(0, 5), class='sigma'))
-## loyn.brms <- brm(loyn.form, data=loyn,
-##                  prior=loyn.priors,
-##                  refresh=0,
-##                  iter = 5000, thin=5,chains = 3, warmup=2000)
-## 
-## 
-## preds <- posterior_predict(loyn.brms,  nsamples=250,  summary=FALSE)
-## loyn.resids <- createDHARMa(simulatedResponse = t(preds),
-##                             observedResponse = loyn$ABUND,
-##                             fittedPredictedResponse = apply(preds, 2, median),
-##                             integerResponse=FALSE)
-## plot(loyn.resids)
-## #ggplot() +
-## #  geom_point(data=NULL,  aes(x=loyn$ABUND,  y=loyn.resids$scaledResiduals))
-## 
-## 
-## mcmc_plot(loyn.brms, type='acf_bar')
-## mcmc_plot(loyn.brms, type='trace')
-## 
-## mcmc_plot(loyn.brms, type='rhat_hist')
-## mcmc_plot(loyn.brms, type='neff_hist')
-## #conditional_effects(loyn.brms) %>%  plot(points=TRUE)
-## 
-## mcmc_plot(loyn.brms, type='intervals')
-## 
-## ggemmeans(loyn.brms) %>% plot
-## 
-## summary(loyn.brms)
-## loyn.brms$fit %>%
-##   tidyMCMC(estimate.method = 'median',
-##            conf.int=TRUE,  conf.method = 'HPDinterval',
-##            ess=TRUE,  rhat=TRUE)
-## emmeans(loyn.brms,  pairwise ~ fGRAZE,  type='link')$contrasts
-## 
-## loyn.brms %>%
-##   posterior_samples() %>%
-## #  dplyr::select(-`lp__`, -shape) %>%
-##   gather_variables() %>%
-##   mutate(.value=exp(.value)) %>%
-##   group_by(.variable) %>%
-##     median_hdi %>%
-## as.data.frame
-## 
-## 
-## 
-## emmeans(loyn.brms,  pairwise ~ fGRAZE,  type='link')$contrasts %>%
-##     gather_emmeans_draws() %>%
-##     median_qi
-## 
-## emmeans(loyn.brms,  pairwise ~ fGRAZE,  type='link')$contrasts %>%
-##     gather_emmeans_draws() %>%
-##       mutate(.value=exp(.value)) %>%
-##   median_qi
-## 
-## emmeans(loyn.brms,  pairwise ~ fGRAZE,  type='link')$contrasts %>%
-##                                                      gather_emmeans_draws() %>%
-##                                                      dplyr::select(-.chain, -.iteration, -.draw) %>%
-##                                                      filter(contrast=='1 - 5') %>%
-##                                                      pull(.value) %>%
-##                                                      exp() %>%
-##                                                      as.mcmc() %>%
-##                                                      tidyMCMC(conf.int=TRUE,  conf.method='HPDinterval')
-## 
-## emmeans(loyn.brms1,  pairwise ~ fGRAZE,  type='response')$contrasts
-## 
-## loyn.area <- with(loyn,  list(AREA=c(min(AREA),  median(AREA)), max(AREA) ))
-## 
-## emmeans(loyn.brms1,  pairwise ~ fGRAZE|AREA,  at=loyn.area,  type='response')$contrasts
-## 
-## 
-## bayes_R2(loyn.brms, summary=FALSE) %>% median_hdi
-## 
-## loyn.form <- bf(ABUND ~ scale(log(AREA)) * fGRAZE,
-##                 family=gaussian(link='log'))
-## 
-## loyn.priors <- c(
-##   prior(normal(3, 10), class='Intercept'),
-##   prior(normal(0, 2.5),  class='b'),
-##   prior(cauchy(0, 5), class='sigma'))
-## loyn.brms3 <- brm(loyn.form,
-##                   data=loyn,
-##                   prior=loyn.priors,
-##                   iter = 5000, thin=5,chains = 3, warmup=2000,
-##                   refresh=0)
-## 
-## 
-## loyn.form <- bf(ABUND ~ 1,
-##                 family=gaussian(link='log'))
-## 
-## loyn.priors <- c(
-##   prior(normal(3, 10), class='Intercept'),
-##   prior(cauchy(0, 5), class='sigma'))
-## loyn.brms2 <- brm(loyn.form,
-##                   data=loyn,
-##                   prior=loyn.priors,
-##                   iter = 5000, thin=5,chains = 3, warmup=2000,
-##                   refresh=0)
-## ggemmeans(loyn.brms3,  ~AREA|fGRAZE) %>% plot
-## 
-## loyn.brms3$fit %>%
-##   tidyMCMC(estimate.method = 'median',
-##            conf.int=TRUE,  conf.method = 'HPDinterval',
-##            ess=TRUE,  rhat=TRUE)
-## emmeans(loyn.brms,  pairwise ~ fGRAZE,  type='link')$contrasts
-## 
-## 
-## 
-## loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
-## newdata = emmeans(loyn.brms1, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-##     as.data.frame
-## head(newdata)
-## ggplot(newdata, aes(y=response, x=AREA)) +
-## geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
-## geom_line(aes(color=fGRAZE)) +
-## theme_bw() +
-##   scale_x_log10() +
-## scale_y_log10()
-## 
-## 
-## library(tidybayes)
-## spaghetti = emmeans(loyn.brms, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-##   gather_emmeans_draws() %>% mutate(Fit=exp(.value))
-## wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
-## spaghetti = spaghetti %>% filter(.draw %in% wch)
-## ggplot(newdata) +
-##   geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
-##      group=interaction(fGRAZE,.draw)), alpha=0.05) +
-##   geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
-##   theme_bw() +
-##   scale_x_log10() + scale_y_log10()
+## ----summariseModel2c2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.draw <- loyn.brm3 %>% gather_draws(`^b_.*`,  regex=TRUE)
+loyn.draw
+
+
+## ----summariseModel2d1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm3 %>% mcmc_plot(type='intervals') 
+
+
+## ----summariseModel2e1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm3 %>% tidy_draws() 
+
+
+## ----summariseModel2f1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm3 %>% spread_draws(`^b_.*`,  regex=TRUE) 
+
+
+## ----summariseModel2g1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm3 %>% posterior_samples() %>% as.tibble() 
+
+
+## ----summariseModel2h1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm3 %>% bayes_R2(summary=FALSE) %>% median_hdci 
+
+
+## ----furtherModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.rstanarm4a <- update(loyn.rstanarm3,  .~scale(log(DIST))*scale(log(LDIST)), diagnostic_file = file.path(tempdir(), "dfa.csv"))
+loyn.rstanarm4b <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE, diagnostic_file = file.path(tempdir(), "dfb.csv"))
+loyn.rstanarm4c <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE * scale(YR.ISOL), diagnostic_file = file.path(tempdir(), "dfc.csv"))
+loyn.rstanarm4d <- update(loyn.rstanarm3,  .~scale(ALT), diagnostic_file = file.path(tempdir(), "dfd.csv"))
+loyn.rstanarm4e <- update(loyn.rstanarm3,  .~1, diagnostic_file = file.path(tempdir(), "dfe.csv"))
+loo_compare(loo(loyn.rstanarm4a),
+            loo(loyn.rstanarm4e)
+            )
+loo_compare(loo(loyn.rstanarm4b),
+            loo(loyn.rstanarm4e)
+            )
+loo_compare(loo(loyn.rstanarm4c),
+            loo(loyn.rstanarm4e)
+            )
+loo_compare(loo(loyn.rstanarm4d),
+            loo(loyn.rstanarm4e)
+            )
+
+
+## ----furtherModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+bayes_factor(bridge_sampler(loyn.rstanarm4a),
+             bridge_sampler(loyn.rstanarm4e))
+bayes_factor(bridge_sampler(loyn.rstanarm4b),
+             bridge_sampler(loyn.rstanarm4e))
+bayes_factor(bridge_sampler(loyn.rstanarm4c),
+             bridge_sampler(loyn.rstanarm4e))
+bayes_factor(bridge_sampler(loyn.rstanarm4d),
+             bridge_sampler(loyn.rstanarm4e))
+
+
+## ----furtherModel2a, results='markdown', cache=TRUE, eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+loyn.brm4a <- update(loyn.brm3,  .~scale(log(DIST))*scale(log(LDIST)), save_pars=save_pars(all=TRUE), refresh=0)
+loyn.brm4b <- update(loyn.brm3,  .~scale(log(AREA)) * fGRAZE, save_pars=save_pars(all=TRUE), refresh=0)
+loyn.brm4c <- update(loyn.brm3,  .~scale(log(AREA)) * fGRAZE * scale(YR.ISOL), save_pars=save_pars(all=TRUE), refresh=0)
+loyn.brm4d <- update(loyn.brm3,  .~scale(ALT), save_pars=save_pars(all=TRUE), refresh=0)
+loyn.brm4e <- update(loyn.brm3,  .~1, save_pars=save_pars(all=TRUE), refresh=0)
+loo_compare(loo(loyn.brm4a),
+            loo(loyn.brm4e)
+            )
+loo_compare(loo(loyn.brm4b),
+            loo(loyn.brm4e)
+            )
+loo_compare(loo(loyn.brm4c),
+            loo(loyn.brm4e)
+            )
+loo_compare(loo(loyn.brm4d),
+            loo(loyn.brm4e)
+            )
+
+
+## ----furtherModel2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
+bayes_factor(loyn.brm4a,
+            loyn.brm4e)
+bayes_factor(loyn.brm4b,
+             loyn.brm4e)
+bayes_factor(loyn.brm4c,
+             loyn.brm4e)
+bayes_factor(loyn.brm4d,
+             loyn.brm4e)
+
+
+## ----summaryFigure1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=TRUE----
+loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
+
+newdata = emmeans(loyn.rstanarm3, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+    as.data.frame 
+head(newdata)
+
+ggplot(newdata, aes(y=response, x=AREA)) +
+  geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
+  geom_line(aes(color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + 
+  scale_y_log10()
+
+spaghetti = emmeans(loyn.rstanarm3, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+  gather_emmeans_draws() %>% mutate(Fit=exp(.value))
+wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
+spaghetti = spaghetti %>% filter(.draw %in% wch)
+ggplot(newdata) +
+  geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
+                                group=interaction(fGRAZE,.draw)), alpha=0.05) +
+  geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + scale_y_log10()
+
+
+## ----summaryFigure1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=TRUE----
+loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
+
+newdata = emmeans(loyn.rstanarm4b, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+    as.data.frame 
+head(newdata)
+
+ggplot(newdata, aes(y=response, x=AREA)) +
+  geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
+  geom_line(aes(color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + 
+  scale_y_log10()
+
+spaghetti = emmeans(loyn.rstanarm4b, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+  gather_emmeans_draws() %>% mutate(Fit=exp(.value))
+wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
+spaghetti = spaghetti %>% filter(.draw %in% wch)
+ggplot(newdata) +
+  geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
+                                group=interaction(fGRAZE,.draw)), alpha=0.05) +
+  geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + scale_y_log10()
+
+
+## ----summaryFigure2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=TRUE----
+loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
+
+newdata = emmeans(loyn.brm3, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+    as.data.frame 
+head(newdata)
+
+ggplot(newdata, aes(y=response, x=AREA)) +
+  geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
+  geom_line(aes(color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + 
+  scale_y_log10()
+
+spaghetti = emmeans(loyn.brm3, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+  gather_emmeans_draws() %>% mutate(Fit=exp(.value))
+wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
+spaghetti = spaghetti %>% filter(.draw %in% wch)
+ggplot(newdata) +
+  geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
+                                group=interaction(fGRAZE,.draw)), alpha=0.05) +
+  geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + scale_y_log10()
+
+
+## ----summaryFigure2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=TRUE----
+loyn.list = with(loyn, list(AREA = seq(min(AREA), max(AREA), len=100)))
+
+newdata = emmeans(loyn.brm4b, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+    as.data.frame 
+head(newdata)
+
+ggplot(newdata, aes(y=response, x=AREA)) +
+  geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD, fill=fGRAZE), alpha=0.3) +
+  geom_line(aes(color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + 
+  scale_y_log10()
+
+spaghetti = emmeans(loyn.brm4b, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
+  gather_emmeans_draws() %>% mutate(Fit=exp(.value))
+wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
+spaghetti = spaghetti %>% filter(.draw %in% wch)
+ggplot(newdata) +
+  geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
+                                group=interaction(fGRAZE,.draw)), alpha=0.05) +
+  geom_line(aes(y=response, x=AREA, color=fGRAZE)) +
+  theme_bw() +
+  scale_x_log10() + scale_y_log10()
 

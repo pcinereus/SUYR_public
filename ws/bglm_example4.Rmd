@@ -135,3 +135,15 @@ altitude on the abundance of forest birds.
 
 # Model investigation {.tabset .tabset-faded}
 
+
+
+# Further analyses {.tabset .tabset-faded}
+
+
+
+# Summary figure {.tabset .tabset-faded}
+
+
+
+
+# References
