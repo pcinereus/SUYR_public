@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 # Preparations
@@ -54,12 +54,14 @@ library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
+library(ggmcmc)     #for MCMC diagnostics
 library(rstan)      #for interfacing with STAN
 library(emmeans)    #for marginal means etc
 library(broom)      #for tidying outputs
 library(DHARMa)     #for residual diagnostics
 library(tidybayes)  #for more tidying outputs
 library(ggeffects)  #for partial plots
+library(broom.mixed)
 library(tidyverse)  #for data wrangling etc
 ```
 
@@ -98,26 +100,327 @@ glimpse(tobacco)
 
 # Exploratory data analysis
 
+
 Model formula:
 $$
 y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
+\mu_i =\bf{X_i}\boldsymbol{\beta} + \bf{Z_i}\boldsymbol{\gamma} \\
+\beta_0 \sim{} \mathcal{N}(31, 10)\\
+\beta_1 \sim{} \mathcal{N}(0, 10)\\
+\boldsymbol{\gamma} \sim{} \mathcal{N}(0, \boldsymbol{\Sigma})\\
+\boldsymbol{\Sigma} = \boldsymbol{D}({\sigma_l})\boldsymbol{\Omega}\boldsymbol{D}({\sigma_l})\\
+\boldsymbol{\Omega} \sim{} LKJ(\zeta)\\
+\sigma_j^2 \sim{} \Gamma(1,1)\\
+\sigma^2 \sim{} \mathcal{Cauchy}(0,2)
 $$
 
-where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the  model matrix representing the overall intercept and effects of the treatment on the number of lesions.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with leaves.
+where:
+
+- $\bf{X}$ is the  model matrix representing the overall intercept and effects of the treatment on the number of lesions.
+- $\boldsymbol{\beta}$ is a vector of the population-level effects parameters to
+be estimated.
+- $\boldsymbol{\gamma}$ is a vector of the group-level effect parameters
+- $\bf{Z}$ represents a cell means model matrix for the random intercepts (and
+  possibly random slopes) associated with leaves.
+- the population-level intercept ($\beta_0$) has a gaussian prior with location
+  of 31 and scale of 10
+- the population-level effect ($\beta_1$) has a gaussian prior with location of
+  0 and scale of 10
+- the group-level effects are assumed to sum-to-zero and be drawn from a
+  gaussian distribution with mean of 0 and covariance of $\Sigma$  
+- $\boldsymbol{\Sigma}$ is the variance-covariance matrix between the groups
+(individual leaves).  It turns out that it is difficult to apply a prior on this
+covariance matrix, so instead, the covariance matrix is decomposed into a
+correlation matrix ($\boldsymbol{\Omega}$) and a vector of variances
+($\boldsymbol{\sigma_l}$) which are the diagonals ($\boldsymbol{D}$) of the
+covariance matrix.
+- $\boldsymbol{\Omega}$ 
+$$
+\gamma \sim{} N(0,\Sigma)\\
+\Sigma -> \Omega, \tau\\
+$$
+where $\Sigma$ is a covariance matrix.
+
+It turns out that it is difficult to apply a prior on a covariance matrix, so
+instead, we decompose the covariance matrix into a correlation matrix and variance.
+
+- Covariance matrix can be decomposed into a correlation matrix and a vector of
+  variances
+- The variances can be further decomposed into the product of a simplex vector
+  (which is a probability vector, non-negative and sums to 1)
+  and the trace (product of the order of the matrix and the scale of the scale
+  parameter, also the sum of its diagonal elements) of a matrix.  Each element of the simplex vector represents the
+  proportion of the trace that is attributable to the corresponding variable.
+- A prior on all the above is a decov (decomposition of covariance) function
+
+- The prior on the correlation matrix is called LKJ
+- density is proportional to the determinant of the correlation matrix raised to
+  the power of the positive regularization paramter minus one.
+
+- The prior on the simplex vector is a symmetric Dirichlet prior which has a
+single (positive) concentration parameter (default of 1 implying the prior is
+jointly uniform over the same of simplex vectors of that size)
+A symmetric Dirichlet prior is used for the simplex vector.  The Dirichlet
+  prior has a single (positive) concentration parameter
+
+- The positive scale paramter has a gamma prior (with default shape and scale of
+  1 - implying a unit-exponential distribution)
+
+- alternatively, the lkj prior can be used for covariance.
+- as with decov, it decomposes into correlation and variances, however the
+  variances are not further decomosed into a simplex vector and trace.
+- instead the standard deviations (variance squared) for each of the group
+  specific paramters are given half student-t distribution with scale and df
+  paramters specified through the scale (default 10) and df (default 1)
+  arguments of the lkj function.
+- the lkj prior is similar, yet faster than decov
+
+# Fit the model {.tabset .tabset-faded}
+
+
+
+
+
+
+
+
+
+
+
 
 # Fit the model
 
+```{r fitModel, results='markdown', eval=FALSE, hidden=TRUE}
+
+ggplot(tobacco, aes(y=NUMBER,x=TREATMENT)) + geom_boxplot()
+ggplot(tobacco, aes(y=NUMBER,x=as.numeric(LEAF), linetype=TREATMENT)) + geom_line()
+ggplot(tobacco, aes(y=NUMBER,x=TREATMENT, group=LEAF)) + geom_line()
+
+tobacco.rstanarm <- stan_glmer(NUMBER~(1|LEAF)+TREATMENT, data=tobacco,
+                           family=gaussian,refresh=0,
+                            prior_PD=TRUE, 
+                           chains=3, iter=5000, warmup=2000, thin=5)
+prior_summary(tobacco.rstanarm)
+## decov is prior on covariance
+
+tobacco.rstanarm <- stan_glmer(NUMBER~(1|LEAF)+TREATMENT, data=tobacco,
+                            family=gaussian,refresh=0,
+                            prior_intercept=normal(35, 10, autoscale=FALSE),
+                            prior=normal(0, 10, autoscale=FALSE),
+                            prior_aux=rstanarm::exponential(0.1, autoscale=FALSE),
+                            prior_covariance=decov(1, 1, 1, 1), 
+                            prior_PD=TRUE, 
+                           chains=3, iter=5000, warmup=2000, thin=5)
+
+prior_summary(tobacco.rstanarm)
+
+ggpredict(tobacco.rstanarm) %>% plot(add.data=TRUE)
+
+tobacco.rstanarm <- update(tobacco.rstanarm, prior_PD=FALSE)
+
+ggpredict(tobacco.rstanarm) %>% plot(add.data=TRUE)
+
+posterior_vs_prior(tobacco.rstanarm, color_by='vs', group_by=TRUE,
+                   facet_args=list(scales='free_y'))
 
 
-# Model validation
 
-# Model investigation / hypothesis testing
+tobacco.rstanarm1 <- stan_glmer(NUMBER~(TREATMENT|LEAF)+TREATMENT, data=tobacco,
+                            family=gaussian,refresh=0,
+                            prior_PD=TRUE, 
+                           chains=3, iter=5000, warmup=2000, thin=5)
+prior_summary(tobacco.rstanarm1)
 
-# Predictions
+ggpredict(tobacco.rstanarm1) %>% plot(add.data=TRUE)
 
-# Summary figures
+tobacco.rstanarm1 <- stan_glmer(NUMBER~(TREATMENT|LEAF)+TREATMENT, data=tobacco,
+                            family=gaussian,refresh=0,
+                            prior_intercept=normal(35, 10, autoscale=FALSE),
+                            prior=normal(0, 10, autoscale=FALSE),
+                            prior_aux=rstanarm::exponential(0.1, autoscale=FALSE),
+                            prior_covariance=decov(1, 1, 1, 1), 
+                            prior_PD=TRUE, 
+                           chains=3, iter=5000, warmup=2000, thin=5)
+
+tobacco.rstanarm1 <- stan_glmer(NUMBER~(TREATMENT|LEAF)+TREATMENT, data=tobacco,
+                            family=gaussian,refresh=0,
+                            prior_intercept=normal(35, 10, autoscale=FALSE),
+                            prior=normal(0, 10, autoscale=FALSE),
+                            prior_aux=rstanarm::exponential(0.1, autoscale=FALSE),
+                            prior_covariance=decov(1, 1, 1, 1), 
+                            prior_PD=TRUE, 
+                            chains=3, iter=5000, warmup=2000, thin=5,
+                            adapt_delta=0.99)
+
+ggpredict(tobacco.rstanarm1) %>% plot(add.data=TRUE)
+tobacco.rstanarm1 <- update(tobacco.rstanarm1, prior_PD=FALSE)
+tobacco.rstanarm1 <- update(tobacco.rstanarm1, prior_PD=FALSE, adapt_delta=0.99)
+
+ggpredict(tobacco.rstanarm1) %>% plot(add.data=TRUE)
+
+posterior_vs_prior(tobacco.rstanarm1, color_by='vs', group_by=TRUE,
+                   facet_args=list(scales='free_y'))
+
+
+plot(tobacco.rstanarm1,  'mcmc_trace')
+plot(tobacco.rstanarm1,  'mcmc_acf_bar')
+plot(tobacco.rstanarm1,  'mcmc_rhat_hist')
+plot(tobacco.rstanarm1,  'mcmc_neff_hist')
+
+pp_check(tobacco.rstan)
+pp_check(tobacco.rstan, group='TREATMENT', plotfun='violin_grouped')
+
+## tobacco.rstan1 <- stan_glmer(NUMBER~(TREATMENT|LEAF)+TREATMENT, data=tobacco,
+##                            family=gaussian,refresh=0,
+##                            chains=3, iter=5000, warmup=2000, thin=5)
+
+## tobacco.rstan1 <- stan_glmer(NUMBER~(TREATMENT|LEAF)+TREATMENT, data=tobacco,
+##                            family=gaussian,refresh=0,
+##                            chains=3, iter=5000, warmup=2000, thin=5,
+##                            adapt_delta=0.99)
+
+## plot(tobacco.rstan1,  'mcmc_trace')
+## plot(tobacco.rstan1,  'mcmc_acf_bar')
+## plot(tobacco.rstan1,  'mcmc_rhat_hist')
+## plot(tobacco.rstan1,  'mcmc_neff_hist')
+
+
+preds <- posterior_predict(tobacco.rstanarm1,  nsamples=250,  summary=FALSE)
+tobacco.resids <- createDHARMa(simulatedResponse = t(preds),
+                            observedResponse = tobacco$NUMBER,
+                            fittedPredictedResponse = apply(preds, 2, median), 
+                            integerResponse=FALSE)
+plot(tobacco.resids)
+
+(l.1 <- loo(tobacco.rstanarm))
+(l.2 <- loo(tobacco.rstanarm1))
+loo_compare(l.1, l.2)
+
+preds <- posterior_predict(tobacco.rstanarm,  nsamples=250,  summary=FALSE)
+tobacco.resids <- createDHARMa(simulatedResponse = t(preds),
+                            observedResponse = tobacco$NUMBER,
+                            fittedPredictedResponse = apply(preds, 2, median))
+plot(tobacco.resids)
+
+
+ggpredict(tobacco.rstanarm) %>% plot
+##ggemmeans(tobacco.rstan, ~TREATMENT) %>% plot
+
+summary(tobacco.rstanarm)
+tidyMCMC(tobacco.rstanarm$stanfit,conf.int=TRUE, conf.method='HPDinterval',
+         rhat=TRUE, ess=TRUE, estimate.method='median') %>%
+  data.frame
+
+bayes_R2(tobacco.rstanarm, re.form=NA) %>% median_hdci
+bayes_R2(tobacco.rstanarm, re.form=~(1|LEAF)) %>% median_hdci
+
+newdata = emmeans(tobacco.rstanarm, ~TREATMENT) %>%
+    gather_emmeans_draws() %>%
+    spread(key=TREATMENT, value=.value)
+newdata
+newdata = newdata %>% mutate(Eff = Strong-Weak,
+                   PEff = 100*(Strong-Weak)/Weak)
+newdata %>% dplyr::select(Eff,PEff) %>% median_hdci
+newdata %>% summarize(Prob = sum(PEff>0)/n())
+newdata %>% summarize(Prob = sum(PEff>10)/n())
+hypothesis(newdata,  'PEff>0')
+hypothesis(newdata,  'PEff>10') 
+
+
+newdata = emmeans(tobacco.rstanarm, ~TREATMENT) %>% as.data.frame
+head(newdata)
+ggplot(newdata, aes(y=emmean, x=TREATMENT)) +
+    geom_pointrange(aes(ymin=lower.HPD, ymax=upper.HPD))
+```
+
+```{r fitModel.brms, results='markdown', eval=FALSE, hidden=TRUE}
+tobacco = tobacco %>% mutate(LEAF=factor(LEAF),
+                             TREATMENT=factor(TREATMENT))
+head(tobacco)
+
+ggplot(tobacco, aes(y=NUMBER,x=TREATMENT)) + geom_boxplot()
+ggplot(tobacco, aes(y=NUMBER,x=as.numeric(LEAF), linetype=TREATMENT)) + geom_line()
+ggplot(tobacco, aes(y=NUMBER,x=as.numeric(LEAF), linetype=TREATMENT)) + geom_blank(aes(x=LEAF)) + geom_line()
+
+tobacco.form <- bf(NUMBER~(1|LEAF)+TREATMENT,  family=gaussian)
+
+tobacco.brms <- brm(tobacco.form, data=tobacco,
+                           refresh=0,
+                           chains=3, iter=5000, warmup=2000, thin=5)
+tobacco.brms <- brm(tobacco.form, data=tobacco,
+                           refresh=0,
+                    chains=3, iter=5000, warmup=2000, thin=5,
+                    control=list(adapt_delta=0.99))
+
+
+mcmc_plot(tobacco.brms,  type='trace')
+mcmc_plot(tobacco.brms,  type='acf_bar')
+mcmc_plot(tobacco.brms,  type='rhat_hist')
+mcmc_plot(tobacco.brms,  type='neff_hist')
+
+tobacco.form <- bf(NUMBER~(TREATMENT|LEAF)+TREATMENT,  family=gaussian)
+tobacco.brms1 <- brm(tobacco.form, data=tobacco,
+                     refresh=0,
+                     chains=3, iter=5000, warmup=2000, thin=5,
+                     control=list(adapt_delta=0.99))
+
+mcmc_plot(tobacco.brms1,  type='trace')
+mcmc_plot(tobacco.brms1,  type='acf_bar')
+mcmc_plot(tobacco.brms1,  type='rhat_hist')
+mcmc_plot(tobacco.brms1,  type='neff_hist')
+
+(l.1 <- loo(tobacco.brms))
+(l.2 <- loo(tobacco.brms1))
+loo_compare(l.1, l.2)
+
+
+preds <- posterior_predict(tobacco.brms,  nsamples=250,  summary=FALSE)
+tobacco.resids <- createDHARMa(simulatedResponse = t(preds),
+                            observedResponse = tobacco$NUMBER,
+                            fittedPredictedResponse = apply(preds, 2, median))
+plot(tobacco.resids)
+
+preds <- posterior_predict(tobacco.brms1,  nsamples=250,  summary=FALSE)
+tobacco.resids <- createDHARMa(simulatedResponse = t(preds),
+                            observedResponse = tobacco$NUMBER,
+                            fittedPredictedResponse = apply(preds, 2, median),
+                            integerResponse = TRUE)
+plot(tobacco.resids)
+
+
+ggpredict(tobacco.brms1) %>% plot
+##ggemmeans(tobacco.rstan, ~TREATMENT) %>% plot
+
+summary(tobacco.brms)
+tidyMCMC(tobacco.brms1$fit,
+         conf.int=TRUE, conf.method='HPDinterval',
+         rhat=TRUE, ess=TRUE,
+         estimate.method='median')
+
+bayes_R2(tobacco.brms1, re.form=~(1|LEAF), summary=FALSE) %>% median_hdi
+bayes_R2(tobacco.brms, re.form=~(1|LEAF), summary=FALSE) %>% median_hdi
+bayes_R2(tobacco.brms1, re.form=~(TREATMENT|LEAF), summary=FALSE) %>% median_hdi
+bayes_R2(tobacco.brms1, re.form=NA,  summary=FALSE) %>% median_hdi
+bayes_R2(tobacco.brms1, re.form=NA,  summary=FALSE) %>% median_hdi
+
+newdata = emmeans(tobacco.brms1, ~TREATMENT) %>%
+    gather_emmeans_draws() %>%
+    spread(key=TREATMENT, value=.value)
+newdata
+newdata = newdata %>% mutate(Eff = Strong-Weak,
+                   PEff = 100*(Strong-Weak)/Weak)
+newdata %>% dplyr::select(Eff,PEff) %>% median_hdi
+newdata %>% summarize(Prob = sum(PEff>0)/n())
+newdata %>% summarize(Prob = sum(PEff>20)/n())
+hypothesis(newdata,  'PEff>0')
+newdata %>% summarize(Prob = sum(PEff>50)/n())
+hypothesis(newdata,  'PEff>20') 
+
+
+newdata = emmeans(tobacco.brms1, ~TREATMENT) %>% as.data.frame
+head(newdata)
+ggplot(newdata, aes(y=emmean, x=TREATMENT)) +
+    geom_pointrange(aes(ymin=lower.HPD, ymax=upper.HPD))
+```
 
 # References

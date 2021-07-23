@@ -113,6 +113,10 @@ do.call('grid.arrange', p)
 
 
 ## ----partialEffects3, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE----
+abalone.gbm %>% pdp::partial(pred.var=c('SHELL_WEIGHT'),
+                             n.trees=best.iter, recursive=FALSE, inv.link=exp) %>%
+    autoplot()
+
 abalone.gbm %>% pdp::partial(pred.var=c('SHELL_WEIGHT','MEAT_WEIGHT'),
                              n.trees=best.iter, recursive=TRUE) %>%
     autoplot()
@@ -233,7 +237,7 @@ abalone.rf = randomForest(RINGS ~ SEX + LENGTH + DIAMETER + HEIGHT +
                       WHOLE_WEIGHT + MEAT_WEIGHT + GUT_WEIGHT + SHELL_WEIGHT,
                       data=abalone, importance=TRUE,
                       ntree=1000)
-abalone.imp = importance(abalone.rf)
+abalone.imp = randomForest::importance(abalone.rf)
 ## Rank by either:
 ## *MSE (mean decrease in accuracy)
 ## For each tree, calculate OOB prediction error.

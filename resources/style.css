@@ -69,18 +69,26 @@ td,th {
 /*Slides specific*/
 
 .segue hgroup {
-    position: absolute;
+    /* position: absolute; */
+    position: relative;
     top: 100px;
+    text-align:center;
 }
+
+.segue h2 {
+    color: unset !important;
+}
+
 .title-slide hgroup p {
     font-size: 40px;
     color: #797979;
     line-height: 1.3;
     margin-top: 3em;
+    text-align: center;
 }
 
 slides > slide {
-	background-image: url(NotebookPaper.jpg);
+	background-image: url(NotebookPaper.jpg) !important;
 	background-size:cover;
 	background-position:center;
 }
@@ -95,15 +103,39 @@ slides > slide.title-slide p {
 	font-family: CabinSketch, Arial, serif;
 }
 
+slides > slide.dark {
+    background: none !important;
+    background-image: url(NotebookPaper.jpg) !important;
+    background-size:cover !important;
+    background-position:center !important;
+}
+
 slides h1,h2,h3 {
 	font-weight:100;
 }
+
+slides h1 {
+    background: url(PikPng.com_paint-brush-stroke-png_2380207.png);
+    background-repeat: no-repeat;
+    background-size: 100% 95%;
+    padding: 8px 0;
+    padding-left:20px;
+    background-position:0% 50%
+}
+
 slides h2 {
     font-size: 60px;
     line-height: 65px;
     letter-spacing: -2px;
-	font-family: CabinSketch, Arial, serif;
-	color: #3E769A;
+    font-family: CabinSketch, Arial, serif;
+    color: #3E769A;
+    background: url(PikPng.com_paint-brush-stroke-png_2380207.png);
+    background-repeat: no-repeat;
+    background-size: 100% 95%;
+    padding: 8px 0;
+    padding-left:20px;
+    background-position:0% 50%;
+    display: inline-block;
 }
 slides h3 {
     font-size: 40px;
@@ -150,6 +182,14 @@ slides > slide > hgroup + article p {
     margin-bottom: 0em;
 }
 
+slides > slide > hgroup {
+    /* width: fit-content; */
+}
+
+slides > slide  pre.larger {
+    font-size:1.5rem !important;
+}
+
 slides > slide pre.prettyprint {
     margin: 5px 15px 0px 5px;
 	left: 0px;
@@ -186,6 +226,53 @@ slides > slide ol li, ul li {
 	margin-bottom:0px;
 }
 
+slides > slide pre.lang-md {
+    border: 1px solid #cccccc !important;
+    border-radius: 4px;
+    border-left:unset !important;
+    background: #e6e6e6 !important;
+    font-family: monospace !important;
+    color:black !important;
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -moz-border-radius-topleft: 3px;
+    font-size:0.70rem;
+}
+slides > slide pre.lang-md .pln {
+    color: black;
+    font-weight: normal;
+}
+slides > slide pre.lang-md .com {
+    color: black;
+    font-style:normal;
+}
+slides > slide pre.lang-md .str {
+    color: black;
+    font-style:normal;
+}
+slides > slide pre.lang-md .pun {
+    color: black;
+    font-style:normal;
+}
+slides > slide pre.lang-md .kwd {
+    color: black;
+    font-style:normal;
+}
+slides > slide pre.lang-md .typ {
+    color: black;
+    font-style:normal;
+}
+slides > slide pre.lang-md .lit {
+    color: black;
+    font-style:normal;
+}
+
+slides > slide pre.lang-md .str {
+    color: black;
+    font-style: normal;
+    opacity: 1;
+}
 slides > slide pre.lang-bash {
     -moz-border-radius-bottomright: 3px;
     -moz-border-radius-bottomleft: 3px;
@@ -306,3 +393,46 @@ slides > slide pre.lang-bash1 .lit {
     border: solid 1px #dddddd;   
     padding: 5px;
 }
+
+.highlight {
+    background: url(PikPng.com_paint-brush-stroke-png_2380207.png);
+    /*background: url(brush-stroke-banner-6.png);*/
+    background-repeat: no-repeat;
+    background-size: 100% 95%;
+    padding: 8px 0;
+}
+
+slide ul li::marker {
+    /* content: "🐱"; */
+    /* content: "*"; */
+    content: "-";
+    /* font-family: CabinSketch; */
+    font-family:VeteranTypewriter ;
+    font-size:30pt;
+    letter-spacing: 10px;
+    /* content: url(barramundi.png);     */
+}
+
+slides>slide:not(.background,.title-slide):after {
+    background: url(blob.png);
+    /*background: url(brush-stroke-banner-6.png);*/
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    padding: 0px 0;
+    z-index:-1;
+    top:10px;
+    right:10px;
+    bottom:unset;
+}
+
+
+slides>slide .plain {
+    border: 1px solid #cccccc !important;
+    border-radius: 4px;
+    border-left:unset !important;
+    background: #e6e6e6 !important;
+    font-family: monospace !important;
+    color:black !important;
+}
+}
+

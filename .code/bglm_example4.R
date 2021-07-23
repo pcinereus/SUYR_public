@@ -71,7 +71,7 @@ ggemmeans(loyn.rstanarm1,  ~AREA) %>% plot(add.data=TRUE) + scale_y_log10()
 
 ## ----fitModel1h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
 loyn.rstanarm2 <- stan_glm(ABUND ~ scale(log(DIST))+
-                              scale(log(LDIST))+
+                             scale(log(LDIST))+
                               scale(log(AREA))+
                               fGRAZE+
                               scale(ALT)+
@@ -460,7 +460,8 @@ loyn.sum <- summary(loyn.rstanarm3)
 
 
 ## ----summariseModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tidyMCMC(loyn.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+tidyMCMC(loyn.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,
+         conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
 
 ## ----summariseModel1b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
 loyn.tidy <- tidyMCMC(loyn.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
@@ -540,11 +541,16 @@ loyn.brm3 %>% bayes_R2(summary=FALSE) %>% median_hdci
 
 
 ## ----furtherModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
-loyn.rstanarm4a <- update(loyn.rstanarm3,  .~scale(log(DIST))*scale(log(LDIST)), diagnostic_file = file.path(tempdir(), "dfa.csv"))
-loyn.rstanarm4b <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE, diagnostic_file = file.path(tempdir(), "dfb.csv"))
-loyn.rstanarm4c <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE * scale(YR.ISOL), diagnostic_file = file.path(tempdir(), "dfc.csv"))
-loyn.rstanarm4d <- update(loyn.rstanarm3,  .~scale(ALT), diagnostic_file = file.path(tempdir(), "dfd.csv"))
-loyn.rstanarm4e <- update(loyn.rstanarm3,  .~1, diagnostic_file = file.path(tempdir(), "dfe.csv"))
+loyn.rstanarm4a <- update(loyn.rstanarm3,  .~scale(log(DIST))*scale(log(LDIST)),
+                          diagnostic_file = file.path(tempdir(), "dfa.csv"))
+loyn.rstanarm4b <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE,
+                          diagnostic_file = file.path(tempdir(), "dfb.csv"))
+loyn.rstanarm4c <- update(loyn.rstanarm3,  .~scale(log(AREA)) * fGRAZE * scale(YR.ISOL),
+                          diagnostic_file = file.path(tempdir(), "dfc.csv"))
+loyn.rstanarm4d <- update(loyn.rstanarm3,  .~scale(ALT),
+                          diagnostic_file = file.path(tempdir(), "dfd.csv"))
+loyn.rstanarm4e <- update(loyn.rstanarm3,  .~1,
+                          diagnostic_file = file.path(tempdir(), "dfe.csv"))
 loo_compare(loo(loyn.rstanarm4a),
             loo(loyn.rstanarm4e)
             )
@@ -616,9 +622,11 @@ ggplot(newdata, aes(y=response, x=AREA)) +
   scale_y_log10()
 
 spaghetti = emmeans(loyn.rstanarm3, ~AREA|fGRAZE, at = loyn.list, type='response') %>%
-  gather_emmeans_draws() %>% mutate(Fit=exp(.value))
+  gather_emmeans_draws() %>%
+  mutate(Fit=exp(.value))
 wch = sample(1:max(spaghetti$.draw), 100,replace=FALSE)
-spaghetti = spaghetti %>% filter(.draw %in% wch)
+spaghetti = spaghetti %>%
+  filter(.draw %in% wch)
 ggplot(newdata) +
   geom_line(data=spaghetti, aes(y=Fit, x=AREA, color=fGRAZE,
                                 group=interaction(fGRAZE,.draw)), alpha=0.05) +

@@ -21,6 +21,7 @@ glimpse(leathwick)
 
 ## ----preparation, results='markdown', eval=TRUE, hidden=TRUE------------------
 leathwick = leathwick %>% mutate(Method=factor(Method),
+                                 LocSed = as.numeric(LocSed)) %>% 
                                  LocSed=factor(LocSed)) %>%
   as.data.frame
 
@@ -31,14 +32,15 @@ glimpse(leathwick_test)
 
 
 ## ----preparation1, results='markdown', eval=TRUE, hidden=TRUE-----------------
-leathwick_test = leathwick_test %>% mutate(Method=factor(Method),
-                                           LocSed=factor(LocSed)) %>%
-  as.data.frame
+leathwick_test = leathwick_test %>% mutate(Method=factor(Method), 
+                                          LocSed=as.numeric(LocSed)) %>%
+  as.data.frame()
 
 
 ## ----EDA, results='markdown', eval=TRUE, hidden=TRUE, fig.width=15, fig.height=15----
 scatterplotMatrix(~Angaus+SegSumT+SegTSeas+SegLowFlow+DSDist+DSMaxSlope+DSDam+
-  USAvgT+USRainDays+USSlope+USNative+Method+LocSed,  data=leathwick,  diagonal=list(method='boxplot'))
+                    USAvgT+USRainDays+USSlope+USNative+Method+LocSed,  data=leathwick,
+                  diagonal=list(method='boxplot'))
 
 
 ## ----fitModel1, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE--------
@@ -48,7 +50,7 @@ leathwick.gbm = gbm(Angaus ~ SegSumT+SegTSeas+SegLowFlow+DSDist+DSMaxSlope+DSDam
                       USAvgT+USRainDays+USSlope+USNative+Method+LocSed,
                     data=leathwick, 
                   distribution='bernoulli',
-                  var.monotone=c(1,1,1,-1,-1,0,1,-1,-1,-1,0,0),
+                  var.monotone=c(1,1,0,-1,-1,0,1,-1,-1,-1,0,-1),
                   n.trees=10000,
                   interaction.depth=5,
                   bag.fraction=0.5,
@@ -77,7 +79,7 @@ for (nm in nms[3:14]) {
                                  inv.link=plogis,
                                  recursive=FALSE,
                                  type='regression') %>%
-    autoplot() + ylim(0, 0.5)
+    autoplot() + ylim(0, 1)
 }
  
 do.call('grid.arrange', p)
@@ -92,8 +94,8 @@ leathwick_test %>%
   geom_point(aes(y=Pred,  x=as.factor(Angaus_obs)), position=position_jitter(width=0.05)) 
 
 
-preds <- predict.gbm(leathwick.gbm, newdata=leathwick_test,
-                     n.trees=best.iter,  type='response')
+#preds <- predict.gbm(leathwick.gbm, newdata=leathwick_test,
+#                     n.trees=best.iter,  type='response')
 preds <- leathwick_test %>%
   bind_cols(Pred = predict(leathwick.gbm,newdata=leathwick_test,
                            n.tree=best.iter, type='response'))

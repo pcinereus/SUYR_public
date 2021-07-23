@@ -114,6 +114,7 @@ glimpse(leathwick)
 
 ```{r preparation, results='markdown', eval=TRUE, hidden=TRUE}
 leathwick = leathwick %>% mutate(Method=factor(Method),
+                                 LocSed = as.numeric(LocSed)) %>% 
                                  LocSed=factor(LocSed)) %>%
   as.data.frame
 ```
@@ -125,16 +126,17 @@ glimpse(leathwick_test)
 ```
 
 ```{r preparation1, results='markdown', eval=TRUE, hidden=TRUE}
-leathwick_test = leathwick_test %>% mutate(Method=factor(Method),
-                                           LocSed=factor(LocSed)) %>%
-  as.data.frame
+leathwick_test = leathwick_test %>% mutate(Method=factor(Method), 
+                                          LocSed=as.numeric(LocSed)) %>%
+  as.data.frame()
 ```
 
 # Exploratory data analysis
 
 ```{r EDA, results='markdown', eval=TRUE, hidden=TRUE, fig.width=15, fig.height=15}
 scatterplotMatrix(~Angaus+SegSumT+SegTSeas+SegLowFlow+DSDist+DSMaxSlope+DSDam+
-  USAvgT+USRainDays+USSlope+USNative+Method+LocSed,  data=leathwick,  diagonal=list(method='boxplot'))
+                    USAvgT+USRainDays+USSlope+USNative+Method+LocSed,  data=leathwick,
+                  diagonal=list(method='boxplot'))
 ```
 
 # Fit the model

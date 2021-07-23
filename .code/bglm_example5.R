@@ -63,8 +63,8 @@ ggpredict(day.rstanarm1) %>% plot(add.data=TRUE)
 ## ----fitModel1h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
 day.rstanarm2= stan_glm(BARNACLE ~ TREAT, data=day,
                         family=poisson(link='log'), 
-                         prior_intercept = normal(0, 10, autoscale=FALSE),
-                         prior = normal(0, 1, autoscale=FALSE),
+                         prior_intercept = normal(3, 5, autoscale=FALSE),
+                         prior = normal(0, 2, autoscale=FALSE),
                          prior_PD=TRUE, 
                          iter = 5000, warmup = 1000,
                          chains = 3, thin = 5, refresh = 0
@@ -476,6 +476,7 @@ day.em %>% group_by(contrast) %>%
 day.em %>% group_by(contrast) %>% median_hdi()
 # Probability of effect
 day.em %>% group_by(contrast) %>% summarize(P=sum(Fit>1)/n())
+day.em %>% group_by(contrast) %>% summarize(P=sum(Fit<1)/n())
 ##Probability of effect greater than 10%
 day.em %>% group_by(contrast) %>% summarize(P=sum(Fit>1.1)/n())
 
@@ -569,9 +570,10 @@ day.sum <- day.em %>%
   group_by(contrast) %>%
   median_hdci(.width=c(0.8, 0.95))
 day.sum
-ggplot(day.sum) +
+g1 <- ggplot(day.sum) +
   geom_hline(yintercept=1, linetype='dashed') +
-  geom_pointrange(aes(x=contrast, y=Fit, ymin=Fit.lower, ymax=Fit.upper, size=factor(.width)),
+  geom_pointrange(aes(x=contrast, y=Fit, ymin=Fit.lower, ymax=Fit.upper,
+                      size=factor(.width)),
                   show.legend = FALSE) +
   scale_size_manual(values=c(1, 0.5)) +
   coord_flip()
@@ -610,7 +612,7 @@ g2 <- ggplot(newdata, aes(y=rate, x=TREAT)) +
 g2 + g1    
 
 
-## ----fitModel, results='markdown', eval=FALSE, hidden=TRUE--------------------
+## ----fitModel, results='markdown', echo=FALSE,eval=FALSE, hidden=TRUE---------
 ## day.rstanarm <- stan_glm(BARNACLE ~ TREAT, data=day,
 ##                       family=poisson(link='log'),
 ##                       chains = 3,iter = 5000, warmup=2000, thin=5,

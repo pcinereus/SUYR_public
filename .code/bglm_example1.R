@@ -422,7 +422,8 @@ fert.sum <- summary(fert.rstanarm3)
 
 
 ## ----summariseModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tidyMCMC(fert.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+tidyMCMC(fert.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,
+         conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
 
 ## ----summariseModel1b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
 fert.tidy <- tidyMCMC(fert.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
@@ -687,7 +688,8 @@ fert.rstanarm3 %>% tidy_draws() %>% summarise(P=sum(FERTILIZER>0)/n())
 ## ----Probability1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=1:2----
 newdata = list(FERTILIZER=c(200, 100)) 
 fert.rstanarm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% pairs()
-fert.mcmc <- fert.rstanarm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% pairs() %>% as.data.frame()
+fert.mcmc <- fert.rstanarm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% pairs() %>%
+  as.data.frame()
 
 
 ## ----Probability1d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----

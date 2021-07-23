@@ -1,0 +1,193 @@
+---
+title: "GLMM example 8"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(emmeans)   #for estimating marginal means
+library(MASS)      #for glm.nb
+library(MuMIn)     #for AICc
+library(tidyverse) #for data wrangling
+library(DHARMa)    #for assessing dispersion etc
+library(glmmTMB)    #for glmmTMB
+library(performance) #for diagnostic plots
+library(see)         #for diagnostic plots
+```
+
+# Scenario
+
+
+Elston explored the effects of year, altitude, location, 
+and brood effects of sheep ticks *Ixodes ricinus* on red grouse 
+*Lagopus lagopus scoticus* chicks.
+
+
+![Red grouse chicks](../resources/redgrousechicks.jpg){width="251" height="290"}
+
+Format of elston.csv data file
+
+INDEX TICKS BROOD ALTITUDE YEAR LOCATION 
+----- ----- ----- -------- ---- -------- 
+1     0     32501 465      95   32       
+2     0     32501 465      95   32       
+3     0     36502 472      95   36       
+4     0     37503 475      95   37       
+5     0     37503 475      95   37       
+6     3     37503 475      95   37       
+\...  \...  \...  \...     \... \...     
+
+-------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+**INDEX**     An integer between 1 and the number of rows that uniquely identifies each individual record
+**TICKS**     The response - the number of ticks on the chick.
+**BROOD**     A random effect indicating which brood the chick comes from.
+**ALTITUDE**  The altitude (a continuous covariate)
+**YEAR**      Year - the main covariate
+**LOCATION**  A random effect
+
+-------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+elston = read_csv('../data/elston.csv', trim_ws=TRUE)
+glimpse(elston)
+```
+
+
+# Exploratory data analysis
+
+Model formula:
+$$
+y_i \sim{} \mathcal{Pois}(\lambda_i)\\
+ln(\lambda_i) =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
+$$
+
+where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
+and $\bf{X}$ is the model matrix representing the overall intercept and effects of year and altitude (centered) and their interaction on the number of number of ticks.
+$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with location and brood within location.
+
+```{r EDA, results='markdown', eval=FALSE, hidden=FALSE}
+##Response = TICKS
+## LOCATION (R)
+## BROOD (R)
+## ALTITUDE
+## YEAR
+elston = elston %>%
+    mutate(fYear=factor(YEAR),
+           LOCATION=factor(LOCATION),
+           BROOD = factor(paste0(LOCATION,BROOD)))
+
+ggplot(elston, aes(y=TICKS, x=ALTITUDE, color=fYear)) +
+  geom_smooth() +
+  geom_point() +
+  scale_y_log10()
+
+elston.glmmTMB <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (1|LOCATION/BROOD),
+                          data=elston,  family=poisson(link='log'),  REML=FALSE)
+elston.glmmTMB1 <- glmmTMB(TICKS ~ fYear+scale(ALTITUDE) + (1|LOCATION/BROOD),
+                           data=elston,  family=poisson(link='log'),  REML=FALSE)
+AICc(elston.glmmTMB,  elston.glmmTMB1)
+
+elston.glmmTMB <- update(elston.glmmTMB,  REML=TRUE)
+elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(fYear|LOCATION/BROOD))
+elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(scale(ALTITUDE)|LOCATION/BROOD))
+#elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(ALTITUDE|LOCATION/BROOD))
+AICc(elston.glmmTMB,  elston.glmmTMB1)
+
+plot_model(elston.glmmTMB, type='diag') %>% plot_grid
+performance::check_model(elston.glmmTMB)
+elston.resid <- simulateResiduals(elston.glmmTMB,  plot=TRUE)
+
+plot(allEffects(elston.glmmTMB),  multiline=TRUE,  ci.style='bands')
+##plot_model(elston.glmmTMB, type='eff', terms=c('ALTITUDE', 'fYear'))
+
+summary(elston.glmmTMB)
+tidy(elston.glmmTMB,  conf.int=TRUE,  exponentiate=TRUE)
+
+emmeans(elston.glmmTMB,  pairwise~fYear|ALTITUDE,  type='response',
+        at=list(ALTITUDE= quantile(elston$ALTITUDE)))
+emmeans(elston.glmmTMB,  pairwise~fYear|ALTITUDE,  type='response',
+        at=list(ALTITUDE= quantile(elston$ALTITUDE)))$contrasts %>%
+  confint() %>% 
+  as.data.frame %>%
+  ggplot(aes(y=ratio,  x=ALTITUDE,  color=contrast)) +
+  geom_hline(yintercept=1,  linetype='dashed') +
+  geom_pointrange(aes(ymin=lower.CL,  ymax=upper.CL),  position=position_dodge(width=0.2)) +
+  scale_y_log10() +
+  coord_flip()
+
+elston.grid = with(elston,  list(ALTITUDE=modelr::seq_range(ALTITUDE,  n=100)))
+newdata = emmeans(elston.glmmTMB,  ~ALTITUDE|fYear, type='response',
+                  at = elston.grid) %>%
+  as.data.frame
+head(newdata)
+ggplot(newdata) +
+  geom_ribbon(aes(x=ALTITUDE, fill=fYear, ymin=lower.CL, ymax=upper.CL),  alpha=0.3) +
+  geom_line(aes(y=rate, x=ALTITUDE, color=fYear)) +
+  scale_y_log10()
+```
+
+
+# Fit the model
+
+# Model validation
+
+# Model investigation / hypothesis testing
+
+# Predictions
+
+# Summary figures
+
+# References

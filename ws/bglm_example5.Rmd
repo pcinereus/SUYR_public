@@ -171,7 +171,7 @@ c) average of ALG1+ALG2 vs NB+S
 
 
 
-```{r fitModel, results='markdown', eval=FALSE, hidden=TRUE}
+```{r fitModel, results='markdown', echo=FALSE,eval=FALSE, hidden=TRUE}
 day.rstanarm <- stan_glm(BARNACLE ~ TREAT, data=day,
                       family=poisson(link='log'),
                       chains = 3,iter = 5000, warmup=2000, thin=5,

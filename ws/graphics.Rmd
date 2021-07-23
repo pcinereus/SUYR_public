@@ -52,6 +52,7 @@ Load the necessary libraries
 ```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse) #for data wrangling
 library(grid)
+library(patchwork)
 library(scales)
 library(gridExtra)
 ```

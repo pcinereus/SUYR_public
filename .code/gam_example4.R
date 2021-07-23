@@ -109,7 +109,7 @@ appraise(paruelo.gam3)
 ## ----fitModel3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4----
 paruelo.resids <- createDHARMa(simulatedResponse = simulate(paruelo.gam3,  nsim=250),
              observedResponse = paruelo$mC3,
-             fittedPredictedResponse = predict(paruelo.gam1))
+             fittedPredictedResponse = predict(paruelo.gam3))
 plot(paruelo.resids)
 
 
@@ -313,6 +313,8 @@ ggplot() +
         pad_x = unit(0.25, "in"), pad_y = unit(0.2, "in"),
         style = north_arrow_fancy_orienteering) +
   coord_sf(expand=FALSE) +
-  theme_bw()
+  theme_bw() +
+  theme(axis.title=element_blank(),
+        legend.position=c(0.99, 0),  legend.justification=c(1, 0))
 
 

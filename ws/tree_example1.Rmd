@@ -47,6 +47,8 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 
 # Preparations
 
+https://besjournals.onlinelibrary.wiley.com/doi/10.1111/j.1365-2656.2008.01390.x
+
 Load the necessary libraries
 
 ```{r libraries, results='markdown', eval=TRUE}
@@ -119,7 +121,7 @@ abalone.rf = randomForest(RINGS ~ SEX + LENGTH + DIAMETER + HEIGHT +
                       WHOLE_WEIGHT + MEAT_WEIGHT + GUT_WEIGHT + SHELL_WEIGHT,
                       data=abalone, importance=TRUE,
                       ntree=1000)
-abalone.imp = importance(abalone.rf)
+abalone.imp = randomForest::importance(abalone.rf)
 ## Rank by either:
 ## *MSE (mean decrease in accuracy)
 ## For each tree, calculate OOB prediction error.

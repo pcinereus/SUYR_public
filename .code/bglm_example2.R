@@ -62,8 +62,8 @@ ggemmeans(polis.rstanarm1,  ~RATIO) %>% plot(add.data=TRUE)
 ## ----fitModel1h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
 polis.rstanarm2= stan_glm(PA ~ RATIO, data=polis,
                           family=binomial(), 
-                          prior_intercept = normal(0.5, 10, autoscale=FALSE),
-                          prior = normal(0, 1, autoscale=FALSE),
+                          prior_intercept = normal(0.5, 2, autoscale=FALSE),
+                          prior = normal(0, 0.2, autoscale=FALSE),
                           prior_PD=TRUE, 
                           iter = 5000, warmup = 1000,
                           chains = 3, thin = 5, refresh = 0
@@ -418,7 +418,9 @@ polis.sum <- summary(polis.rstanarm3)
 
 
 ## ----summariseModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tidyMCMC(polis.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+tidyMCMC(polis.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,
+         conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+
 
 ## ----summariseModel1b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
 polis.tidy <- tidyMCMC(polis.rstanarm3$stanfit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
