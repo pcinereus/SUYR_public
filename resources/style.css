@@ -434,5 +434,10 @@ slides>slide .plain {
     font-family: monospace !important;
     color:black !important;
 }
-}
 
+
+h2 > code {
+ /* font-family: 'VeteranTypewriter'; */
+    font-weight: bold;
+    color: #3E769A;   
+}

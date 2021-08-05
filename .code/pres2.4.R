@@ -3,29 +3,142 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 options(tinytex.engine = 'xelatex')
 
 
-## ----data-transformation, cache=TRUE,echo=FALSE-------------------------------
-system("convert -resize 650x ../resources/data-transformation.pdf ../resources/data-transformation.png")
-system("mv ../resources/data-transformation-0.png ../resources/data-transformation.png")
-
-
-## ---- eval=FALSE,prompt=FALSE-------------------------------------------------
-## data %>%
-##     select(...) %>%
-##         group_by(...) %>%
-##             summarise(...)
-
-
 ## ---- echo=FALSE--------------------------------------------------------------
 options(width=50)
 
-## ---- tidy=TRUE, echo=TRUE----------------------------------------------------
-load(file='../data/manipulationDatasets.RData')
+## ---- tidy=TRUE, echo=1, eval=FALSE-------------------------------------------
+## load(file='data/manipulationDatasets.RData')
+## load(file='../data/manipulationDatasets.RData')
+
+
+## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
+
+## \tikzstyle{Title} = [font={\fontspec[Scale=2]{Complete in Him}}]
+
+## \tikzstyle{code} = [font=\ttfamily]
+
+## \tikzstyle{Messy} = [decorate,decoration={random steps,segment length=3pt, amplitude=0.3pt},thick]
+
+## 
+## \begin{tikzpicture}
+
+## \coordinate (A) at (0,0);
+
+## 
+## \begin{scope}[local bounding box=P1a,anchor=north west, shift=(A),on background layer]
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, Messy] (P1D1) {H};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, anchor=north west, Title, Messy] at ($(P1D1.south east) +(0.2,0)$) (P1D2) {M};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, anchor=south west, Title, Messy] at ($(P1D2.north east) +(0.2,0)$) (P1D3) {L};
+
+## \end{scope}
+
+## \begin{scope}[on background layer]
+
+## \node [fit={(P1D1) (P1D2) (P1D3)}, draw, pattern = grid, pattern color=blue, opacity=0.2, Messy, thick] (P1) {};
+
+## \draw [Messy, thick] (P1.north west) -- (P1.south west) -- (P1.south east) -- (P1.north east) -- cycle;
+
+## \end{scope}
+
+## 
+## \begin{scope}[anchor=north, shift=(P1D3.south), yshift=-1.5cm, xshift=-2.5cm]
+
+## \node [draw, Title, Messy] (T1) {T1};
+
+## \node [draw, anchor=north west, xshift=0.15cm, Title, Messy] at (T1.north east) (T2) {T2};
+
+## \node [draw, anchor=north west, xshift=0.15cm, Title, Messy] at (T2.north east) (T3) {T3};
+
+## \node [draw, anchor=north west, xshift=0.15cm, Title, Messy] at (T3.north east) (T4) {T4};
+
+## \draw [latex-,Messy] (T1) -- (P1D2);
+
+## \draw [latex-,Messy] (T2) -- (P1D2);
+
+## \draw [latex-,Messy] (T3) -- (P1D2);
+
+## \draw [latex-,Messy] (T4) -- (P1D2);
+
+## \draw [Messy] (T1.south) -- ($(T1.south) +(0,-1)$);
+
+## \draw ($(T1.south) +(0,-0.5)$) -- ($(T1.south) +(0.5,-0.5)$) node [anchor=west, code]{Resp1};
+
+## \draw ($(T1.south) +(0,-1)$) -- ($(T1.south) +(0.5,-1)$) node [anchor=west, code]{Resp2};
+
+## \end{scope}
+
+## 
+## \begin{scope}[local bounding box=P2a, anchor=north west, shift=(P1a.north east), xshift=1cm]
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, Messy] (P2D1) {L};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, anchor=north west, Title, Messy] at ($(P2D1.south east) + (0.2,0)$) (P2D2) {H};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, anchor=south west, Title, Messy] at ($(P2D2.north east) + (0.2,0)$) (P2D3) {M};
+
+## \end{scope}
+
+## \begin{scope}[on background layer]
+
+## \node [fit={(P2D1) (P2D2) (P2D3)}, draw, thick, Messy]  (P2) {};
+
+## \end{scope}
+
+## 
+## \begin{scope}[local bounding box=P3a, anchor=north west, shift=(P2a.north east), xshift=1cm]
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, Messy] (P3D1) {M};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, anchor=north west, Messy] at ($(P3D1.south east) + (0.2,0)$) (P3D2) {H};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, anchor=south west, Messy] at ($(P3D2.north east) + (0.2,0)$) (P3D3) {L};
+
+## \end{scope}
+
+## \begin{scope}[on background layer]
+
+## \node [fit={(P3D1) (P3D2) (P3D3)}, draw, pattern = grid, pattern color=blue, opacity=0.2, Messy, thick]  (P3) {};
+
+## \draw [Messy, thick] (P3.north west) -- (P3.south west) -- (P3.south east) -- (P3.north east) -- cycle;
+
+## \end{scope}
+
+## 	
+
+## \begin{scope}[local bounding box=P4a, anchor=north west, shift=(P3a.north east), xshift=1cm]
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, Messy] (P4D1) {L};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, anchor=north west, Messy] at ($(P4D1.south east) +(0.2,0)$) (P4D2) {M};
+
+## \node [draw, minimum width=1cm, minimum height=1cm, Title, anchor= west, Messy] at ($(P4D2.north east) +(0.2,0)$) (P4D3) {H};
+
+## \end{scope}
+
+## \node [fit={(P4D1) (P4D2) (P4D3)}, draw, Messy, thick]  (P4) {};
+
+## 
+## \end{tikzpicture}
 
 
 ## ----data.1, echo=FALSE, results='asis'---------------------------------------
 library(pander)
 library(tidyverse)
 set.seed(1)
+dat.1 <- expand.grid(Time=1:4, Dose=c("H","M","L"), Plot=paste0("P",1:4)) %>%
+    mutate(Dose=factor(as.character(Dose)),
+           Treatment=gl(2,24,48,lab=c('Control','Exclusion')),
+           ## Time=rep(1:4, 3),
+           M1=ifelse(Treatment=='Control', 1, 2),
+           M2=ifelse(Dose=='H', 1, ifelse(Dose=='M',2,3)),
+           Resp1 = round(rnorm(n(), (10*M1)*M2*Time, 3),2),
+           Resp2 = round(rnorm(n(), (rnorm(n(),10,5)*M1)*M2*Time, 5),2)) %>%
+    dplyr::select(Treatment,Plot,Dose,Time,Resp1,Resp2)
+    
+
 data.1 <- expand.grid(Cond=c("H","M","L"),Plot=paste("P",1:4,sep=""))
 data.1$Cond <- factor(as.character(data.1$Cond))
 data.1$Between <- gl(2,6,12,lab=paste("A",1:2,sep=""))
@@ -43,7 +156,137 @@ data.1=dplyr::select(data.1,Between,Plot,Cond,Time,Temp,LAT,LONG)
 ##      html.table.attributes=list("border='3' cellpadding='2' cellspacing='0' class='plainTable' style='font-size:50%;'")
 ##       )
 
-pandoc.table(data.1)
+pandoc.table(dat.1)
+#save(data, data.1, data.bio,  data.chem,  data.geo, data.w,  nasa,  tikus, file='../data/manipulationDatasets.RData')
+#save(data.1, file='../data/manipulationDatasets.RData')
+
+
+## ----data.1, echo=FALSE, results='asis'---------------------------------------
+library(pander)
+library(tidyverse)
+set.seed(1)
+dat.1 <- expand.grid(Time=1:4, Dose=c("H","M","L"), Plot=paste0("P",1:4)) %>%
+    mutate(Dose=factor(as.character(Dose)),
+           Treatment=gl(2,24,48,lab=c('Control','Exclusion')),
+           ## Time=rep(1:4, 3),
+           M1=ifelse(Treatment=='Control', 1, 2),
+           M2=ifelse(Dose=='H', 1, ifelse(Dose=='M',2,3)),
+           Resp1 = round(rnorm(n(), (10*M1)*M2*Time, 3),2),
+           Resp2 = round(rnorm(n(), (rnorm(n(),10,5)*M1)*M2*Time, 5),2)) %>%
+    dplyr::select(Treatment,Plot,Dose,Time,Resp1,Resp2)
+    
+
+data.1 <- expand.grid(Cond=c("H","M","L"),Plot=paste("P",1:4,sep=""))
+data.1$Cond <- factor(as.character(data.1$Cond))
+data.1$Between <- gl(2,6,12,lab=paste("A",1:2,sep=""))
+data.1$Time <- rep(1:4,3)
+data.1 <- data.1 %>% group_by(Between) %>% mutate(LAT=rnorm(1, 18.5, 5)) %>% group_by(Between, Plot) %>% mutate(LAT=LAT+rnorm(3, 0, 0.5)) %>% ungroup
+data.1 <- data.1 %>% mutate(Temp=22 + rnorm(12, 18.5-LAT, 0.2))
+#data.1$Temp <- rnorm(12,22,10)
+#data.1$LAT <- rnorm(12,18.5,2)
+data.1$LONG <- rnorm(12,145,2)
+data.1=dplyr::select(data.1,Between,Plot,Cond,Time,Temp,LAT,LONG)
+## xTab<-xtable(data.1)
+## align(xTab)<-rep("middle",6)
+## print(xTab,type="html",include.rownames=F,only.contents=F,
+## 			  include.colnames=T,sanitize.rownames.function=function(x) paste('<b>',x,'</b>'),
+##      html.table.attributes=list("border='3' cellpadding='2' cellspacing='0' class='plainTable' style='font-size:50%;'")
+##       )
+
+pandoc.table(dat.1)
+#save(data, data.1, data.bio,  data.chem,  data.geo, data.w,  nasa,  tikus, file='../data/manipulationDatasets.RData')
+#save(data.1, file='../data/manipulationDatasets.RData')
+
+
+## ----data-transformation, cache=TRUE,echo=FALSE-------------------------------
+system("convert -resize 650x ../resources/data-transformation.pdf ../resources/data-transformation.png")
+system("mv ../resources/data-transformation-0.png ../resources/data-transformation.png")
+
+
+## ---- eval=FALSE,prompt=FALSE-------------------------------------------------
+## data %>%
+##     select(...) %>%
+##     group_by(...) %>%
+##     summarise(...)
+
+
+## ---- echo=FALSE--------------------------------------------------------------
+options(width=50)
+
+## ---- tidy=TRUE, echo=TRUE----------------------------------------------------
+load(file='../data/manipulationDatasets.RData')
+
+
+## ----data.1, echo=FALSE, results='asis'---------------------------------------
+library(pander)
+library(tidyverse)
+set.seed(1)
+dat.1 <- expand.grid(Time=1:4, Dose=c("H","M","L"), Plot=paste0("P",1:4)) %>%
+    mutate(Dose=factor(as.character(Dose)),
+           Treatment=gl(2,24,48,lab=c('Control','Exclusion')),
+           ## Time=rep(1:4, 3),
+           M1=ifelse(Treatment=='Control', 1, 2),
+           M2=ifelse(Dose=='H', 1, ifelse(Dose=='M',2,3)),
+           Resp1 = round(rnorm(n(), (10*M1)*M2*Time, 3),2),
+           Resp2 = round(rnorm(n(), (rnorm(n(),10,5)*M1)*M2*Time, 5),2)) %>%
+    dplyr::select(Treatment,Plot,Dose,Time,Resp1,Resp2)
+    
+
+data.1 <- expand.grid(Cond=c("H","M","L"),Plot=paste("P",1:4,sep=""))
+data.1$Cond <- factor(as.character(data.1$Cond))
+data.1$Between <- gl(2,6,12,lab=paste("A",1:2,sep=""))
+data.1$Time <- rep(1:4,3)
+data.1 <- data.1 %>% group_by(Between) %>% mutate(LAT=rnorm(1, 18.5, 5)) %>% group_by(Between, Plot) %>% mutate(LAT=LAT+rnorm(3, 0, 0.5)) %>% ungroup
+data.1 <- data.1 %>% mutate(Temp=22 + rnorm(12, 18.5-LAT, 0.2))
+#data.1$Temp <- rnorm(12,22,10)
+#data.1$LAT <- rnorm(12,18.5,2)
+data.1$LONG <- rnorm(12,145,2)
+data.1=dplyr::select(data.1,Between,Plot,Cond,Time,Temp,LAT,LONG)
+## xTab<-xtable(data.1)
+## align(xTab)<-rep("middle",6)
+## print(xTab,type="html",include.rownames=F,only.contents=F,
+## 			  include.colnames=T,sanitize.rownames.function=function(x) paste('<b>',x,'</b>'),
+##      html.table.attributes=list("border='3' cellpadding='2' cellspacing='0' class='plainTable' style='font-size:50%;'")
+##       )
+
+pandoc.table(dat.1)
+#save(data, data.1, data.bio,  data.chem,  data.geo, data.w,  nasa,  tikus, file='../data/manipulationDatasets.RData')
+#save(data.1, file='../data/manipulationDatasets.RData')
+
+
+## ----data.1, echo=FALSE, results='asis'---------------------------------------
+library(pander)
+library(tidyverse)
+set.seed(1)
+dat.1 <- expand.grid(Time=1:4, Dose=c("H","M","L"), Plot=paste0("P",1:4)) %>%
+    mutate(Dose=factor(as.character(Dose)),
+           Treatment=gl(2,24,48,lab=c('Control','Exclusion')),
+           ## Time=rep(1:4, 3),
+           M1=ifelse(Treatment=='Control', 1, 2),
+           M2=ifelse(Dose=='H', 1, ifelse(Dose=='M',2,3)),
+           Resp1 = round(rnorm(n(), (10*M1)*M2*Time, 3),2),
+           Resp2 = round(rnorm(n(), (rnorm(n(),10,5)*M1)*M2*Time, 5),2)) %>%
+    dplyr::select(Treatment,Plot,Dose,Time,Resp1,Resp2)
+    
+
+data.1 <- expand.grid(Cond=c("H","M","L"),Plot=paste("P",1:4,sep=""))
+data.1$Cond <- factor(as.character(data.1$Cond))
+data.1$Between <- gl(2,6,12,lab=paste("A",1:2,sep=""))
+data.1$Time <- rep(1:4,3)
+data.1 <- data.1 %>% group_by(Between) %>% mutate(LAT=rnorm(1, 18.5, 5)) %>% group_by(Between, Plot) %>% mutate(LAT=LAT+rnorm(3, 0, 0.5)) %>% ungroup
+data.1 <- data.1 %>% mutate(Temp=22 + rnorm(12, 18.5-LAT, 0.2))
+#data.1$Temp <- rnorm(12,22,10)
+#data.1$LAT <- rnorm(12,18.5,2)
+data.1$LONG <- rnorm(12,145,2)
+data.1=dplyr::select(data.1,Between,Plot,Cond,Time,Temp,LAT,LONG)
+## xTab<-xtable(data.1)
+## align(xTab)<-rep("middle",6)
+## print(xTab,type="html",include.rownames=F,only.contents=F,
+## 			  include.colnames=T,sanitize.rownames.function=function(x) paste('<b>',x,'</b>'),
+##      html.table.attributes=list("border='3' cellpadding='2' cellspacing='0' class='plainTable' style='font-size:50%;'")
+##       )
+
+pandoc.table(dat.1)
 #save(data, data.1, data.bio,  data.chem,  data.geo, data.w,  nasa,  tikus, file='../data/manipulationDatasets.RData')
 #save(data.1, file='../data/manipulationDatasets.RData')
 
@@ -51,7 +294,7 @@ pandoc.table(data.1)
 ## ---- results='markup'--------------------------------------------------------
 library(dplyr)
 library(tidyr)
-#OR better still
+#OR to get the entire ecosystem
 library(tidyverse)
 
 
@@ -59,33 +302,33 @@ library(tidyverse)
 options(width=90)
 
 ## ---- results='markup'--------------------------------------------------------
-head(data.1)
+head(dat.1)
 #OR
-data.1 %>% head()
+dat.1 %>% head()
 #OR
-data.1 %>% head
+dat.1 %>% head
 
 
 ## ---- results='markup'--------------------------------------------------------
-summary(data.1)
+summary(dat.1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-summary(data.1)
-data.1 %>% summary()
-data.1 %>% summary
+summary(dat.1)
+dat.1 %>% summary()
+dat.1 %>% summary
 
 
 ## ---- results='markup'--------------------------------------------------------
-str(data.1)
+str(dat.1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-glimpse(data.1)
+glimpse(dat.1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% as_tibble
+dat.1 %>% as_tibble
 
 
 ## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
@@ -216,51 +459,51 @@ data.1 %>% as_tibble
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(LAT)
+dat.1 %>% arrange(Resp1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(-LAT)
+dat.1 %>% arrange(-Resp1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(Cond,Temp)
+dat.1 %>% arrange(Dose,Resp1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(Temp+LAT)
+dat.1 %>% arrange(Resp1+Resp2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(Between,Cond)
+dat.1 %>% arrange(Treatment,Time)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- echo=FALSE--------------------------------------------------------------
@@ -268,7 +511,7 @@ options(width=55)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- echo=FALSE--------------------------------------------------------------
@@ -276,7 +519,7 @@ options(width=55)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% arrange(Cond,Temp/LAT)
+dat.1 %>% arrange(Treatment, mean(c(Resp1, Resp2)))
 
 
 ## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
@@ -407,19 +650,19 @@ data.1 %>% arrange(Cond,Temp/LAT)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(LL=LAT+LONG)
+dat.1 %>% mutate(Sum = Resp1 + Resp2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(logTemp=log(Temp))
+dat.1 %>% mutate(logResp1=log(Resp1))
 
 
 ## ---- results='markdown', eval=TRUE, echo=FALSE-------------------------------
@@ -427,117 +670,138 @@ options(width=100)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup', results='hold'----------------------------------------
-data.1 %>% mutate(MeanTemp=mean(Temp), cTemp=Temp-MeanTemp)
+dat.1 %>% mutate(MeanResp1=mean(Resp1), cResp1=Resp1-MeanResp1)
 ## OR if just want the centered variable..
-#data.1 %>% mutate(cTemp=Temp-mean(Temp))
+#dat.1 %>% mutate(cResp1=Resp1-mean(Resp1))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2) %>% as_tibble
+dat.1 %>% head(2) %>% as_tibble
 
 
 ## ---- results='markup', results='hold'----------------------------------------
-data.1 %>% mutate(Time=factor(Time)) %>% as_tibble
+dat.1 %>% mutate(Time=factor(Time)) %>% as_tibble
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2) %>% as_tibble
+dat.1 %>% head(2) %>% as_tibble
 
 
 ## ---- results='markup', results='hold'----------------------------------------
-data.1 %>% mutate(Cond=fct_recode(Cond, High='H',  Medium='M' )) %>%
+dat.1 %>% mutate(Dose=fct_recode(Dose, High='H',  Medium='M' )) %>%
   as_tibble
 
 
 ## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2) %>% as_tibble
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% pull(Dose)
+dat.1 %>% mutate(Dose=fct_relevel(Dose, c('L', 'M','H'))) %>%
+                    as_tibble() %>% pull(Dose)
+
+
+## ---- results='markup'--------------------------------------------------------
 data.1 %>% head(2) %>% as_tibble
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% pull(Cond)
-data.1 %>% mutate(Cond=fct_relevel(Cond, c('L', 'M','H'))) %>%
-                    as_tibble() %>% pull(Cond)
+dat.1 %>% pull(Dose)
+dat.1 %>% mutate(Dose=recode_factor(Dose, 'L'='Low', 'M'='Medium')) %>%
+                    as_tibble() %>% pull(Dose)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2) %>% as_tibble
+dat.1 %>% head(2)
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% mutate(leadResp2=lead(Resp2), lagResp2=lag(Resp2))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% pull(Cond)
-data.1 %>% mutate(Cond=recode_factor(Cond, 'L'='Low', 'M'='Medium')) %>%
-                    as_tibble() %>% pull(Cond)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(leadTemp=lead(Temp), lagTemp=lag(Temp))
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(rankTime=min_rank(Time),
+dat.1 %>% mutate(rankTime=min_rank(Time),
                   denseRankTime=dense_rank(Time))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(rowTemp=row_number(Temp), rowTime=row_number(Time),
+dat.1 %>% mutate(rowresp1=row_number(Resp1), rowTime=row_number(Time),
                   rankTime=min_rank(Time))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(ntile(Temp,4))
+dat.1 %>% mutate(ntile(Resp1,4))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(between(Temp,20,25))
+dat.1 %>% mutate(between(Resp1,20,40))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup', results='hold'----------------------------------------
-data.1 %>% mutate(fTemp=ifelse(Temp<21, 'Low',
-                     ifelse(between(Temp,21,25), 'Medium', 'High')))
+dat.1 %>% mutate(fResp1=ifelse(Resp1<30, 'Low',
+                     ifelse(between(Resp1,31,50), 'Medium', 'High')))
 ## OR
-data.1 %>% mutate(fTemp=case_when(Temp<21 ~ 'Low',
-                               between(Temp, 21, 25) ~ 'Medium',
-                               Temp>25 ~ 'High'))
+dat.1 %>% mutate(fResp1=case_when(Resp1<31 ~ 'Low',
+                               between(Resp1, 31, 50) ~ 'Medium',
+                               Resp1>50 ~ 'High'))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% mutate(fTemp=cut(Temp, breaks=c(0,21,25,100),
+dat.1 %>% mutate(fResp1=cut(Resp1, breaks=c(0,31,50,200),
                          labels=c('Low','Medium','High')))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% mutate(Period = cut(Time, breaks=2, labels=c('Start', 'End'))) 
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% mutate(Period = cut(Time, breaks=2, labels=c('Start', 'End'))) %>%
+  mutate(Treatment = fct_inorder(Treatment, Period))
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
@@ -682,35 +946,40 @@ data.1 %>% mutate(Region = cut(LAT, breaks=3,
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% summarise(MeanTemp=mean(Temp), VarTemp=var(Temp), N=n())
+dat.1 %>% summarise(MeanResp1=mean(Resp1), VarResp1=var(Resp1), N=n())
 
 
 ## ---- results='markup'--------------------------------------------------------
 SE <- function(x) sd(x)/sqrt(length(x))
-data.1 %>% summarise(MeanTemp=mean(Temp), VarTemp=var(Temp), 
-          SEM=SE(Temp))
+dat.1 %>% summarise(MeanResp1=mean(Resp1), VarResp1=var(Resp1), 
+          SEM=SE(Resp1))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% summarise(across(c(Temp,LAT), list(Mean=mean, Var=var)))
+dat.1 %>% summarise(across(c(Resp1, Resp2), list(Mean=mean, Var=var)))
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% summarise(across(where(is.numeric), list(Mean=mean, Var=var)))
+dat.1 %>% summarise(across(where(is.numeric), list(Mean=mean, Var=var)))
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% summarize( across(where(is.numeric),  mean),
+dat.1 %>% summarize( across(where(is.numeric),  mean),
           across(where(is.factor),  length))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% count(Cond)
+Var=c('Resp1', 'Resp2')
+dat.1 %>% summarise(across(all_of(Var), list(Mean=mean, Var=var)))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% count(Cond,between(Temp,20,30))
+dat.1 %>% count(Dose)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% count(Dose,between(Resp1,30,50))
 
 
 ## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
@@ -849,62 +1118,62 @@ data.1 %>% count(Cond,between(Temp,20,30))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(6)
+dat.1 %>% head(6)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
-    summarise(Mean=mean(Temp))
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(6)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
-    summarise(Mean=mean(Temp), Var=var(Temp), N=n(),First=first(Temp))
+dat.1 %>% group_by(Treatment,Plot) %>%
+    summarise(Mean=mean(Resp1))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
-    summarise(Mean=mean(Temp))
+dat.1 %>% head(6)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
-    mutate(Mean=mean(Temp))
+dat.1 %>% group_by(Treatment,Plot) %>%
+    summarise(Mean=mean(Resp1), Var=var(Resp1), N=n(),First=first(Resp1))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% group_by(Treatment,Plot) %>%
+    summarise(Mean=mean(Resp1))
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% group_by(Treatment,Plot) %>%
+    mutate(Mean=mean(Resp1))
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
 
 ## ---- results='markup', echo=2------------------------------------------------
 options(width=200)
-data.1 %>% group_by(Between,Plot) %>%
-  mutate(Mean=mean(Temp), cTemp=Temp-Mean)
+dat.1 %>% group_by(Treatment,Plot) %>%
+  mutate(Mean=mean(Resp1), cResp1=Resp1-Mean)
 options(width=70)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
+dat.1 %>% group_by(Treatment,Plot) %>%
   summarise(across(everything(), mean))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(-Cond,-Time) %>% group_by(Between,Plot) %>%
+dat.1 %>% select(-Dose,-Time) %>% group_by(Treatment,Plot) %>%
     summarise_all(list(mean))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% group_by(Between,Plot) %>%
-    summarise(across(c(Temp, LAT, LONG), list(Mean=mean, SE=SE)))
+dat.1 %>% group_by(Treatment,Plot) %>%
+    summarise(across(c(Time,Resp1,Resp2), list(Mean=mean, SE=SE)))
 
 
 ## ---- echo=FALSE--------------------------------------------------------------
@@ -1073,46 +1342,46 @@ nasa %>% group_by(year) %>%
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(Between,Plot,Cond,Time,Temp)
+dat.1 %>% select(Treatment,Plot,Dose,Time,Resp1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(-LAT,-LONG)
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(contains('L'))
+dat.1 %>% select(-Resp2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(starts_with('L'))
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(ends_with('t'))
+dat.1 %>% select(contains('R'))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(matches('^T[a-z]m.'))
+dat.1 %>% select(starts_with('R'))
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% select(ends_with('e'))
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% select(matches('^.{4}$'))
 
 
 ## ----regex, cache=TRUE,echo=FALSE---------------------------------------------
@@ -1121,10 +1390,10 @@ system("mv ../resources/regex.png ../resources/regex.png")
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% select(Between:Temp)
+dat.1 %>% select(Treatment:Time)
 
 
 ## ---- echo=FALSE,results='markup'---------------------------------------------
@@ -1163,14 +1432,14 @@ dplyr::select(tikus, `Pocillopora damicornis`)
 
 
 ## ---- eval=TRUE,results='markup'----------------------------------------------
-data.1 %>% pull(Temp)
+dat.1 %>% pull(Resp1)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% rename(Condition=Cond, Temperature=Temp)
+dat.1 %>% rename(Exposure=Treatment, Richness=Resp1)
 
 
 ## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
@@ -1275,37 +1544,37 @@ data.1 %>% rename(Condition=Cond, Temperature=Temp)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% filter(Cond=='H')
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% filter(Cond %in% c('H','M'))
+dat.1 %>% filter(Dose=='H')
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% filter(Cond=='H' & Temp<25)
+dat.1 %>% filter(Dose %in% c('H','M'))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% filter(Cond=='H' | Temp<25)
+dat.1 %>% head(2)
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% filter(Dose=='H' & Resp1<25)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% filter(Dose=='H' | Resp1<25)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% filter(Temp<20 & (LAT>20 |  LONG <145))
+dat.1 %>% head(2)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% filter(Resp1<40 & (Time>1 |  Dose =="L"))
 
 
 ## ---- results='markup'--------------------------------------------------------
@@ -1337,10 +1606,10 @@ glimpse(nasa)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% slice(1:4)
+dat.1 %>% slice(1:4)
 
 
 ## ---- results='markup'--------------------------------------------------------
@@ -1348,59 +1617,59 @@ data.1 %>% slice(c(1:4,7))
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% sample_n(10, replace=TRUE)
-
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
-
-## ---- results='markup'--------------------------------------------------------
-data.1 %>% sample_frac(0.5, replace=TRUE)
+dat.1 %>% sample_n(10, replace=TRUE)
 
 
 ## ---- results='markup'--------------------------------------------------------
-data.1 %>% head(2)
+dat.1 %>% head(2)
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% sample_frac(0.5, replace=TRUE)
+
+
+## ---- results='markup'--------------------------------------------------------
+dat.1 %>% head(2)
 
 
 ## ---- results='markup'--------------------------------------------------------
 #examine the levels of the Cond factor
-levels(data.1$Cond)
+levels(dat.1$Dose)
 
 
 ## ---- results='markup'--------------------------------------------------------
 #subset the dataset to just Cond H
-data.3 <- data.1 %>% filter(Plot=='P1')
+dat.3 <- dat.1 %>% filter(Plot=='P1')
 #examine subset data
-data.3
+dat.3
 #examine the levels of the Cond factor
-levels(data.3$Cond)
-levels(data.3$Plot)
-levels(data.3$Between)
+levels(dat.3$Dose)
+levels(dat.3$Plot)
+levels(dat.3$Treatment)
 
 
 ## ---- results='markup'--------------------------------------------------------
-#subset the dataset to just Cond H
-data.3 <-  data.1 %>% filter(Plot=='P1')
+#subset the dataset to just Dose H
+dat.3 <-  dat.1 %>% filter(Plot=='P1')
 #drop the unused factor levels from all factors
-data.3 <- data.3 %>% droplevels()
+dat.3 <- dat.3 %>% droplevels()
 #examine the levels of each factor
-levels(data.3$Cond)
-levels(data.3$Plot)
-levels(data.3$Between)
+levels(dat.3$Dose)
+levels(dat.3$Plot)
+levels(dat.3$Treatment)
 
 
 ## ---- results='markup'--------------------------------------------------------
-#subset the dataset to just Cond H
-data.3 <- data.1 %>% filter(Plot=='P1')
-#drop the unused factor levels from Cond
-data.3 <- data.3 %>% mutate(Plot=factor(Plot))
+#subset the dataset to just Dose H
+dat.3 <- dat.1 %>% filter(Plot=='P1')
+#drop the unused factor levels from Dose
+dat.3 <- dat.3 %>% mutate(Plot=factor(Plot))
 #examine the levels of each factor
-levels(data.3$Cond)
-levels(data.3$Plot)
-levels(data.3$Between)
+levels(dat.3$Dose)
+levels(dat.3$Plot)
+levels(dat.3$Treatment)
 
 
 ## \usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns}
@@ -2238,82 +2507,82 @@ glimpse(tikus)
 ## ---- results='markup', eval=FALSE--------------------------------------------
 ## tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
 ##     gather(Species, Abundance,-time,-rep) %>%
-##         mutate(Cover=Abundance/10)
+##     mutate(Cover=Abundance/10)
 
 
 ## ---- results='markup', eval=FALSE--------------------------------------------
 ## tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
 ##     gather(Species, Abundance,-time,-rep) %>%
-##         mutate(Cover=Abundance/10) %>%
-##             separate(Species,c('Genera','Species'))
+##     mutate(Cover=Abundance/10) %>%
+##     separate(Species,c('Genera','Species'))
 
 
 ## ---- results='markup', eval=FALSE--------------------------------------------
 ## tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
 ##     gather(Species, Abundance,-time,-rep) %>%
-##         mutate(Cover=Abundance/10) %>%
-##             separate(Species,c('Genera','Species')) %>%
-##                 filter(Genera=='Acropora')
+##     mutate(Cover=Abundance/10) %>%
+##     separate(Species,c('Genera','Species')) %>%
+##     filter(Genera=='Acropora')
 
 
 ## ---- results='markup', eval=FALSE--------------------------------------------
 ## tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
 ##     gather(Species, Abundance,-time,-rep) %>%
-##         mutate(Cover=Abundance/10) %>%
-##             separate(Species,c('Genera','Species')) %>%
-##                 filter(Genera=='Acropora') %>%
-##                     group_by(time,rep) %>%
-##                         summarise(SumCover=sum(Cover))
+##     mutate(Cover=Abundance/10) %>%
+##     separate(Species,c('Genera','Species')) %>%
+##     filter(Genera=='Acropora') %>%
+##     group_by(time,rep) %>%
+##     summarise(SumCover=sum(Cover))
 
 
 ## ---- results='markup', eval=TRUE---------------------------------------------
 tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
     gather(Species, Abundance,-time,-rep) %>%
-        mutate(Cover=Abundance/10) %>%
-            separate(Species,c('Genera','Species')) %>%
-                filter(Genera=='Acropora') %>%
-                    group_by(time,rep) %>%
-                        summarise(SumCover=sum(Cover)) %>%
-                            group_by(time) %>%
-                                summarise(Mean=mean(SumCover),
-                                          Var=var(SumCover))
+    mutate(Cover=Abundance/10) %>%
+    separate(Species,c('Genera','Species')) %>%
+    filter(Genera=='Acropora') %>%
+    group_by(time,rep) %>%
+    summarise(SumCover=sum(Cover)) %>%
+    group_by(time) %>%
+    summarise(Mean=mean(SumCover),
+              Var=var(SumCover))
 
 
 ## ---- results='markup', eval=TRUE---------------------------------------------
 tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
     gather(Species, Abundance,-time,-rep) %>%
-        mutate(Cover=Abundance/10) %>%
-            separate(Species,c('Genera','Species')) %>%
-                filter(Genera=='Acropora') %>%
-                    group_by(time,rep) %>%
-                        summarise(SumCover=sum(Cover)) %>%
-                            group_by(time) %>%
-                                summarise(Mean=mean(SumCover),
-                                          Var=var(SumCover))
+    mutate(Cover=Abundance/10) %>%
+    separate(Species,c('Genera','Species')) %>%
+    filter(Genera=='Acropora') %>%
+    group_by(time,rep) %>%
+    summarise(SumCover=sum(Cover)) %>%
+    group_by(time) %>%
+    summarise(Mean=mean(SumCover),
+              Var=var(SumCover))
 
 
 ## ---- results='markup', eval=TRUE---------------------------------------------
 tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
     gather(Species, Abundance,-time,-rep) %>%
-        mutate(Cover=Abundance/10) %>%
-            separate(Species,c('Genera','Species')) %>%
-                    group_by(time,rep,Genera) %>%
-                        summarise(SumCover=sum(Cover)) %>%
-                            group_by(time,Genera) %>%
-                                summarise(Mean=mean(SumCover),
-                                          Var=var(SumCover))
+    mutate(Cover=Abundance/10) %>%
+    separate(Species,c('Genera','Species')) %>%
+    group_by(time,rep,Genera) %>%
+    summarise(SumCover=sum(Cover)) %>%
+    group_by(time,Genera) %>%
+    summarise(Mean=mean(SumCover),
+              Var=var(SumCover))
 
 
 ## ---- results='markup', eval=TRUE---------------------------------------------
 tikus %>% rename(`Acropora aspera`=`Acropera aspera`) %>%
     gather(Species, Abundance,-time,-rep) %>%
-        mutate(Cover=Abundance/10) %>%
-            separate(Species,c('Genera','Species')) %>%
-                    group_by(time,rep,Genera) %>%
-                        summarise(SumCover=sum(Cover)) %>%
-                            group_by(time,Genera) %>%
-                                summarise(Mean=mean(SumCover),
-                                          Var=var(SumCover)) %>%
-                                              top_n(3,Mean) %>%
-                                                  arrange(desc(Mean))
+    mutate(Cover=Abundance/10) %>%
+    separate(Species,c('Genera','Species')) %>%
+    group_by(time,rep,Genera) %>%
+    summarise(SumCover=sum(Cover)) %>%
+    group_by(time,Genera) %>%
+    summarise(Mean=mean(SumCover),
+              Var=var(SumCover)) %>%
+    top_n(3,Mean) %>%
+    arrange(desc(Mean))
 
