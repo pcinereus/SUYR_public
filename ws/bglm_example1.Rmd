@@ -52,6 +52,7 @@ Load the necessary libraries
 ```{r libraries, results='markdown', eval=TRUE}
 library(rstanarm)   #for fitting models in STAN
 library(brms)       #for fitting models in STAN
+library(standist)   #for exploring distributions
 library(coda)       #for diagnostics
 library(bayesplot)  #for diagnostics
 library(ggmcmc)     #for MCMC diagnostics
@@ -119,14 +120,75 @@ $$
 
 # MCMC sampling diagnostics {.tabset .tabset-faded}
 
+**MCMC sampling behaviour**
+
+`available_mcmc()`
+
+| Package   | Description       | function               | stanarm                          | BRMS                               |
+|-----------|-------------------|------------------------|----------------------------------|------------------------------------|
+| Bayesplot | Traceplot         | `mcmc_trace`           | `plot(mod, plotfun='trace')`     | `mcmc_plot(mod, type='trace')`     |
+|           | Density plot      | `mcmc_dens`            | `plot(mod, plotfun='dens')`      | `mcmc_plot(mod, type='dens')`      |
+|           | Density & Trace   | `mcmc_combo`           | `plot(mod, plotfun='combo')`     | `mcmc_plot(mod, type='combo')`     |
+|           | ACF               | `mcmc_acf_bar`         | `plot(mod, plotfun='acf_bar')`   | `mcmc_plot(mod, type='acf_bar')`   |
+|           | Rhat hist         | `mcmc_rhat_hist`       | `plot(mod, plotfun='rhat_hist')` | `mcmc_plot(mod, type='rhat_hist')` |
+|           | No. Effective     | `mcmc_neff_hist`       | `plot(mod, plotfun='neff_hist')` | `mcmc_plot(mod, type='neff_hist')` |
+| rstan     | Traceplot         | `stan_trace`           | `stan_trace(mod)`                | `stan_trace(mod)`                  |
+|           | ACF               | `stan_ac`              | `stan_ac(mod)`                   | `stan_ac(mod)`                     |
+|           | Rhat              | `stan_rhat`            | `stan_rhat(mod)`                 | `stan_rhat(mod)`                   |
+|           | No. Effective     | `stan_ess`             | `stan_ess(mod)`                  | `stan_ess(mod)`                    |
+|           | Density plot      | `stan_dens`            | `stan_dens(mod)`                 | `stan_dens(mod)`                   |
+| ggmcmc    | Traceplot         | `ggs_traceplot`        | `ggs_traceplot(ggs(mod))`        | `ggs_traceplot(ggs(mod))`          |
+|           | ACF               | `ggs_autocorrelation`  | `ggs_autocorrelation(ggs(mod))`  | `ggs_autocorrelation(ggs(mod))`    |
+|           | Rhat              | `ggs_Rhat`             | `ggs_Rhat(ggs(mod))`             | `ggs_Rhat(ggs(mod))`               |
+|           | No. Effective     | `ggs_effective`        | `ggs_effective(ggs(mod))`        | `ggs_effective(ggs(mod))`          |
+|           | Cross correlation | `ggs_crosscorrelation` | `ggs_crosscorrelation(ggs(mod))` | `ggs_crosscorrelation(ggs(mod))`   |
+|           | Scale reduction   | `ggs_grb`              | `ggs_grb(ggs(mod))`              | `ggs_grb(ggs(mod))`                |
+|           |                   |                        |                                  |                                    |
+
 
 # Model validation {.tabset .tabset-faded}
+
+**Posterior probabilty checks**
+
+`available_ppc()`
+
+| Package   | Description       | function                     | stanarm                                               | BRMS                                               |
+|-----------|-------------------|------------------------------|-------------------------------------------------------|----------------------------------------------------|
+| Bayesplot | Density overlay   | `ppc_dens_overlay`           | `pp_check(mod, plotfun='dens_overlay')`               | `pp_check(mod, type='dens_overlay')`               |
+|           | Obs vs Pred error | `ppc_error_scatter_avg`      | `pp_check(mod, plotfun='error_scatter_avg')`          | `pp_check(mod, type='error_scatter_avg')`          |
+|           | Pred error vs x   | `ppc_error_scatter_avg_vs_x` | `pp_check(mod, x=, plotfun='error_scatter_avg_vs_x')` | `pp_check(mod, x=, type='error_scatter_avg_vs_x')` |
+|           | Preds vs x        | `ppc_intervals`              | `pp_check(mod, x=, plotfun='intervals')`              | `pp_check(mod, x=, type='intervals')`              |
+|           | Parial plot       | `ppc_ribbon`                 | `pp_check(mod, x=, plotfun='ribbon')`                 | `pp_check(mod, x=, type='ribbon')`                 |
+|           |                   |                              |                                                       |                                                    |
+
+
 
 
 # Partial effects plots {.tabset .tabset-faded}
 
 
 # Model investigation {.tabset .tabset-faded}
+
+
+| Package     | Function              | Description                                                                                                                        |
+| --          | --                    | -----                                                                                                                              |
+|             | `as.matrix()`         | Returns $n\times p$ matrix                                                                                                         |
+| `tidybayes` | `tidy_draws()`        | Returns $n\times p$ tibble with addition info about the chain, iteration and draw                                                  |
+| `tidybayes` | `spread_draws()`      | Returns $n\times r$ tibble (where $r$ is the number of requested parameters) with additional info about chain, iteraction and draw |
+| `tidybayes` | `gather_draws()`      | Returns a gathered `spread_draws` tibble with additional info about chain, iteraction and draw                                     |
+| `brms`      | `posterior_samples()` | Returns $n\times p$ data.frame                                                                                                     |
+|             |                       |                                                                                                                                    |
+|             |                       |                                                                                                                                    |
+where $n$ is the number of MCMC samples and $p$ is the number of parameters to
+estimate.
+
+| Function      | Description                                                |
+| ---           | ---                                                        |
+| `median_qi`   | Median and quantiles                                       |
+| `median_hdi`  | Median and Highest Probability Density Interval            |
+| `median_hdci` | Median and continuous Highest Probability Density Interval |
+|               |                                                            |
+
 
 
 
