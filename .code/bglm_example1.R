@@ -136,9 +136,9 @@ conditional_effects(fert.brm1) %>%  plot(points=TRUE)
 
 ## ----priors, results='markdown', eval=TRUE------------------------------------
 standist::visualize("normal(164,10)", xlim=c(-100,300))
+standist::visualize("normal(0,1)", xlim=c(-10,10))
 standist::visualize("cauchy(0,2)", xlim=c(-10,10))
 standist::visualize("gamma(2,1)", xlim=c(0,10))
-standist::visualize("gamma(0.2,0.01)", xlim=c(0,10))
 
 
 ## ----fitModel2h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
@@ -160,7 +160,14 @@ conditional_effects(fert.brm2)
 
 
 ## ----fitModel2j, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
-fert.brm3 <- update(fert.brm2,  sample_prior=TRUE, refresh=0)
+fert.brm3 <- update(fert.brm2, sample_prior = 'yes', refresh = 0)
+
+
+## ----posterior2, results='markdown', eval=TRUE--------------------------------
+fert.brm3 %>% get_variables()
+## fert.brm3 %>% hypothesis('Intercept=0', class='b') %>% plot
+fert.brm3 %>% hypothesis('FERTILIZER=0') %>% plot
+fert.brm3 %>% hypothesis('sigma=0', class='') %>% plot
 
 
 ## ----fitModel2k, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
@@ -300,8 +307,8 @@ stan_dens(fert.brm3$fit, separate_chains = TRUE)
 
 
 ## ----modelValidation2l, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=7----
-fert.ggs <- ggs(fert.brm3, burnin=FALSE)  # does not seem to ignore burnin?
-ggs_traceplot(fert.ggs)
+fert.ggs <- ggs(fert.brm3, inc_warmup=FALSE)  # does not seem to ignore burnin?
+ggs_traceplot(fert.ggs, original_burnin=FALSE)
 
 
 ## ----modelValidation2m, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=7----

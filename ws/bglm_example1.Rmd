@@ -112,6 +112,8 @@ y_i &\sim{} \mathcal{N}(\mu_i, \sigma^2)\\
 \sigma &\sim{} \mathcal{cauchy}(0,5)\\
 OR\\
 \sigma &\sim{} \mathcal{Exp}(1)\\
+OR\\
+\sigma &\sim{} \mathcal{gamma}(2,1)\\
 \end{align}
 $$
 
@@ -120,13 +122,15 @@ $$
 
 # MCMC sampling diagnostics {.tabset .tabset-faded}
 
+
+
 **MCMC sampling behaviour**
 
 `available_mcmc()`
 
-| Package   | Description       | function               | stanarm                          | BRMS                               |
+| Package   | Description       | function               | rstanarm                          | brms                               |
 |-----------|-------------------|------------------------|----------------------------------|------------------------------------|
-| Bayesplot | Traceplot         | `mcmc_trace`           | `plot(mod, plotfun='trace')`     | `mcmc_plot(mod, type='trace')`     |
+| bayesplot | Traceplot         | `mcmc_trace`           | `plot(mod, plotfun='trace')`     | `mcmc_plot(mod, type='trace')`     |
 |           | Density plot      | `mcmc_dens`            | `plot(mod, plotfun='dens')`      | `mcmc_plot(mod, type='dens')`      |
 |           | Density & Trace   | `mcmc_combo`           | `plot(mod, plotfun='combo')`     | `mcmc_plot(mod, type='combo')`     |
 |           | ACF               | `mcmc_acf_bar`         | `plot(mod, plotfun='acf_bar')`   | `mcmc_plot(mod, type='acf_bar')`   |
@@ -152,9 +156,9 @@ $$
 
 `available_ppc()`
 
-| Package   | Description       | function                     | stanarm                                               | BRMS                                               |
+| Package   | Description       | function                     | rstanarm                                               | brms                                               |
 |-----------|-------------------|------------------------------|-------------------------------------------------------|----------------------------------------------------|
-| Bayesplot | Density overlay   | `ppc_dens_overlay`           | `pp_check(mod, plotfun='dens_overlay')`               | `pp_check(mod, type='dens_overlay')`               |
+| bayesplot | Density overlay   | `ppc_dens_overlay`           | `pp_check(mod, plotfun='dens_overlay')`               | `pp_check(mod, type='dens_overlay')`               |
 |           | Obs vs Pred error | `ppc_error_scatter_avg`      | `pp_check(mod, plotfun='error_scatter_avg')`          | `pp_check(mod, type='error_scatter_avg')`          |
 |           | Pred error vs x   | `ppc_error_scatter_avg_vs_x` | `pp_check(mod, x=, plotfun='error_scatter_avg_vs_x')` | `pp_check(mod, x=, type='error_scatter_avg_vs_x')` |
 |           | Preds vs x        | `ppc_intervals`              | `pp_check(mod, x=, plotfun='intervals')`              | `pp_check(mod, x=, type='intervals')`              |
