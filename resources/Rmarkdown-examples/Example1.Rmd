@@ -11,3 +11,10 @@ x <- rnorm(10)
 summary(x)
 ```
 
+Some salty code
+
+```{r}
+camalCase=mean(c(1:5))
+word.1 <- 'Word'
+```
+
