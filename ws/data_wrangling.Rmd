@@ -44,7 +44,7 @@ bibliography: ../resources/references.bib
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+ 
 # Preparations
 
 Load the necessary libraries
@@ -53,41 +53,84 @@ Load the necessary libraries
 library(tidyverse) #for data wrangling
 ```
 
-Link to the data transformation cheatsheet
+Link to the data transformation cheatsheet 
 
 https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf
 
 Important data manipulation functions:
 
-| Task                      | Function                    | Package   |
-|---------------------------|-----------------------------|-----------|
-| Sorting                   | `arrange()`                 | **dplyr** |
-| Re-ordering factor levels | `factor()`                  | **base**  |
-| Re-labelling              | `recode()`                  | **dplyr** |
-| Re-naming columns         | `rename()`                  | **dplyr** |
-| Filtering/subsetting      | `select()`                  | **dplyr** |
-| Transformations           | `mutate()`                  | **dplyr** |
-| Adding columns            | `mutate()`                  | **dplyr** |
-| Re-shaping data           | `gather()`/`spread()`       | **tidyr** |
-| Aggregating               | `summarize()`, `group_by()` | **dplyr** |
-| Merging/joining           | `*_join()`                  | **dplyr** |
-|                           |                             |           |
++--------------------------+-----------------------------------+------------+
+|Task                      |Function                           |Package     |
++==========================+===================================+============+
+|Sorting                   |`arrange()`                        |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Adding columns            |`mutate()`                         |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Transformations           |`mutate()`                         |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Re-ordering factor levels |`factor(,levels=)`                 |base        |
++--------------------------+-----------------------------------+------------+
+|Re-labelling              |`factor(,lab=)`                    |base        |
++--------------------------+-----------------------------------+------------+
+|                          |`recode()`                         |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Re-naming columns         |`rename(,replace=)`                |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Filtering/Subsetting      |indexing                           |base        |
++--------------------------+-----------------------------------+------------+
+|~ columns                 |`select(,...)`                     |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|                          |`pull(,...)`                       |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|~ rows                    |`filter(,...)`                     |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Unique combinations       |`distinct()`                       |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Reshaping data            | `pivot_longer()`, `pivot_wider()` | **tidyr**  |
++--------------------------+-----------------------------------+------------+
+|Split/combine columns     | `separate()`, `unite()`           | **tidyr**  |
++--------------------------+-----------------------------------+------------+
+|Aggregating               |`group_by()` `summarise()`         |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|                          |`group_by()` `count()`             |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Merging/joining           |`*_join()`                         |**dplyr**   |
++--------------------------+-----------------------------------+------------+
+|Extracting data structure |`expand()`                         |**tidyr**   |
++--------------------------+-----------------------------------+------------+
+|                          |`crossing()`                       |**tidyr**   |
++--------------------------+-----------------------------------+------------+
+
 
 # Piping
 
 # Data files
-
+ 
 ```{r getData, results='markdown', eval=TRUE}
 load(file='../data/manipulationDatasets.RData')
-data.1 %>% head
+dat.1 %>% head
 ```
 
 Sorting data
 ================
+```{r, results='markup'}
+head(dat.1)
+#OR
+dat.1 %>% head()
+#OR
+dat.1 %>% head
+```
+
+Adding columns - mutate
+===========================
 
 
-Manipulating factors
-=======================
+Summarising (aggregating) data
+=================================
+
+
+Grouping (=aggregating)
+=========================
 
 
 Subset columns
@@ -97,29 +140,15 @@ Subset columns
 
 https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf
 
-
 Filtering
 =============
-
-Adding columns - mutate
-===========================
-
-
-Summarising (aggregating) data
-=================================
-
-Piping
-=======
-
-Grouping (=aggregating)
-=========================
 
 Reshaping data
 =================
 
-## Gathering
+## Pivot longer
 
-## Spread
+## Pivot wider
 
 Combining data
 =================
