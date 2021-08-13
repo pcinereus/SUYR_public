@@ -1,0 +1,96 @@
+---
+title: "GLMM example 9"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+output_dir: "docs"
+documentclass: article
+fontsize: 12pt
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
+classoption: a4paper
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparations
+
+Load the necessary libraries
+
+```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
+library(car)       #for regression diagnostics
+library(broom)     #for tidy output
+library(broom.mixed) #for tidy output
+library(ggfortify) #for model diagnostics
+library(sjPlot)    #for outputs
+library(knitr)     #for kable
+library(effects)   #for partial effects plots
+library(ggeffects) #for effects plots in ggplotjk
+library(emmeans)   #for estimating marginal means
+library(MASS)      #for glm.nb
+library(MuMIn)     #for AICc
+library(tidyverse) #for data wrangling
+library(DHARMa)    #for assessing dispersion etc
+library(glmmTMB)    #for glmmTMB
+library(performance) #for diagnostic plots
+library(see)         #for diagnostic plots
+library(ordinal)    #for ordinal models
+```
+
+
+# Scenario
+
+# Read in the data
+
+```{r readData, results='markdown', eval=TRUE}
+hughes = read_csv('../data/hughes.csv', trim_ws=TRUE)
+glimpse(hughes)
+```
+
+| REEF   | HABITAT | SECTOR | SCORE |
+|--------|---------|--------|-------|
+| 09-357 | C       | North  | 4     |
+| 09-357 | F       | North  | 4     |
+| 09-357 | U       | North  | 3     |
+|        |         |        |       |
+
+# Data preparation
+
+
+# Exploratory Data Analysis
+
+
+# Fit models
+
