@@ -48,3 +48,11 @@ knitr::read_chunk('../scripts/TEST_01_getData.R')
 # Preparations
 
 Load the necessary libraries
+
+```{r loadLibraries, results='markdown', eval=TRUE}
+```
+
+# Exploratory data analysis
+
+```{r EDA, results='markdown', eval=TRUE}
+```

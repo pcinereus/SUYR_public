@@ -72,8 +72,12 @@ ggplot(loyn, aes(y=ABUND, x=rslAREA, color=fGRAZE)) +
 loyn.glm<-glm(ABUND~scale(log(DIST), scale=FALSE) + scale(log(LDIST), scale=FALSE) +
                 scale(log(AREA), scale=FALSE)+
                 fGRAZE + scale(ALT, scale=FALSE) + scale(YR.ISOL, scale=FALSE),
-              data=loyn, family=gaussian(link='log'))
+              data=loyn, family=gaussian())
 
+loyn.glm<-glm(ABUND~scale(log(DIST), scale=FALSE) + scale(log(LDIST), scale=FALSE) +
+                scale(log(AREA), scale=FALSE)+
+                fGRAZE + scale(ALT, scale=FALSE) + scale(YR.ISOL, scale=FALSE),
+              data=loyn, family=gaussian(link='log'))
 loyn.glm1<-glm(ABUND~scale(log(DIST), scale=FALSE) + scale(log(LDIST), scale=FALSE) +
                  scale(log(AREA), scale=FALSE)+
                  fGRAZE + scale(ALT, scale=FALSE) + scale(YR.ISOL, scale=FALSE),
@@ -205,7 +209,7 @@ loyn.glm4<-update(loyn.glm, .~scale(ALT, scale=FALSE))
 loyn.null<-update(loyn.glm, .~1)
 AICc(loyn.glm1, loyn.glm2, loyn.glm3, loyn.glm4, loyn.null)
 AICc(loyn.glm1, loyn.glm2, loyn.glm3, loyn.glm4, loyn.null) %>%
-    mutate(Model=row.names(.), delta=AICc-AICc[6]) %>%
+    mutate(Model=row.names(.), delta=AICc-AICc[5]) %>%
     dplyr::select(Model, everything())
 ## Support for model 2, 3 and 4, no support for model 1
 
@@ -216,15 +220,20 @@ summary(loyn.glm2)
 
 ## ----emmtrends, results='markdown', eval=TRUE---------------------------------
 emtrends(loyn.glm2,  pairwise~fGRAZE, var='log(AREA)')
+emtrends(loyn.glm2,  pairwise~fGRAZE, var='AREA')
+
+
+## ----emeans, results='markdown', eval=TRUE------------------------------------
+emmeans(loyn.glm2, pairwise~fGRAZE)
 
 
 ## ----figureModel, results='markdown', eval=TRUE, hidden=TRUE------------------
 ## Using emmeans
 loyn.grid <- with(loyn,  list(fGRAZE=levels(fGRAZE),
                               AREA = seq(min(AREA),  max(AREA),  len=100)))
-
-#newdata = with(loyn,  list(fGRAZE=levels(fGRAZE),
-#                             AREA=seq_range(AREA,  n=100))
+## OR
+loyn.grid = with(loyn,  list(fGRAZE=levels(fGRAZE),
+                            AREA=seq_range(AREA,  n=100)))
 newdata = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
   as.data.frame
 ## OR
@@ -234,14 +243,70 @@ newdata = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
 #    as.data.frame
 head(newdata)
 
+ggplot(newdata, aes(y=emmean, x=AREA, color=fGRAZE, fill=fGRAZE)) +
+  geom_point(data=loyn,  aes(y=ABUND,  color=fGRAZE)) +
+  geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), color=NA, alpha=0.3) +
+  geom_line() +
+  scale_x_log10(labels=scales::comma)+
+  scale_y_continuous('Abundance') +
+  theme_classic()
+
 ggplot(newdata, aes(y=response, x=AREA, color=fGRAZE, fill=fGRAZE)) +
   geom_point(data=loyn,  aes(y=ABUND,  color=fGRAZE)) +
   geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), color=NA, alpha=0.3) +
   geom_line() +
   scale_x_log10(labels=scales::comma)+
-  scale_y_log10('Abundance') +
+  scale_y_log10('Abundance', breaks=as.vector(c(1,2,5,10) %o% 10^(0:2))) +
   theme_classic()
 
+
+
+## ----figureModel3, results='markdown', eval=TRUE, hidden=TRUE-----------------
+loyn.grid <- loyn %>%
+    filter(fGRAZE==1) %>%
+    with(list(fGRAZE='1', AREA=seq_range(AREA,  n=100)))
+newdata.1 = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
+  as.data.frame
+
+loyn.grid <- loyn %>%
+    filter(fGRAZE==2) %>%
+    with(list(fGRAZE='2', AREA=seq_range(AREA,  n=100)))
+newdata.2 = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
+  as.data.frame
+
+loyn.grid <- loyn %>%
+    filter(fGRAZE==3) %>%
+    with(list(fGRAZE='3', AREA=seq_range(AREA,  n=100)))
+newdata.3 = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
+  as.data.frame
+
+loyn.grid <- loyn %>%
+    filter(fGRAZE==4) %>%
+    with(list(fGRAZE='4', AREA=seq_range(AREA,  n=100)))
+newdata.4 = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
+  as.data.frame
+
+loyn.grid <- loyn %>%
+    filter(fGRAZE==5) %>%
+    with(list(fGRAZE='5', AREA=seq_range(AREA,  n=100)))
+newdata.5 = emmeans(loyn.glm2,  ~AREA|fGRAZE,  at=loyn.grid,  type='response') %>%
+  as.data.frame
+
+newdata.1 %>%
+    bind_rows(newdata.2) %>%
+    bind_rows(newdata.3) %>%
+    bind_rows(newdata.4) %>%
+    bind_rows(newdata.5) %>%
+    ggplot(aes(y=response, x=AREA, color=fGRAZE, fill=fGRAZE)) +
+    geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), color=NA, alpha=0.3) +
+    geom_line() +
+    scale_x_log10(labels=scales::comma)+
+    scale_y_log10('Abundance') +
+  theme_classic() +
+  scale_color_viridis_d() +
+  scale_fill_viridis_d() +
+  geom_point(data=loyn,  aes(y=ABUND,  color=fGRAZE))
+    
 
 
 ## ----figureModel2, results='markdown', eval=TRUE, hidden=TRUE-----------------

@@ -207,7 +207,7 @@ ggplot() +
 ```{r summaryFigures3a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7}
 mullens.grid = with(mullens,
    list(BREATH=levels(BREATH),
-     O2LEVEL=seq(min(O2LEVEL), max(O2LEVEL), len=100)
+     O2LEVEL=modelr::seq_range(O2LEVEL, n=1000)
    )
 )
 newdata = emmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH,
@@ -215,6 +215,21 @@ newdata = emmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH,
 head(newdata)
 
 ggplot() +
+    geom_ribbon(data=newdata,
+                aes(ymin=lower.CL,ymax=upper.CL,
+                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
+    geom_line(data=newdata,
+              aes(y=response, x=O2LEVEL, color=BREATH)) +
+    theme_classic()
+
+mullens <- mullens %>%
+    mutate(resid=resid(mullens.glmmTMB2b),
+           fitted=fitted(mullens.glmmTMB2b),
+           obs=fitted+resid
+           )
+
+ggplot() +
+    geom_point(data=mullens, aes(y=obs, x=O2LEVEL, color=BREATH)) +
     geom_ribbon(data=newdata,
                 aes(ymin=lower.CL,ymax=upper.CL,
                     x=O2LEVEL, fill=BREATH), alpha=0.3)+    

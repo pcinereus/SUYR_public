@@ -50,7 +50,7 @@ ggplot(mullens,aes(y=pzBUC, x=O2LEVEL, color=BREATH)) +
 ## ----eda1c, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
 ggplot(mullens,aes(y=pzBUC, x=O2LEVEL, color=BREATH)) +
   geom_smooth() + geom_point() +
-  facet_wrap(~BREATH+TOAD)
+  facet_wrap(~BREATH+TOAD, scales='free')
   #facet_grid(TOAD~BREATH)
 
 
@@ -134,7 +134,12 @@ performance::check_model(mullens.glmmTMB2b)
 
 
 ## ----modelValidation3c, results='markdown', eval=TRUE, hidden=FALSE, fig.width=8, fig.height=4----
+mullens.resid <- simulateResiduals(mullens.glmmTMB2a,  plot=TRUE)
 mullens.resid <- simulateResiduals(mullens.glmmTMB2b,  plot=TRUE)
+
+
+## ----modelValidation3cdd, results='markdown', eval=TRUE, hidden=FALSE, fig.width=8, fig.height=4----
+ggemmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH) %>% plot(add.data=TRUE)
 
 
 ## ----summary1a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
@@ -207,12 +212,20 @@ newdata <- with(mullens,  list(O2LEVEL=seq(min(O2LEVEL),  max(O2LEVEL),  len=100
 mullens.grid <- emmeans(mullens.lmer1a,  ~O2LEVEL|BREATH,  at=newdata) %>% as.data.frame
 mullens.grid %>% group_by(BREATH) %>%
   summarise(value = O2LEVEL[which.max(emmean)])
+emtrends(mullens.glmmTMB2b,  specs='BREATH',  var='O2LEVEL',
+         max.degree=3,  infer=c(TRUE, TRUE))
+
+newdata <- with(mullens,  list(O2LEVEL=seq(min(O2LEVEL),  max(O2LEVEL),  len=100),
+                               BREATH=levels(BREATH)))
+mullens.grid <- emmeans(mullens.lmer1a,  ~O2LEVEL|BREATH,  at=newdata) %>% as.data.frame
+mullens.grid %>% group_by(BREATH) %>%
+  summarise(value = O2LEVEL[which.max(emmean)])
 
 
 ## ----predictions2a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
 emtrends(mullens.glmmTMB1a,  specs='BREATH',  var='O2LEVEL',  max.degree=3,  infer=c(TRUE, TRUE))
 
-newdata <- with(mullens,  list(O2LEVEL=seq(min(O2LEVEL),  max(O2LEVEL),  len=100),
+newdata <- with(mullens,  list(O2LEVEL=modelr::seq_range(O2LEVEL, n=1000),
                                BREATH=levels(BREATH)))
 mullens.grid <- emmeans(mullens.glmmTMB1a,  ~O2LEVEL|BREATH,  at=newdata) %>% as.data.frame
 mullens.grid %>% group_by(BREATH) %>%
@@ -222,11 +235,15 @@ mullens.grid %>% group_by(BREATH) %>%
 ## ----predictions3a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
 emtrends(mullens.glmmTMB2b,  specs='BREATH',  var='O2LEVEL',  max.degree=3,  infer=c(TRUE, TRUE))
 
-newdata <- with(mullens,  list(O2LEVEL=seq(min(O2LEVEL),  max(O2LEVEL),  len=100),
+## newdata <- with(mullens,  list(O2LEVEL=seq(min(O2LEVEL),  max(O2LEVEL),  len=100),
+##                                BREATH=levels(BREATH)))
+mullens.grid <- with(mullens,  list(O2LEVEL=modelr::seq_range(O2LEVEL, n=1000),
                                BREATH=levels(BREATH)))
-mullens.grid <- emmeans(mullens.glmmTMB2b,  ~O2LEVEL|BREATH,  at=newdata) %>% as.data.frame
-mullens.grid %>% group_by(BREATH) %>%
+newdata <- emmeans(mullens.glmmTMB2b,  ~O2LEVEL|BREATH,  at=mullens.grid) %>% as.data.frame
+newdata %>% group_by(BREATH) %>%
   summarise(value = O2LEVEL[which.max(emmean)])
+## r.squaredGLMM(mullens.glmmTMB2a)
+performance::r2_nakagawa(mullens.glmmTMB2a)
 
 
 ## ----summaryFigures1a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
@@ -276,7 +293,7 @@ ggplot() +
 ## ----summaryFigures3a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7----
 mullens.grid = with(mullens,
    list(BREATH=levels(BREATH),
-     O2LEVEL=seq(min(O2LEVEL), max(O2LEVEL), len=100)
+     O2LEVEL=modelr::seq_range(O2LEVEL, n=1000)
    )
 )
 newdata = emmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH,
@@ -284,6 +301,21 @@ newdata = emmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH,
 head(newdata)
 
 ggplot() +
+    geom_ribbon(data=newdata,
+                aes(ymin=lower.CL,ymax=upper.CL,
+                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
+    geom_line(data=newdata,
+              aes(y=response, x=O2LEVEL, color=BREATH)) +
+    theme_classic()
+
+mullens <- mullens %>%
+    mutate(resid=resid(mullens.glmmTMB2b),
+           fitted=fitted(mullens.glmmTMB2b),
+           obs=fitted+resid
+           )
+
+ggplot() +
+    geom_point(data=mullens, aes(y=obs, x=O2LEVEL, color=BREATH)) +
     geom_ribbon(data=newdata,
                 aes(ymin=lower.CL,ymax=upper.CL,
                     x=O2LEVEL, fill=BREATH), alpha=0.3)+    

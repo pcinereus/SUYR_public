@@ -31,10 +31,10 @@ day <- day %>%
 
 ## ----EDA, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8, hidden=TRUE----
 ggplot(day, aes(y=BARNACLE, x=TREAT)) +
-    geom_boxplot()+
+    geom_boxplot() + 
     geom_point(color='red')
 ggplot(day, aes(y=BARNACLE, x=TREAT)) +
-    geom_violin()+
+    geom_violin() +
     geom_point(color='red')
 
 

@@ -114,7 +114,10 @@ mckeon.glmmTMB1 = glmmTMB(PREDATION ~ SYMBIONT+(1|BLOCK), data=mckeon,
 
 ## ----fitModel2b, cache=TRUE,results='markdown', eval=TRUE, hidden=TRUE, error=TRUE----
 mckeon.glmmTMB2 <- update(mckeon.glmmTMB1, ~ . - (1|BLOCK) + (SYMBIONT|BLOCK))
-#AICc(mckeon.glmmTMB1,  mckeon.glmmTMB2)
+mckeon.glmmTMB2 <- update(mckeon.glmmTMB1, ~ . - (1|BLOCK) + (SYMBIONT|BLOCK),
+                          control=glmmTMBControl(optimizer=optim,
+                                                 optArgs = list(method='SANN')))
+AICc(mckeon.glmmTMB1,  mckeon.glmmTMB2)
 
 
 ## ----validation1a, results='markdown', eval=TRUE, hidden=TRUE,warning=FALSE,message=FALSE----
@@ -247,6 +250,7 @@ round(crossprod(cmat),1)
 ## all contrasts orthogonal
 emmeans(mckeon.glmmTMB1, ~SYMBIONT, contr=list(SYMBIONT=cmat), type='link')
 emmeans(mckeon.glmmTMB1, ~SYMBIONT, contr=list(SYMBIONT=cmat), type='response')
+emmeans(mckeon.glmmTMB1, ~SYMBIONT) %>% regrid() %>% contrast(list(SYMBIONT=cmat))
 
 
 ## ----posteriors2b, results='markdown', eval=TRUE, hidden=TRUE-----------------

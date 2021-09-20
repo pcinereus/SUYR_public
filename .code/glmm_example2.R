@@ -59,7 +59,9 @@ ggplot(norin, aes(y=CHANGE, x=MASS, color=TRIAL)) +
 ## ----fitModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ##Compare models that estimate partial slope for MASS vs an offset for MASS
 ##must use ML to compare models that vary in fixed effects
-norin.lme1 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + offset(MASS), random=~1|FISHID, data=norin, method='ML')
+norin.lme1 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                      offset(MASS), random=~1|FISHID, data=norin,
+                  method='ML')
 ## Unfortunately,  update() does not remove offset().
 ## We will just have to write the other model out in full as well.
 norin.lme2 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS,  random=~1|FISHID, data=norin, method='ML')
@@ -105,22 +107,41 @@ norin.lmer3a = update(norin.lmer3, REML=TRUE)
 
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ##Compare models that estimate partial slope for MASS vs an offset for MASS
-norin.glmmTMB1 = glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + offset(MASS) + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB1 = glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                             offset(MASS) + (1|FISHID), data=norin,
+                         REML=FALSE)
 ## Unfortunately,  update() does not remove offset().
 ## We will just have to write the other model out in full as well.
-norin.glmmTMB2 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                              scale(MASS, scale=FALSE) + (1|FISHID),
+                          data=norin, REML=FALSE)
+norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                              scale(MASS, scale=FALSE) + (1|FISHID), data=norin, REML=FALSE,
+                          control=glmmTMBControl(optimizer=optim,
+                                                 optArgs=list(methods='Nelder-Mead')))
 ## Now without MASS altogether
-norin.glmmTMB3 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB3 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                           (1|FISHID), data=norin, REML=FALSE)
 
 ## Compare these models via AICc
-AICc(norin.glmmTMB1,norin.glmmTMB2, norin.glmmTMB3)
+AICc(norin.glmmTMB1, norin.glmmTMB2, norin.glmmTMB3)
 
 
 ## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
 norin.glmmTMB3a <- update(norin.glmmTMB3, REML=TRUE)
 ## unfortunately,  the following random intercept/slope model cannot be fit
-## norin.glmmTMB3b <- update(norin.glmmTMB3a, ~ . - (1|FISHID)+ (TRIAL|FISHID))
-##AICc(norin.glmmTMB1a,  norin.glmmTMB1b)
+norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                           (TRIAL|FISHID), data=norin, REML=TRUE)
+
+norin.glmmTMB3b <- update(norin.glmmTMB3a, ~ . - (1|FISHID)+ (TRIAL|FISHID),
+                          control=glmmTMBControl(optimizer='optim'))
+norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                            (TRIAL|FISHID), data=norin, REML=TRUE,
+                           control=glmmTMBControl(optimizer=optim,
+                                                  ## optArgs=list(method='Nelder-Mead')))
+                                                  optArgs=list(method='BFGS')))
+                                                  ## optArgs='SANN'))
+AICc(norin.glmmTMB3a,  norin.glmmTMB3b)
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
@@ -148,7 +169,7 @@ norin.resid = simulateResiduals(norin.lmer3a,  plot=TRUE)
 
 
 ## ----modelValidation3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_grid(plot_model(norin.glmmTMB3a, type='diag')[-2])
+plot_grid(plot_model(norin.glmmTMB3b, type='diag')[-2])
 
 
 ## ----modelValidation3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
@@ -156,7 +177,7 @@ performance::check_model(norin.glmmTMB3a)
 
 
 ## ----modelValidation3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-norin.resid = simulateResiduals(norin.glmmTMB3a,  plot=TRUE)
+norin.resid = simulateResiduals(norin.glmmTMB3b,  plot=TRUE)
 
 
 ## ----partialPlots1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
@@ -209,12 +230,13 @@ ggemmeans(norin.lmer3a,  ~SMR_contr*TRIAL) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlots3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
-plot_model(norin.glmmTMB3a,  type='eff',  show.data=TRUE) %>% plot_grid
-plot_model(norin.glmmTMB3a,  type='eff',  terms=c('SMR_contr', 'TRIAL'),  show.data=TRUE)
+plot_model(norin.glmmTMB3b,  type='eff',  show.data=TRUE) %>% plot_grid
+plot_model(norin.glmmTMB3b,  type='eff',  terms=c('SMR_contr', 'TRIAL'),
+           show.data=TRUE)
 
 
 ## ----partialPlots3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
-plot_model(norin.glmmTMB3a,  type='est')
+plot_model(norin.glmmTMB3b,  type='est')
 
 
 ## ----partialPlots3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
@@ -230,7 +252,7 @@ ggpredict(norin.glmmTMB3a,  c('SMR_contr', 'TRIAL')) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlots3f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
-ggemmeans(norin.glmmTMB3a,  ~SMR_contr*TRIAL) %>% plot(add.data=TRUE)
+ggemmeans(norin.glmmTMB3b,  ~SMR_contr*TRIAL) %>% plot(add.data=TRUE)
 
 
 ## ----summarizeModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------
@@ -270,16 +292,17 @@ sjPlot::tab_model(norin.lmer3a, show.se=TRUE, show.aic=TRUE)
 
 
 ## ----summarizeModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------
-summary(norin.glmmTMB3a)
+summary(norin.glmmTMB3b)
+cov2cor(vcov(norin.glmmTMB3a)$cond)
 
 
 ## ----summarizeModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------
-confint(norin.glmmTMB3a)
+confint(norin.glmmTMB3b)
 
 
 ## ----summarizeModel3c, results='markdown', eval=TRUE, hidden=TRUE-------------
-tidy(norin.glmmTMB3a,  conf.int=TRUE)
-tidy(norin.glmmTMB3a,  conf.int=TRUE) %>% kable
+tidy(norin.glmmTMB3b,  conf.int=TRUE)
+tidy(norin.glmmTMB3b,  conf.int=TRUE) %>% kable
 
 
 ## ----summarizeModel3d, results='markdown', eval=TRUE, hidden=TRUE-------------
@@ -322,20 +345,23 @@ performance::r2_nakagawa(norin.lmer3a)
 
 
 ## ----posteriors3a, results='markdown', eval=TRUE, hidden=TRUE-----------------
-emtrends(norin.glmmTMB3a, pairwise~TRIAL, var='SMR_contr')
+emtrends(norin.glmmTMB3b, pairwise~TRIAL, var='SMR_contr')
 norin.emt <- emtrends(norin.glmmTMB3a, pairwise~TRIAL, var='SMR_contr')$contrasts %>% as.data.frame
 
 
 ## ----posteriors3b, results='markdown', eval=TRUE, hidden=TRUE-----------------
-norin.grid <- with(norin,  list(SMR_contr=c(min(SMR_contr), mean(SMR_contr), max(SMR_contr))))
+norin.grid <- with(norin,
+                   list(SMR_contr=c(min(SMR_contr),
+                                    mean(SMR_contr),
+                                    max(SMR_contr))))
 norin.grid
-emmeans(norin.glmmTMB3a, pairwise~TRIAL|SMR_contr,  at=norin.grid)
+emmeans(norin.glmmTMB3b, pairwise~TRIAL|SMR_contr,  at=norin.grid)
 
 
 ## ----posteriors3c, results='markdown', eval=TRUE, hidden=TRUE-----------------
-r.squaredGLMM(norin.glmmTMB3a)
+r.squaredGLMM(norin.glmmTMB3b)
 ## Nakagawa's R2
-performance::r2_nakagawa(norin.glmmTMB3a)
+performance::r2_nakagawa(norin.glmmTMB3b)
 
 
 ## ----summaryFigure1a, results='markdown', eval=TRUE, hidden=TRUE--------------
@@ -389,7 +415,8 @@ ggplot(data=newdata, aes(y=emmean, x=SMR_contr)) +
 
 ## ----summaryFigure3a, results='markdown', eval=TRUE, hidden=TRUE--------------
 norin.grid=with(norin, list(SMR_contr=seq(min(SMR_contr), max(SMR_contr), len=100)))
-newdata = emmeans(norin.glmmTMB3a, ~SMR_contr|TRIAL, at=norin.grid) %>%
+norin.grid=with(norin, list(SMR_contr=modelr::seq_range(SMR_contr, n=100)))
+newdata = emmeans(norin.glmmTMB3b, ~SMR_contr|TRIAL, at=norin.grid) %>%
     as.data.frame
 head(newdata)
 ggplot(data=newdata, aes(y=emmean, x=SMR_contr)) +
@@ -399,7 +426,7 @@ ggplot(data=newdata, aes(y=emmean, x=SMR_contr)) +
   theme(legend.position = c(0.99, 0.99),
         legend.justification = c(1, 1))
 
-obs <- norin.glmmTMB3a %>%
+obs <- norin.glmmTMB3b %>%
   augment() %>%
   bind_cols(norin %>% select(SMR_contr)) %>%
   mutate(PartialObs=.fitted + .resid)

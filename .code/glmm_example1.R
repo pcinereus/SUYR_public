@@ -31,7 +31,7 @@ glimpse(tobacco)
 
 
 ## ----tobaccoEDA1, results='markdown', eval=TRUE, hidden=TRUE------------------
-tobacco = tobacco %>%
+tobacco <- tobacco %>%
   mutate(LEAF=factor(LEAF),
          TREATMENT=factor(TREATMENT))
 
@@ -91,18 +91,26 @@ tobacco.lmer <- lmer(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco, REML=TRUE)
 
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ## Fit the random intercepts model
-tobacco.glmmTMB <- glmmTMB(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco, REML=TRUE)
+tobacco.glmmTMB <- glmmTMB(NUMBER ~ TREATMENT + (1|LEAF),
+                           data=tobacco, REML=TRUE)
 ## Fit the random intercepts/slope model
 ## Note the following model did not converge - probably due to insufficient data.
-#tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco, REML=TRUE)
+tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),
+                            data=tobacco, REML=TRUE)
+## Try a different optimizer (BFGS)
+tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),
+                            data=tobacco, REML=TRUE,
+                            control=glmmTMBControl(optimizer='optim',
+                                                   optArgs='Nelder-Mead'))
+                                                   ## optArgs='BFGS'))
 
 
 ## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-#AICc(tobacco.lme,  tobacco.lme1)
+AICc(tobacco.glmmTMB,  tobacco.glmmTMB1)
 
 
 ## ----fitModel3c, results='markdown', eval=TRUE, hidden=TRUE-------------------
-#anova(tobacco.lme,  tobacco.lme1) %>% print
+anova(tobacco.glmmTMB,  tobacco.glmmTMB1) %>% print
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
@@ -239,8 +247,11 @@ performance::r2_nakagawa(tobacco.glmmTMB)
 
 ## ----investigateModel3a, results='markdown', eval=TRUE, hidden=TRUE-----------
 summary(tobacco.glmmTMB)
+vcov(tobacco.glmmTMB)
+cov2cor(vcov(tobacco.glmmTMB)$cond)
 ## to get confidence intervals
 confint(tobacco.glmmTMB)
+ranef(tobacco.glmmTMB)
 
 
 ## ----investigateModel3b, results='markdown', eval=TRUE, hidden=TRUE-----------

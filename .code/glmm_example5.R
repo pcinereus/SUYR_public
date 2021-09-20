@@ -44,6 +44,12 @@ owls = owls %>% mutate(Nest =factor(Nest),
 ## ----eda1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=5----
 ggplot(data = owls, aes(y = NCalls, x = FoodTreatment,  color=SexParent)) +
   geom_violin() +
+  geom_point()
+ggplot(data = owls, aes(y = NCalls, x = FoodTreatment,  color=SexParent)) +
+  geom_violin() +
+  geom_point(position=position_jitterdodge(jitter.height=0,  dodge.width=1))
+ggplot(data = owls, aes(y = NCalls, x = FoodTreatment,  color=SexParent)) +
+  geom_violin() +
   geom_point(position=position_jitterdodge(jitter.height=0,  dodge.width=1))+
   scale_y_continuous(trans=scales::pseudo_log_trans())
 
@@ -92,7 +98,8 @@ AICc(owls.glmer1a, owls.glmer1b, owls.glmer1c, owls.glmer1d)
 
 
 ## ----fitModel2a, results='markdown', eval=TRUE, hidden=TRUE-------------------
-owls.glmmTMB1 <- glmmTMB(NCalls ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest),  data=owls,
+owls.glmmTMB1 <- glmmTMB(NCalls ~ FoodTreatment*SexParent + offset(log(BroodSize))
+                         + (1|Nest),  data=owls,
                          family=poisson(link='log'), REML=FALSE)
 owls.glmmTMB2 <- update(owls.glmmTMB1, ~ . - FoodTreatment:SexParent)
 AICc(owls.glmmTMB1, owls.glmmTMB2)
@@ -179,7 +186,8 @@ testTemporalAutocorrelation(owls.resid1,  time=unique(owls$ArrivalTime))
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 owls.glmmTMB3 <- glmmTMB(NCalls ~ FoodTreatment*SexParent + offset(log(BroodSize)) +
                            (FoodTreatment*SexParent|Nest), 
-                         ziformula=~1,  data=owls, family=poisson(link='log'),
+                         ziformula=~1,  data=owls,
+                         family=poisson(link='log'),
                          REML=TRUE)
 #OR
 owls.glmmTMB3 <- update(owls.glmmTMB1d, ziformula=~1)
@@ -189,6 +197,7 @@ owls.glmmTMB3 <- update(owls.glmmTMB1d, ziformula=~1)
 owls.resid = simulateResiduals(owls.glmmTMB3,  plot=TRUE, integerResponse = TRUE)
 testZeroInflation(owls.resid)
 testDispersion(owls.resid)
+performance::check_overdispersion(owls.glmmTMB3)
 testUniformity(owls.resid)
 testQuantiles(owls.resid)
 testResiduals(owls.resid)
@@ -248,6 +257,7 @@ AICc(owls.glmmTMB3, owls.glmmTMB4,  owls.glmmTMB5, owls.glmmTMB6)
 
 ## ----partialPlots1a, results='markdown', eval=TRUE----------------------------
 plot_model(owls.glmmTMB4,  type='eff',  terms=c('FoodTreatment', 'SexParent'))
+plot_model(owls.glmmTMB6,  type='eff',  terms=c('FoodTreatment', 'SexParent'))
 
 
 ## ----partialPlots1b, results='markdown', eval=TRUE----------------------------
@@ -267,10 +277,12 @@ ggemmeans(owls.glmmTMB4,  ~FoodTreatment+SexParent, offset=log(off$Mean)) %>% pl
 
 ## ----partialPlots1d2, results='markdown', eval=TRUE---------------------------
 ggemmeans(owls.glmmTMB4,  ~FoodTreatment+SexParent, offset=0) %>% plot
+ggemmeans(owls.glmmTMB6,  ~FoodTreatment+SexParent, offset=0) %>% plot
 
 
 ## ----summary1a, results='markdown', eval=TRUE, hidden=TRUE--------------------
 summary(owls.glmmTMB4)
+summary(owls.glmmTMB6)
 
 
 ## ----summary1a1, results='markdown', eval=TRUE, echo=FALSE, hidden=TRUE-------
@@ -291,10 +303,10 @@ sjPlot::tab_model(owls.glmmTMB4, show.se=TRUE, show.aic=TRUE)
 
 ## ---- eval=FALSE--------------------------------------------------------------
 ## options(width=100)
-## tidy(owls.glmmTMB8, conf.int=TRUE)
+## tidy(owls.glmmTMB4, conf.int=TRUE)
 ## plogis(-1.3705)
 ## exp(-1.3705)
-## tidy(owls.glmmTMB8, effects='fixed', conf.int=TRUE,  exponentiate=TRUE)
+## tidy(owls.glmmTMB4, effects='fixed', conf.int=TRUE,  exponentiate=TRUE)
 
 
 ## ----r2, results='markdown', eval=TRUE, hidden=TRUE---------------------------
@@ -303,9 +315,12 @@ performance::r2_nakagawa(owls.glmmTMB4)
 
 
 ## ----summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE-----------------
-owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
-                            SexParent=levels(SexParent)))
-newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+## owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
+##                             SexParent=levels(SexParent)))
+## newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+##                   offset=0, type='response') %>%
+##     as.data.frame
+newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, 
                   offset=0, type='response') %>%
     as.data.frame
 head(newdata)
@@ -316,9 +331,12 @@ ggplot(newdata, aes(y=rate, x=FoodTreatment)) +
   theme_bw()
 
 ##OR if we want to express this for the average brood size
-owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
-                            SexParent=levels(SexParent)))
-newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+## owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
+##                             SexParent=levels(SexParent)))
+## newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+##                   offset=log(mean(owls$BroodSize)), type='response') %>%
+##     as.data.frame
+newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent,
                   offset=log(mean(owls$BroodSize)), type='response') %>%
     as.data.frame
 head(newdata)
@@ -356,18 +374,18 @@ ggplot(newdata,  aes(y=estimate,  x=Cond,  color=Model)) +
   coord_flip()
 
 
-newdata = emmeans(owls.glmmTMB3, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+newdata = emmeans(owls.glmmTMB3, ~FoodTreatment+SexParent, offset=0, type='response') %>%
   as.data.frame %>% mutate(Model='zip (simple zi)',  response=rate) %>%
   bind_rows(
-    emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zip (complex zi)',  response=rate)
   ) %>%
   bind_rows(
-    emmeans(owls.glmmTMB5, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB5, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zinb (simple zi)',  response=response)
   ) %>%
   bind_rows(
-    emmeans(owls.glmmTMB6, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB6, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zinb (complex zi)',  response=response)
   ) %>%
   mutate(Model=factor(Model,  levels=c('zip (simple zi)', 'zip (complex zi)',
@@ -379,4 +397,7 @@ ggplot(newdata, aes(y=response, x=FoodTreatment)) +
                   position=position_dodge(width=0.2)) +
   facet_wrap(~Model,  nrow=1)
 
+ggplot(newdata,  aes(y=response,  x=interaction(FoodTreatment,SexParent),  color=Model)) +
+  geom_pointrange(aes(ymin=lower.CL,  ymax=upper.CL),  position=position_dodge(width=0.2)) +
+  coord_flip()
 

@@ -125,7 +125,7 @@ factor.  In addition, random effects (in this case LEAF) should also be declared
 as factors.
 
 ```{r tobaccoEDA1, results='markdown', eval=TRUE, hidden=TRUE}
-tobacco = tobacco %>%
+tobacco <- tobacco %>%
   mutate(LEAF=factor(LEAF),
          TREATMENT=factor(TREATMENT))
 ```

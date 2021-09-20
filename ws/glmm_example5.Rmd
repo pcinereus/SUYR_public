@@ -149,6 +149,7 @@ $\bf{Z}$ represents a cell means model matrix for the random intercepts associat
 
 ```{r partialPlots1a, results='markdown', eval=TRUE}
 plot_model(owls.glmmTMB4,  type='eff',  terms=c('FoodTreatment', 'SexParent'))
+plot_model(owls.glmmTMB6,  type='eff',  terms=c('FoodTreatment', 'SexParent'))
 ```
 
 These predictions appear to be based on the mean BroodSize of approximately
@@ -198,6 +199,7 @@ ggemmeans(owls.glmmTMB4,  ~FoodTreatment+SexParent, offset=log(off$Mean)) %>% pl
 
 ```{r partialPlots1d2, results='markdown', eval=TRUE}
 ggemmeans(owls.glmmTMB4,  ~FoodTreatment+SexParent, offset=0) %>% plot
+ggemmeans(owls.glmmTMB6,  ~FoodTreatment+SexParent, offset=0) %>% plot
 ```
 
 
@@ -210,9 +212,12 @@ ggemmeans(owls.glmmTMB4,  ~FoodTreatment+SexParent, offset=0) %>% plot
 # Summary figures
 
 ```{r summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE}
-owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
-                            SexParent=levels(SexParent)))
-newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+## owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
+##                             SexParent=levels(SexParent)))
+## newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+##                   offset=0, type='response') %>%
+##     as.data.frame
+newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, 
                   offset=0, type='response') %>%
     as.data.frame
 head(newdata)
@@ -223,9 +228,12 @@ ggplot(newdata, aes(y=rate, x=FoodTreatment)) +
   theme_bw()
 
 ##OR if we want to express this for the average brood size
-owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
-                            SexParent=levels(SexParent)))
-newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+## owls.grid = with(owls, list(FoodTreatment=levels(FoodTreatment),
+##                             SexParent=levels(SexParent)))
+## newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, at=owls.grid,
+##                   offset=log(mean(owls$BroodSize)), type='response') %>%
+##     as.data.frame
+newdata = emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent,
                   offset=log(mean(owls$BroodSize)), type='response') %>%
     as.data.frame
 head(newdata)
@@ -264,18 +272,18 @@ ggplot(newdata,  aes(y=estimate,  x=Cond,  color=Model)) +
   coord_flip()
 
 
-newdata = emmeans(owls.glmmTMB3, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+newdata = emmeans(owls.glmmTMB3, ~FoodTreatment+SexParent, offset=0, type='response') %>%
   as.data.frame %>% mutate(Model='zip (simple zi)',  response=rate) %>%
   bind_rows(
-    emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB4, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zip (complex zi)',  response=rate)
   ) %>%
   bind_rows(
-    emmeans(owls.glmmTMB5, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB5, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zinb (simple zi)',  response=response)
   ) %>%
   bind_rows(
-    emmeans(owls.glmmTMB6, ~FoodTreatment+SexParent, offset=0, at=owls.grid, type='response') %>%
+    emmeans(owls.glmmTMB6, ~FoodTreatment+SexParent, offset=0, type='response') %>%
     as.data.frame %>% mutate(Model='zinb (complex zi)',  response=response)
   ) %>%
   mutate(Model=factor(Model,  levels=c('zip (simple zi)', 'zip (complex zi)',
@@ -287,6 +295,9 @@ ggplot(newdata, aes(y=response, x=FoodTreatment)) +
                   position=position_dodge(width=0.2)) +
   facet_wrap(~Model,  nrow=1)
 
+ggplot(newdata,  aes(y=response,  x=interaction(FoodTreatment,SexParent),  color=Model)) +
+  geom_pointrange(aes(ymin=lower.CL,  ymax=upper.CL),  position=position_dodge(width=0.2)) +
+  coord_flip()
 ```
 
 # References

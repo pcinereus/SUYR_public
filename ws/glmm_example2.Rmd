@@ -155,7 +155,9 @@ For each of the following modelling alternatives, we will:
 ```{r fitModel1a, results='markdown', eval=TRUE, hidden=TRUE}
 ##Compare models that estimate partial slope for MASS vs an offset for MASS
 ##must use ML to compare models that vary in fixed effects
-norin.lme1 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + offset(MASS), random=~1|FISHID, data=norin, method='ML')
+norin.lme1 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                      offset(MASS), random=~1|FISHID, data=norin,
+                  method='ML')
 ## Unfortunately,  update() does not remove offset().
 ## We will just have to write the other model out in full as well.
 norin.lme2 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS,  random=~1|FISHID, data=norin, method='ML')
@@ -235,15 +237,24 @@ norin.lmer3a = update(norin.lmer3, REML=TRUE)
 
 ```{r fitModel3a, results='markdown', eval=TRUE, hidden=TRUE}
 ##Compare models that estimate partial slope for MASS vs an offset for MASS
-norin.glmmTMB1 = glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + offset(MASS) + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB1 = glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                             offset(MASS) + (1|FISHID), data=norin,
+                         REML=FALSE)
 ## Unfortunately,  update() does not remove offset().
 ## We will just have to write the other model out in full as well.
-norin.glmmTMB2 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                              scale(MASS, scale=FALSE) + (1|FISHID),
+                          data=norin, REML=FALSE)
+norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                              scale(MASS, scale=FALSE) + (1|FISHID), data=norin, REML=FALSE,
+                          control=glmmTMBControl(optimizer=optim,
+                                                 optArgs=list(methods='Nelder-Mead')))
 ## Now without MASS altogether
-norin.glmmTMB3 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + (1|FISHID), data=norin, REML=FALSE)
+norin.glmmTMB3 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                           (1|FISHID), data=norin, REML=FALSE)
 
 ## Compare these models via AICc
-AICc(norin.glmmTMB1,norin.glmmTMB2, norin.glmmTMB3)
+AICc(norin.glmmTMB1, norin.glmmTMB2, norin.glmmTMB3)
 ```
 
 **Conclusions:**
@@ -256,8 +267,18 @@ AICc(norin.glmmTMB1,norin.glmmTMB2, norin.glmmTMB3)
 ```{r fitModel3b, results='markdown', eval=TRUE, hidden=TRUE}
 norin.glmmTMB3a <- update(norin.glmmTMB3, REML=TRUE)
 ## unfortunately,  the following random intercept/slope model cannot be fit
-## norin.glmmTMB3b <- update(norin.glmmTMB3a, ~ . - (1|FISHID)+ (TRIAL|FISHID))
-##AICc(norin.glmmTMB1a,  norin.glmmTMB1b)
+norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                           (TRIAL|FISHID), data=norin, REML=TRUE)
+
+norin.glmmTMB3b <- update(norin.glmmTMB3a, ~ . - (1|FISHID)+ (TRIAL|FISHID),
+                          control=glmmTMBControl(optimizer='optim'))
+norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
+                            (TRIAL|FISHID), data=norin, REML=TRUE,
+                           control=glmmTMBControl(optimizer=optim,
+                                                  ## optArgs=list(method='Nelder-Mead')))
+                                                  optArgs=list(method='BFGS')))
+                                                  ## optArgs='SANN'))
+AICc(norin.glmmTMB3a,  norin.glmmTMB3b)
 ```
 
 **Conclusions:**

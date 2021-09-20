@@ -268,13 +268,17 @@ starling.lmer2a <- update(starling.lmer2, REML=TRUE)
 
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ##Multiplicative and additive models
-starling.glmmTMB1 = glmmTMB(MASS ~ MONTH*SITUATION +(1|BIRD), data=starling, REML=TRUE)
+starling.glmmTMB1 = glmmTMB(MASS ~ MONTH*SITUATION +(1|BIRD), data=starling, REML=FALSE)
+starling.glmmTMB2 = glmmTMB(MASS ~ MONTH+SITUATION +(1|BIRD), data=starling, REML=FALSE)
+# OR
 starling.glmmTMB2 <- update(starling.glmmTMB1, .~.-MONTH:SITUATION)
 AICc(starling.glmmTMB1, starling.glmmTMB2)
 
 
 ## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
 starling.glmmTMB2a <- update(starling.glmmTMB2, REML=TRUE)
+starling.glmmTMB2b = glmmTMB(MASS ~ MONTH+SITUATION +(MONTH|BIRD), data=starling, REML=TRUE)
+# OR
 starling.glmmTMB2b <- update(starling.glmmTMB2a, ~ . - (1|BIRD) + (MONTH|BIRD))
 AICc(starling.glmmTMB2a, starling.glmmTMB2b)
 
