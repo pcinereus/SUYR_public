@@ -101,8 +101,8 @@ INDEX TICKS BROOD ALTITUDE YEAR LOCATION
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-elston = read_csv('../data/elston.csv', trim_ws=TRUE)
-glimpse(elston)
+elston <- read_csv('../data/elston.csv', trim_ws = TRUE)
+elston %>% glimpse()
 ```
 
 

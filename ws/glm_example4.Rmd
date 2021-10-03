@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -70,10 +70,9 @@ library(tidyverse) #for data wrangling
 
 # Scenario
 
-@Loyn-1987-1987 modeled the abundance of forest birds with six predictor
-variables (patch area, distance to nearest patch, distance to nearest
-larger patch, grazing intensity, altitude and years since the patch had
-been isolated).
+@Loyn-1987-1987 modelled the abundance of forest birds with six predictor
+variables (patch area, distance to nearest patch, distance to nearest larger
+patch, grazing intensity, altitude and years since the patch had been isolated).
 
 ![Regent honeyeater](../resources/regent_honeyeater_small.jpg){width="165" height="240"}
 
@@ -93,7 +92,8 @@ ABUND   DIST   LDIST   AREA   GRAZE   ALT   YR.ISOL
 **YR.ISOL**   Number of years since the patch was isolated - predictor variable
 ------------- ------------------------------------------------------------------------------
 
-The aim of the analysis is to investigate the effects of a range of predictors on the abundance of forest birds.
+The aim of the analysis is to investigate the effects of a range of predictors
+on the abundance of forest birds.
 
 # Read in the data
 
@@ -105,7 +105,97 @@ glimpse(loyn)
 # Exploratory data analysis {.tabset .tabset-faded}
 
 
-# Fit the model
+This is an application of multiple regression.  The response variable in this
+instance is a little awkward in that it appears to be an average of multiple
+point quadrats rather than a pure count.  Central limits theorem suggests that
+averages should follow a normal distribution and thus we might expect that it is
+reasonable to model this bird abundance against a Gaussian distribution.
+However, this has the potential to become problematic since a Gaussian
+distribution can extend below zero whereas this is clearly not logical for bird
+abundance.  As a result, we might find the at the model can predict bird
+abundances less than zero.   
+
+If this were our own analysis, we might first attempt to model these data
+against a Gaussian distribution and then explore whether this could lead to
+negative predictions - it may be that the bird abundances are sufficiently high
+that the issue of negative predictions is not realised over sensible ranges of
+the predictors.  If it turns out that there is an issue, then we would explore
+alternatives.
+
+In this case, there is an issue - the model does indeed predict fewer than zero
+birds for some ranges of some of the predictors.  Hence, we will skip straight
+to the alternatives:
+
+- we could log-transform the response.
+$$
+log(y_i) = \mathcal{N}(\mu_i, \sigma^2)\\
+\mu_i = \beta_0 + \beta_1 X_1 + ...
+$$
+   - the expected values will be the mean of logs
+   - due to the transformation, both $\mu$ and $\sigma^2$ are modelled on a log
+     scale.
+$$
+y_i \sim{} \mathcal{N}(e^{X\beta}, e^{\sigma^2})\\
+$$
+   - when back-transforming, this implies that the variances will be unequal, in
+     fact they will increase with the mean.
+$$
+log(y_i) = X\beta + \varepsilon \hspace{1cm} \varepsilon \sim{} \mathcal{N}(0, \sigma^2)
+$$
+- we could model the data using a Gaussian distribution with a log link.
+$$
+y_i = \mathcal{N}(\mu_i, \sigma^2)\\
+log(\mu_i) = \beta_0 + \beta_1 X_1 + ...
+$$
+   - the expected value will he the log of means
+$$
+y_i \sim{} \mathcal{N}(e^{X\beta}, \sigma^2)\\
+$$
+   - the effects (slopes) become multiplicative
+$$
+log(y_i + \varepsilon) = \beta_0 + \beta_1 X_1 + ... \hspace{1cm} \varepsilon
+     \sim{} \mathcal{N}(0, \sigma^2)
+$$
+- we could model the data using a Gamma distribution with a log link.
+$$
+y_i = \mathcal{Gamma}(\mu_i, \sigma^2)\\
+log(\mu_i) = \beta_0 + \beta_1 X_1 + ...
+$$
+
+
+We will explore each of these options:
+
+- in doing so, we need to consider the patterns of variance 
+- linearity
+- (multi)collinearity - correlated predictors should not be in the same model
+  together lest they compete.
+
+
+
+## Scatterplot matrix
+
+
+## Specific scatterplots
+
+
+# Fit the model {.tabset .tabset-faded}
+
+## Gaussian (log-transformed)
+Model formula:
+
+$$
+log(y_i) = \mathcal{N}(\mu_i, \sigma^2)\\
+\mu_i = \beta_0 + \beta_1 X_1 + ...
+$$
+
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a
+model matrix representing the additive effects of the scaled versions of
+distance (ln), distance to the nearest large patch (ln), patch area (ln),
+grazing intensity, year of isolation and altitude on the abundance of forest
+birds.
+
+
+## Gaussian (log-link)
 
 Model formula:
 $$
@@ -118,17 +208,32 @@ the scaled versions of distance (ln), distance to the nearest large patch (ln), 
 altitude on the abundance of forest birds.
 
 
+## Gamma (log-link)
+
+Model formula:
+$$
+y_i = \mathcal{Gamma}(\mu_i, \sigma^2)\\
+log(\mu_i) = \beta_0 + \beta_1 X_1 + ...
+$$
+
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the additive effects of
+the scaled versions of distance (ln), distance to the nearest large patch (ln), patch area (ln), grazing intensity, year of isolation and 
+altitude on the abundance of forest birds.
+
+
 # Model validation {.tabset .tabset-faded}
 
 
 # Partial plots {.tabset .tabset-faded}
 
-# Caterpillar plot
 
-```{r plotModel4a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8, message=FALSE, warning=FALSE}
-plot_model(loyn.glm,  type='est')
-plot_model(loyn.glm,  type='est', transform='exp', show.values=TRUE)
-```
+# Caterpillar plot {.tabset .tabset-pills}
+
+## Gaussian (log-transformed)
+
+## Gaussian (log-link)
+
+## Gamma (log-link)
 
 
 # Model investigation / hypothesis testing {.tabset .tabset-faded}
@@ -136,3 +241,10 @@ plot_model(loyn.glm,  type='est', transform='exp', show.values=TRUE)
 
 # Further analyses {.tabset .tabset-faded}
 
+From this point on, we will only proceed with the Gaussian (log-link) model.
+
+
+# Summary figures
+
+
+# References

@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE, warnings=FALSE, message=FALSE----------------------
-knitr::opts_chunk$set(echo = TRUE,  warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 
 
 ## ----libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE----
@@ -56,134 +56,141 @@ day.glm1 <- glm(BARNACLE~TREAT, data=day, family='poisson')
 
 
 ## ----validateModel1a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-autoplot(day.glm)
+day.glm %>% autoplot()
 
 
 ## ----validateModel1b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-autoplot(day.glm1)
+day.glm1 %>% autoplot()
 
 
 ## ----validateModel2a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-influence.measures(day.glm)
+day.glm %>% influence.measures()
 
 
 ## ----validateModel2b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-influence.measures(day.glm1)
+day.glm1 %>% influence.measures()
 
 
 ## ----validateModel3a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-performance::check_model(day.glm)
+day.glm %>% performance::check_model()
 
 
 ## ----validateModel3b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-performance::check_model(day.glm1)
+day.glm1 %>% performance::check_model()
 
 
 ## ----validateModel4a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-day.resids <- simulateResiduals(day.glm, plot=TRUE)
+day.resids <- day.glm %>% simulateResiduals(plot=TRUE)
+day.resids %>% testDispersion()
 
 
 ## ----validateModel4b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-day.resids <- simulateResiduals(day.glm1, plot=TRUE)
+day.resids <- day.glm1 %>% simulateResiduals(plot=TRUE)
+day.resids %>% testDispersion()
 
 
 ## ----validateModel5a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
 ## overdispersion
-1-pchisq(day.glm$deviance,day.glm$df.residual)
+1-pchisq(day.glm$deviance, day.glm$df.residual)
 day.glm$deviance/day.glm$df.residual
 
 
 ## ----validateModel5b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-1-pchisq(day.glm1$deviance,day.glm1$df.residual)
+1-pchisq(day.glm1$deviance, day.glm1$df.residual)
 day.glm1$deviance/day.glm1$df.residual
 
 
 ## ----partialPlots1a, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-plot_model(day.glm,  type='eff')
+day.glm %>% plot_model(type='eff', show.data=TRUE)
 
 
 ## ----partialPlots1b, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-plot_model(day.glm1,  type='eff')
+day.glm1 %>% plot_model(type='eff', show.data=TRUE)
 
 
 ## ----partialPlots2a, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-allEffects(day.glm) %>% plot
+day.glm %>% allEffects() %>% plot
 
 
 ## ----partialPlots2b, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-allEffects(day.glm1) %>% plot
+day.glm1 %>% allEffects() %>% plot
 allEffects(day.glm1, transformation=NULL) %>% plot
 
 
 ## ----partialPlots3a, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-ggpredict(day.glm) %>% plot
+day.glm %>% ggpredict() %>% plot(add.data=TRUE, jitter=FALSE)
 
 
 ## ----partialPlots3b, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-ggpredict(day.glm1) %>% plot
-## The following should not back transform,  yet it seems to
-ggpredict(day.glm1, back.transform = FALSE) %>% plot
+day.glm1 %>% ggpredict() %>% plot(add.data=TRUE, jitter=FALSE)
+## back.transform only applies to response transformations, not link functions
+## day.glm1 %>% ggpredict(back.transform = FALSE) %>% plot()
 
 
 ## ----partialPlots4a, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-ggemmeans(day.glm,  ~TREAT) %>% plot
+day.glm %>% ggemmeans(~TREAT) %>% plot(add.data=TRUE, jitter=FALSE)
 
 
 ## ----partialPlots4b, results='markdown', eval=TRUE, fig.width=5, fig.height=5----
-ggemmeans(day.glm1, ~TREAT) %>% plot
-## The following should not back transform,  yet it seems to
-ggemmeans(day.glm1, ~TREAT, back.transform = FALSE) %>% plot
+day.glm1 %>% ggemmeans(~TREAT) %>% plot(add.data=TRUE, jitter=FALSE)
+## back.transform only applies to response transformations, not link functions
+## day.glm1 %>% ggemmeans(back.transform = FALSE) %>% plot()
 
 
 ## ----summariseModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------
-summary(day.glm)
+day.glm %>% summary()
 
 
 ## ----summariseModel1b, results='markdown', eval=TRUE, hidden=TRUE-------------
-confint(day.glm)
+day.glm %>% confint()
 
 
 ## ----summariseModelc, results='markdown', eval=TRUE, hidden=TRUE--------------
-tidy(day.glm,conf.int=TRUE)
+day.glm %>% tidy(conf.int=TRUE)
 
 
 ## ----summaryModel1d, results='markdown', eval=TRUE, hidden=TRUE---------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(day.glm,show.se=TRUE,show.aic=TRUE)
+day.glm %>% sjPlot::tab_model(show.se=TRUE, show.aic=TRUE)
 
 
 ## ----summariseModel2a, results='markdown', eval=TRUE, hidden=TRUE-------------
-summary(day.glm1)
+day.glm1 %>% summary()
 
 
 ## ----summariseModel2b, results='markdown', eval=TRUE, hidden=TRUE-------------
-confint(day.glm1)
-exp(confint(day.glm1))
+day.glm1 %>% confint()
+day.glm1 %>% confint() %>% exp()
 
 
 ## ----summariseMode2c, results='markdown', eval=TRUE, hidden=TRUE--------------
-tidy(day.glm1,conf.int=TRUE)
-tidy(day.glm1,conf.int=TRUE, exponentiate=TRUE) 
+day.glm1 %>% tidy(conf.int=TRUE)
+day.glm1 %>% tidy(conf.int=TRUE, exponentiate=TRUE) 
 
 
 ## ----summariseMode2d, results='markdown', eval=TRUE, hidden=TRUE--------------
-tidy(day.glm1,conf.int=TRUE, exponentiate=TRUE) %>%
+day.glm1 %>% tidy(conf.int=TRUE, exponentiate=TRUE) %>%
   kable()
 
 
 ## ----summaryModel3a, results='markdown', eval=TRUE, hidden=TRUE---------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(day.glm1,show.se=TRUE,show.aic=TRUE)
+day.glm1 %>% sjPlot::tab_model(show.se=TRUE,show.aic=TRUE)
 
 
 ## ----predictions, results='markdown', eval=TRUE, hidden=TRUE------------------
+
 day.glm1 %>% emmeans(pairwise ~TREAT, type='response')
-day.glm1 %>% emmeans(pairwise ~TREAT, type='response') %>% confint()
+day.glm1 %>% emmeans(~TREAT, type='response') %>% pairs()
+day.glm1 %>% emmeans(~TREAT, type='response') %>% pairs() %>% confint()
+day.glm1 %>% emmeans(~TREAT, type='response') %>% pairs() %>% summary(infer=TRUE)
 ## Lets store this for late
-day.pairwise <- (day.glm1 %>%
-  emmeans(pairwise ~TREAT, type='response') %>%
-  confint())$contrasts %>%
-  as.data.frame
+
+day.pairwise <- day.glm1 %>%
+    emmeans(~TREAT, type='response') %>%
+    pairs() %>%
+    summary(infer=TRUE) %>%
+    as.data.frame()
 
 
 ## ----planned, results='markdown', eval=TRUE, hidden=TRUE----------------------
@@ -204,18 +211,29 @@ crossprod(cmat)
 
 ## ----planned2, results='markdown', eval=TRUE, hidden=TRUE---------------------
 day.glm1 %>% emmeans(~TREAT, contr=list(TREAT=cmat), type='response')
-## or with confidence intervals
-day.glm1 %>% emmeans(~TREAT, contr=list(TREAT=cmat), type='response') %>% confint
+day.glm1 %>% emmeans(~TREAT, type='response') %>%
+    contrast(method=list(TREAT=cmat)) %>%
+    summary(infer=TRUE)
+
+## what about absolute differences
+day.glm1 %>% emmeans(~TREAT, type='link') %>%
+    regrid() %>%
+    contrast(method=list(TREAT=cmat)) %>%
+    summary(infer=TRUE)
+
 
 ## ----planned3, results='markdown', eval=TRUE,echo=FALSE-----------------------
-day.planned <- day.glm1 %>%
-  emmeans(~TREAT, contr=list(TREAT=cmat), type='response') %>%
-  "["('contrasts') %>%
-  as.data.frame
+day.planned <- day.glm1 %>% emmeans(~TREAT, type='response') %>%
+    contrast(method=list(TREAT=cmat)) %>%
+    summary(infer=TRUE)
+## day.planned <- day.glm1 %>%
+##   emmeans(~TREAT, contr=list(TREAT=cmat), type='response') %>%
+##   "["('contrasts') %>%
+##   as.data.frame
 
 
 ## ----summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE-----------------
-newdata = emmeans(day.glm1, ~TREAT, type='response') %>%
+newdata <- day.glm1 %>% emmeans(~TREAT, type='response') %>%
     as.data.frame
 newdata
 ## A quick version

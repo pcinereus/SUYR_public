@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE,  warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -71,14 +71,13 @@ library(scales)    #for more scales
 
 # Scenario
 
-Here is a modified example from @Quinn-2002-2002. Day and Quinn
-(1989) described an experiment that examined how rock surface type
-affected the recruitment of barnacles to a rocky shore. The experiment
-had a single factor, surface type, with 4 treatments or levels: algal
-species 1 (ALG1), algal species 2 (ALG2), naturally bare surfaces (NB)
-and artificially scraped bare surfaces (S). There were 5 replicate plots
-for each surface type and the response (dependent) variable was the
-number of newly recruited barnacles on each plot after 4 weeks.
+Here is a modified example from @Quinn-2002-2002. Day and Quinn (1989) described
+an experiment that examined how rock surface type affected the recruitment of
+barnacles to a rocky shore. The experiment had a single factor, surface type,
+with 4 treatments or levels: algal species 1 (ALG1), algal species 2 (ALG2),
+naturally bare surfaces (NB) and artificially scraped bare surfaces (S). There
+were 5 replicate plots for each surface type and the response (dependent)
+variable was the number of newly recruited barnacles on each plot after 4 weeks.
 
 ![Six-plated barnacle](../resources/barnacles.jpg){width="224" height="308"}
 
@@ -121,16 +120,10 @@ y_i \sim{} \mathcal{Pois}(\lambda_i)\\
 \mu_i = \boldsymbol{\beta} \bf{X_i}
 $$
 
-where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a model matrix representing the intercept and treatment contrasts for the effects of Treatment on barnacle recruitment.
-
-```{r EDA, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8, hidden=TRUE}
-ggplot(day, aes(y=BARNACLE, x=TREAT)) +
-    geom_boxplot() + 
-    geom_point(color='red')
-ggplot(day, aes(y=BARNACLE, x=TREAT)) +
-    geom_violin() +
-    geom_point(color='red')
-```
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a
+model matrix representing the intercept and treatment contrasts for the effects
+of Treatment on barnacle recruitment.
+ 
 
 # Fit the model
 

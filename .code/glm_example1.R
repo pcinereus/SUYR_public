@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 options(tinytex.engine = 'xelatex')
 
 
@@ -76,53 +76,53 @@ args(residuals.lm)
 
 
 ## ----validateModel, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-autoplot(fert.lm, which = 1:6, ncol = 2, label.size = 3)
+fert.lm %>% autoplot(which = 1:6, ncol = 2, label.size = 3)
 
 
 ## ----validateModela, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
-influence.measures(fert.lm)
+fert.lm %>% influence.measures()
 
 
 ## ----validateModela1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE----
-performance::check_model(fert.lm)
-performance::check_outliers(fert.lm)
-performance::check_outliers(fert.lm) %>% plot
+fert.lm %>% performance::check_model()
+fert.lm %>% performance::check_outliers()
+fert.lm %>% performance::check_outliers() %>% plot
 ## These are probabilities of exceedance rather than actual Cook's D values
 #https://easystats.github.io/performance/reference/check_outliers.html
 
 
 ## ----validateModelb, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=6----
-fert.resid <- simulateResiduals(fert.lm,  plot = TRUE)
+fert.resid <- fert.lm %>% simulateResiduals(plot = TRUE)
 
 
 ## ----validateModelc, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4----
 ## To run tests of KS (uniformity),  dispersion and outliers
-testResiduals(fert.resid)
+fert.resid %>% testResiduals()
 
 
 ## ----validateModeld, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
 ## OR individually
-testUniformity(fert.resid)
-testDispersion(fert.resid)
-testOutliers(fert.resid)
+fert.resid %>% testUniformity()
+fert.resid %>% testDispersion()
+fert.resid %>% testOutliers()
 ## Other useful tests
-testZeroInflation(fert.resid)
-testQuantiles(fert.resid)
+fert.resid %>% testZeroInflation()
+fert.resid %>% testQuantiles()
 ## The above fits quantile gams at 0.25,  0.5 and 0.75
 ## testSpatialAutocorrelation(fert.resid,  x=,  y=) # needs x and y coordinates
 ## testTemporalAutocorrelation(fert.resid,  time=) # needs time
 
 
 ## ----validateModele, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
-augment(fert.lm)
+fert.lm %>% augment()
 ## we could then pipe these to ggplot in order to look at residuals etc
-augment(fert.lm) %>%
+fert.lm %>% augment() %>%
     ggplot() +
     geom_point(aes(y = .resid, x = .fitted))
 
 
 ## ----validateModelf, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8,message=FALSE,warning=FALSE----
-plot_grid(plot_model(fert.lm, type = "diag"))
+fert.lm %>% plot_model(type='diag') %>% plot_grid()
 
 
 ## ----validateModel2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
@@ -134,23 +134,23 @@ plot(allEffects(fert.lm, residuals = TRUE))
 
 
 ## ----validateModel6, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
-fert.lm %>% ggpredict() %>% plot(add.data = TRUE)
+fert.lm %>% ggpredict() %>% plot(add.data = TRUE, jitter=FALSE)
 
 
 ## ----validateModel7, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
-fert.lm %>% ggemmeans(~FERTILIZER) %>% plot(add.data = TRUE)
+fert.lm %>% ggemmeans(~FERTILIZER) %>% plot(add.data = TRUE, jitter=FALSE)
 
 
 ## ----summaryModel2a, results='markdown', eval=TRUE, hidden=TRUE---------------
-summary(fert.lm)
+fert.lm %>% summary()
 
 
 ## ----summaryModel2b, results='markdown', eval=TRUE, hidden=TRUE---------------
-confint(fert.lm)
+fert.lm %>% confint()
 
 
 ## ----summaryModel2c, results='markdown', eval=TRUE, hidden=TRUE---------------
-tidy(fert.lm, conf.int=TRUE)
+fert.lm %>% tidy(conf.int=TRUE)
 
 
 ## ----summaryModel2d, results='asis', eval=TRUE, hidden=TRUE-------------------
@@ -159,16 +159,16 @@ fert.lm %>% tidy(conf.int = TRUE) %>% kable
 
 ## ----summaryModel3, results='markdown', eval=TRUE, hidden=TRUE----------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(fert.lm, show.se = TRUE, show.aic = TRUE)
+fert.lm %>% sjPlot::tab_model(show.se = TRUE, show.aic = TRUE)
 
 
 ## ----predictModel2, results='markdown', eval=TRUE, hidden=TRUE----------------
 ## establish a data set that defines the new data to predict against
 newdata = data.frame(FERTILIZER = 110)
 ## using the predict function
-predict(fert.lm, newdata = newdata)
+fert.lm %>% predict(newdata = newdata)
 ## include confidence intervals
-predict(fert.lm,  newdata = newdata,  interval = "confidence")
+fert.lm %>% predict(newdata = newdata,  interval = "confidence")
 
 
 ## ----predictModel, results='markdown', eval=TRUE, echo=TRUE, hidden=TRUE------
@@ -187,27 +187,27 @@ as.numeric(pred) + outer(se, qt(df = df.residual(fert.lm),  c(0.025, 0.975)))
 ## ----predictModel3, results='markdown', eval=TRUE, hidden=TRUE----------------
 ## using emmeans
 newdata = list(FERTILIZER = 110)
-emmeans(fert.lm, ~FERTILIZER, at = newdata)
+fert.lm %>% emmeans(~FERTILIZER, at = newdata)
 
 
 ## ----predictModel4, results='markdown', eval=TRUE, echo=TRUE, hidden=TRUE-----
 ## testing a specific hypothesis
 ## Probabiliy of getting our estimate if slope was 1
-multcomp::glht(fert.lm, linfct = c("FERTILIZER == 1")) %>% summary
+fert.lm %>% multcomp::glht(linfct = c("FERTILIZER == 1")) %>% summary
 ## Cant ask probability that the slope is equal to something in frequentist
 ## If we wanted to know the probability that the slope was greater than
 ## 1, the closest we could get is
-multcomp::glht(fert.lm, linfct = c("FERTILIZER >= 0.9")) %>% summary
+fert.lm %>% multcomp::glht(linfct = c("FERTILIZER >= 0.9")) %>% summary
 
 
 ## ----predictModel4a, results='markdown', eval=TRUE, echo=TRUE, hidden=TRUE----
 ## testing a specific hypothesis
 ## Probabiliy of getting our estimate if slope was 1
-brms::hypothesis(fert.lm,  "FERTILIZER = 1")
+fert.lm %>% brms::hypothesis("FERTILIZER = 1")
 ## Cant ask probability that the slope is equal to something in frequentist
 ## If we wanted to know the probability that the slope was greater than
 ## 1, the closest we could get is
-brms::hypothesis(fert.lm,  "FERTILIZER > 0.9")
+fert.lm %>% brms::hypothesis("FERTILIZER > 0.9")
 
 
 ## ----predictModel5a, results='markdown', eval=TRUE, echo=TRUE, hidden=TRUE----
@@ -225,10 +225,37 @@ fert_grid <- fert %>% data_grid(FERTILIZER = seq_range(FERTILIZER, n = 100))
 newdata <- fert.lm %>%
   emmeans(~FERTILIZER,  at = fert_grid) %>%
   as.data.frame
-newdata <- emmeans(fert.lm, ~FERTILIZER, at = fert_grid) %>% as.data.frame
+newdata <- fert.lm %>% emmeans(~FERTILIZER, at = fert_grid) %>% as.data.frame
 newdata %>% head
 ggplot(newdata, aes(y = emmean, x = FERTILIZER))+
     geom_point(data = fert, aes(y = YIELD)) +
+    geom_ribbon(aes(ymin = lower.CL, ymax = upper.CL), fill = "blue", alpha = 0.3) + 
+    geom_line() +
+    scale_y_continuous(expression(Grass~yield~(g.m^-3)))+
+    scale_x_continuous(expression(Fertilizer~concentration~(g.ml^-1)))+
+    theme_classic()
+
+
+## ----figureModelA, results='markdown', eval=TRUE, hidden=TRUE-----------------
+## Using emmeans
+fert_grid <- fert %>% data_grid(FERTILIZER = seq_range(FERTILIZER, n = 100))
+newdata <- fert.lm %>%
+  emmeans(~FERTILIZER,  at = fert_grid) %>%
+  as.data.frame
+newdata <- fert.lm %>% emmeans(~FERTILIZER, at = fert_grid) %>% as.data.frame
+newdata %>% head
+
+## Now generate partial residuals
+fitted_grid <- fert
+fit <- fert.lm %>% emmeans(~FERTILIZER, at = fitted_grid) %>% as.data.frame() %>%
+    pull(emmean)
+resid.newdata = fert %>%
+    mutate(Fit = fit,
+           Resid = resid(fert.lm),
+           Partial.obs = Fit + Resid)
+resid.newdata %>%  head
+ggplot(newdata, aes(y = emmean, x = FERTILIZER))+
+    geom_point(data = resid.newdata, aes(y = Partial.obs)) +
     geom_ribbon(aes(ymin = lower.CL, ymax = upper.CL), fill = "blue", alpha = 0.3) + 
     geom_line() +
     scale_y_continuous(expression(Grass~yield~(g.m^-3)))+

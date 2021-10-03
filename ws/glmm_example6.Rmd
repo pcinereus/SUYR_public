@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -70,7 +70,7 @@ library(patchwork)   #for multiple plots
 ```
 
 # Scenario
-
+	
 ![fanworms](../resources/fanworms.jpg){width="157" height="160"}
 
 In an attempt to understand the effects on marine animals of short-term
@@ -82,7 +82,7 @@ hemispherical plaster blocks, impregnated with copper), which released
 the metal into sea water over 4 or 5 days. The organism whose response
 to Cu was being measured was a small, polychaete worm, Hydroides, that
 attaches to hard surfaces in the sea, and is one of the first species to
-colonize any surface that is submerged. The biological questions focused
+colonise any surface that is submerged. The biological questions focused
 on whether the timing of exposure to Cu affects the overall abundance of
 these worms. The time period of interest was the first or second week
 after a surface being available.
@@ -101,7 +101,7 @@ an overall difference in the density of worms across a plate, or it
 could show up as a gradient in abundance across the plate, with a
 different gradient in different treatments. Therefore, on each plate,
 the density of worms (\#/cm^2^) was recorded at each of four distances
-from the center of the plate.
+from the centre of the plate.
 
 Format of copper.csv data file
 
@@ -111,7 +111,7 @@ COPPER   PLATE   DIST   WORMS   AREA   COUNT
 
 ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **COPPER**   Categorical listing of the copper treatment (control = no copper applied, week 2 = copper treatment applied in second week and week 1= copper treatment applied in first week) applied to whole plates. Factor A (between plot factor).
-**PLATE**    Substrate provided for polychaete worm colonization on which copper treatment applied. These are the plots (Factor B). Numbers in this column represent numerical labels given to each plate.
+**PLATE**    Substrate provided for polychaete worm colonisation on which copper treatment applied. These are the plots (Factor B). Numbers in this column represent numerical labels given to each plate.
 **DIST**     Categorical listing for the four concentric distances from the center of the plate (source of copper treatment) with 1 being the closest and 4 the furthest. Factor C (within plot factor)
 **WORMS**    Density (\#/cm~2~) of worms measured. Response variable.
 ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -130,16 +130,16 @@ glimpse(copper)
 
 Model formula:
 $$
-y_i \sim{} \mathcal{Gamma}(\lambda_i, \phi)\\
+y_i \sim{} \mythical{Gamma}(\lambda_i, \phi)\\
 ln(\lambda_i) =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
 where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed
 and random effects parameters respectively and $\bf{X}$ is the model matrix
 representing the overall intercept and effects of copper, distance and their
-interaction on the number of number of worms. $\bf{Z}$ represents a cell means model matrix for the
-random intercepts associated with individual plates. $\phi$ represents the
-shape parameter of the Gamma distribution.
+interaction on the number of number of worms. $\bf{Z}$ represents a cell means
+model matrix for the random intercepts associated with individual plates. $\phi$
+represents the shape parameter of the Gamma distribution.
 
 
 
@@ -162,35 +162,6 @@ shape parameter of the Gamma distribution.
 
 
 # Summary figures
-
-```{r summaryFigure, results='markdown', echo=TRUE, eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
-copper.comp <- emmeans(copper.glmmTMB3.1a,  ~COPPER|DIST,  type='response') %>%
-  contrast(method='pairwise') %>%
-    confint() %>%
-    as.data.frame                                                                           
-head(copper.comp)
-
-g1=ggplot(copper.comp, aes(y=ratio, x=contrast, color=DIST)) +
-    geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL),
-                    position=position_dodge(width=0.6)) +
-    geom_hline(yintercept=1) +
-  scale_y_continuous(trans=scales::log2_trans(),  limits=c(0.25, 500)) +
-    coord_flip() +
-    theme_bw()
-
-newdata = emmeans(copper.glmmTMB3.1a, ~COPPER|DIST,
-                  type='response') %>%
-  confint() %>% 
-  as.data.frame
-
-head(newdata)
-g2 = ggplot(newdata, aes(y=response, x=DIST, fill=COPPER)) +
-  geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL),shape=21, position=position_dodge(width=0.2)) +
-  theme_bw()
-g2 + g1
-
-```
-   
 
 
 # References

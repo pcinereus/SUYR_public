@@ -50,23 +50,23 @@ peake.lm <- lm(INDIV~AREA, data=peake)
 
 
 ## ----validateModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, messsage=FALSE, warning=FALSE----
-autoplot(peake.lm, which=1:6)
+peake.lm %>% autoplot(which=1:6)
 
 
 ## ----validateModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-influence.measures(peake.lm)
+peake.lm %>% influence.measures()
 
 
 ## ----validateModel1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE----
-performance::check_model(peake.lm)
+peake.lm %>% performance::check_model()
 
 
 ## ----validateModel1d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=6, warning=FALSE, message=FALSE----
-peake.resid <- simulateResiduals(peake.lm,  plot=TRUE)
+peake.resid <- peake.lm %>% simulateResiduals(plot=TRUE)
 
 
 ## ----validateModel1e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE----
-testResiduals(peake.resid)
+peake.resid %>% testResiduals()
 
 
 ## ----fitMode2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
@@ -74,30 +74,31 @@ peake.glm <- glm(INDIV ~ log(AREA), data=peake, family=poisson(link='log'))
 
 
 ## ----validateModel2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, messsage=FALSE, warning=FALSE----
-autoplot(peake.glm, which=1:6)
+peake.glm %>% autoplot(which=1:6)
 
 
 ## ----validateModel2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-influence.measures(peake.glm)
+peake.glm %>% influence.measures()
 
 
 ## ----validateModel2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE----
-performance::check_model(peake.glm)
+peake.glm %>% performance::check_model()
 
 
 ## ----validateModel2cc, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4, warning=FALSE, message=FALSE----
-performance::check_overdispersion(peake.glm)
-performance::check_zeroinflation(peake.glm) 
-performance::check_normality(peake.glm) %>% plot
-performance::check_outliers(peake.glm)
+peake.glm %>% performance::check_overdispersion()
+peake.glm %>% performance::check_zeroinflation()
+## Note, the following cannot be piped for the plot to work!
+performance::check_normality(peake.glm) %>% plot()
+peake.glm %>% performance::check_outliers()
 
 
 ## ----validateModel2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=6, warning=FALSE, message=FALSE----
-peake.resid <- simulateResiduals(peake.glm,  plot=TRUE)
+peake.resid <- peake.glm %>% simulateResiduals(plot=TRUE)
 
 
 ## ----validateModel2e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE----
-testResiduals(peake.resid)
+peake.resid %>% testResiduals()
 
 
 ## ----validateModel3, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
@@ -124,23 +125,23 @@ peake.glm2 <- glm.nb(INDIV ~ scale(log(AREA), scale=FALSE), data=peake)
 
 
 ## ----validateModel3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, messsage=FALSE, warning=FALSE----
-autoplot(peake.glm1, which=1:6)
+peake.glm1 %>% autoplot(which=1:6)
 
 
 ## ----validateModel3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-influence.measures(peake.glm1)
+peake.glm1 %>% influence.measures()
 
 
 ## ----validateModel3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE----
-performance::check_model(peake.glm1)
+peake.glm1 %>% performance::check_model()
 
 
 ## ----validateModel3d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=6, warning=FALSE, message=FALSE----
-peake.resid <- simulateResiduals(peake.glm1,  plot=TRUE)
+peake.resid <- peake.glm1 %>% simulateResiduals(plot=TRUE)
 
 
 ## ----validateModel3e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE----
-testResiduals(peake.resid)
+peake.resid %>% testResiduals()
 
 
 ## ----validateModel3f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
@@ -168,46 +169,59 @@ AICc(peake.glm, peake.glm1)
 
 ## ----plotModel1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
 ## The following is equivalent to ggeffect
-plot_model(peake.glm1, type='eff', show.data=FALSE,  terms='AREA') 
-#plot_model(peake.glm1, type='eff', show.data=FALSE,  terms='AREA [exp]') 
+peake.glm1 %>% plot_model(type = 'eff', show.data = TRUE,  terms = 'AREA') 
+
+
+## ----plotModel1b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
+## plot_model(peake.glm1, type='eff', show.data=FALSE,  terms='AREA [log]') 
+## plot_model(peake.glm1, type='eff', show.data=FALSE,  terms='AREA [exp]') 
 ## The following is equivalent to ggpredict
 #plot_model(peake.glm1, type='pred',  show_data=TRUE, terms='AREA [exp]')
 ## The following is equivalent to ggemmeans
-#plot_model(peake.glm1, type='emm',  terms='AREA [exp]')
-
+## plot_model(peake.glm1, type='emm',  terms='AREA [exp]')
 
 
 ## ----plotModela1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
-plot(allEffects(peake.glm1, residuals=TRUE), type='response')
+peake.glm1 %>% allEffects(residuals = TRUE) %>% plot(type = 'response')
 
 
 ## ----plotModel1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
-ggpredict(peake.glm1) %>% plot(add.data=TRUE)
+peake.glm1 %>% ggpredict() %>% plot(add.data = TRUE, jitter = FALSE)
+
+
+## ----plotModel1c1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
+## If you want to alter 
+peake.glm1 %>% ggpredict(term = 'AREA') %>% plot(add.data = TRUE, jitter = FALSE) +
+    scale_y_log10() +
+    scale_x_log10()
 
 
 ## ----plotModel1d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
-ggemmeans(peake.glm1,  ~AREA) %>% plot(add.data=TRUE)
+peake.glm1 %>% ggemmeans(~AREA) %>% plot(add.data = TRUE, jitter = FALSE)
+peake.glm1 %>% ggemmeans(~AREA) %>% plot(add.data = TRUE, jitter = FALSE) +
+    scale_y_log10() +
+    scale_x_log10()
 
 
 ## ----summaryModel1a, results='markdown', eval=TRUE, hidden=TRUE---------------
-summary(peake.glm1)
+peake.glm1 %>% summary()
 
 
 ## ----summaryModel1b, results='markdown', eval=TRUE, hidden=TRUE---------------
-confint(peake.glm1)
+peake.glm1 %>% confint()
 ## or on the response scale
-exp(confint(peake.glm1))
+peake.glm1 %>% confint() %>% exp
 
 
 ## ----summaryModel1c, results='markdown', eval=TRUE, hidden=TRUE---------------
-tidy(peake.glm1, conf.int=TRUE)
-tidy(peake.glm1, conf.int=TRUE, exponentiate=TRUE)
-glance(peake.glm1)
+peake.glm1 %>% tidy(conf.int=TRUE)
+peake.glm1 %>% tidy(conf.int=TRUE, exponentiate=TRUE)
+peake.glm1 %>% glance()
 
 
 ## ----summaryModel1d, results='markdown', eval=TRUE, hidden=TRUE---------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(peake.glm1,show.se=TRUE,show.aic=TRUE)
+peake.glm1 %>% sjPlot::tab_model(show.se = TRUE, show.aic = TRUE)
 
 
 ## ----predictModel1a, results='markdown', eval=TRUE, hidden=TRUE---------------
@@ -218,19 +232,21 @@ sjPlot::tab_model(peake.glm1,show.se=TRUE,show.aic=TRUE)
 
 
 ## ----predictModel1b, results='markdown', eval=TRUE, hidden=TRUE---------------
-r.squaredLR(peake.glm1)
+peake.glm1 %>% r.squaredLR()
 
 
 ## ----predictModel1c, results='markdown', eval=TRUE, hidden=TRUE---------------
-performance::r2_nagelkerke(peake.glm1)
+peake.glm1 %>% performance::r2_nagelkerke()
 
 
 ## ----figureModel, results='markdown', eval=TRUE, hidden=TRUE------------------
 ## Using emmeans
-peake.grid = with(peake, list(AREA=seq(min(AREA), max(AREA), len=100)))
+peake.grid <- with(peake, list(AREA=seq(min(AREA), max(AREA), len=100)))
 #OR
-peake.grid = peake %>% data_grid(AREA=seq_range(AREA,  n=100))
-newdata = emmeans(peake.glm1, ~AREA, at=peake.grid, type='response') %>%
+peake.grid <- peake %>%
+    data_grid(AREA=seq_range(AREA,  n=100))
+newdata <- peake.glm1 %>%
+    emmeans(~AREA, at=peake.grid, type='response') %>%
     as.data.frame
 head(newdata)
 ggplot(newdata, aes(y=response, x=AREA)) +
@@ -246,16 +262,16 @@ ggplot(newdata, aes(y=response, x=AREA)) +
     scale_y_log10() +
     theme_classic()
 ## If we want to plot the partial observations
-partial.obs = emmeans(peake.glm1, ~AREA, at=peake, type='response') %>%
+partial.obs <- peake.glm1 %>% emmeans(~AREA, at=peake, type='response') %>%
     as.data.frame %>%
-    mutate(response=response+resid(peake.glm1,type='response'))
+    mutate(Partial.obs=response+resid(peake.glm1,type='response'))
 
 ## response residuals are just resid * mu.eta(predict)
 ggplot(newdata, aes(y=response, x=AREA)) +
     geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL),fill='blue', alpha=0.3) +
     geom_line() +
     geom_point(data=peake, aes(y=INDIV)) +
-    geom_point(data=partial.obs, aes(y=response), color='green') + 
+    geom_point(data=partial.obs, aes(y=Partial.obs), color='green') + 
     scale_x_log10(breaks = as.vector(c(1,2,5,10) %o% 10^(-1:4))) +
     scale_y_log10() +
     theme_classic()	

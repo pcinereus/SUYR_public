@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -57,7 +57,7 @@ library(ggfortify) #for model diagnostics
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
 library(effects)   #for partial effects plots
-library(ggeffects) #for effects plots in ggplotjk
+library(ggeffects) #for effects plots in ggplot
 library(emmeans)   #for estimating marginal means
 library(MASS)      #for glm.nb
 library(MuMIn)     #for AICc
@@ -72,30 +72,27 @@ library(see)         #for diagnostic plots
 
 # Scenario
 
-In an honours thesis from (1992), Mullens was investigating the ways
-that cane toads ( Bufo marinus ) respond to conditions of hypoxia. Toads
-show two different kinds of breathing patterns, lung or buccal,
-requiring them to be treated separately in the experiment. Her aim was
-to expose toads to a range of O~2~ concentrations, and record their
-breathing patterns, including parameters such as the expired volume for
-individual breaths. It was desirable to have around 8 replicates to
-compare the responses of the two breathing types, and the complication
-is that animals are expensive, and different individuals are likely to
-have different O~2~ profiles (leading to possibly reduced power). There
-are two main design options for this experiment;
+In an honours thesis from (1992), Mullens was investigating the ways that cane
+toads ( Bufo marinus ) respond to conditions of hypoxia. Toads show two
+different kinds of breathing patterns, lung or buccal, requiring them to be
+treated separately in the experiment. Her aim was to expose toads to a range of
+O~2~ concentrations, and record their breathing patterns, including parameters
+such as the expired volume for individual breaths. It was desirable to have
+around 8 replicates to compare the responses of the two breathing types, and the
+complication is that animals are expensive, and different individuals are likely
+to have different O~2~ profiles (leading to possibly reduced power). There are
+two main design options for this experiment;
 
--   One animal per O~2~ treatment, 8 concentrations, 2 breathing types.
-    With 8 replicates the experiment would require 128 animals, but that
-    this could be analysed as a completely randomized design
--   One O~2~ profile per animal, so that each animal would be used 8
-    times and only 16 animals are required (8 lung and 8 buccal
-    breathers)
+-   One animal per O~2~ treatment, 8 concentrations, 2 breathing types.  With 8
+    replicates the experiment would require 128 animals, but that this could be
+    analysed as a completely randomised design
+-   One O~2~ profile per animal, so that each animal would be used 8 times and
+    only 16 animals are required (8 lung and 8 buccal breathers)
 
-Mullens decided to use the second option so as to reduce the number of
-animals required (on financial and ethical grounds). By selecting this
-option, she did not have a set of independent measurements for each
-oxygen concentration, by repeated measurements on each animal across the
-8 oxygen concentrations.
+Mullens decided to use the second option so as to reduce the number of animals
+required (on financial and ethical grounds). By selecting this option, she did
+not have a set of independent measurements for each oxygen concentration, by
+repeated measurements on each animal across the 8 oxygen concentrations.
 
 ![Toad](../resources/bufo.jpg){width="251" height="290"}
 
@@ -120,8 +117,8 @@ lung     a      15        16.6      4.074
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-mullens = read_csv('../data/mullens.csv', trim_ws=TRUE)
-glimpse(mullens)
+mullens <- read_csv('../data/mullens.csv', trim_ws = TRUE)
+mullens %>% glimpse()
 ```
 
 
@@ -133,10 +130,12 @@ y_i \sim{} \mathcal{Pois}(\lambda_i)\\
 ln(\lambda_i) =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
-where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the model matrix representing the overall intercept and effects of copper, distance and their interaction on the number of number of worms.
-Area of the place segment was also incorporated as an offset.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual plates.
+where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed
+and random effects parameters respectively and $\bf{X}$ is the model matrix
+representing the overall intercept and effects of copper, distance and their
+interaction on the number of number of worms.  Area of the place segment was
+also incorporated as an offset.  $\bf{Z}$ represents a cell means model matrix
+for the random intercepts associated with individual plates.
 
 
 # Fit the model {.tabset .tabset-faded}
@@ -152,170 +151,6 @@ $\bf{Z}$ represents a cell means model matrix for the random intercepts associat
 
 
 # Summary figures {.tabset .tabset-faded}
-
-## sqrt (gaussian) with lmer
-
-```{r summaryFigures1a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7}
-mullens.grid = with(mullens,
-   list(BREATH=levels(BREATH),
-     O2LEVEL=seq(min(O2LEVEL), max(O2LEVEL), len=100)
-   )
-)
-newdata = emmeans(mullens.lmer1a, ~O2LEVEL|BREATH,
-                  at=mullens.grid, type='response') %>% as.data.frame %>%
-          mutate(emmean = emmean^2,
-                 lower.CL=lower.CL^2,
-                 upper.CL=upper.CL^2)
-head(newdata)
-
-ggplot() +
-    geom_ribbon(data=newdata,
-                aes(ymin=lower.CL,ymax=upper.CL,
-                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
-    geom_line(data=newdata,
-              aes(y=emmean, x=O2LEVEL, color=BREATH)) +
-    theme_classic()
-```
-
-## sqrt (gaussian)
-
-```{r summaryFigures2a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7}
-mullens.grid = with(mullens,
-   list(BREATH=levels(BREATH),
-     O2LEVEL=seq(min(O2LEVEL), max(O2LEVEL), len=100)
-   )
-)
-newdata = emmeans(mullens.glmmTMB1a, ~O2LEVEL|BREATH,
-                  at=mullens.grid, type='response') %>% as.data.frame %>%
-          mutate(emmean = emmean^2,
-                 lower.CL=lower.CL^2,
-                 upper.CL=upper.CL^2)
-head(newdata)
-
-ggplot() +
-    geom_ribbon(data=newdata,
-                aes(ymin=lower.CL,ymax=upper.CL,
-                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
-    geom_line(data=newdata,
-              aes(y=emmean, x=O2LEVEL, color=BREATH)) +
-    theme_classic()
-```
-
-
-## beta
-
-```{r summaryFigures3a, results='markdown', eval=TRUE, hidden=FALSE, fig.width=7, fig.height=7}
-mullens.grid = with(mullens,
-   list(BREATH=levels(BREATH),
-     O2LEVEL=modelr::seq_range(O2LEVEL, n=1000)
-   )
-)
-newdata = emmeans(mullens.glmmTMB2b, ~O2LEVEL|BREATH,
-                  at=mullens.grid, type='response') %>% as.data.frame 
-head(newdata)
-
-ggplot() +
-    geom_ribbon(data=newdata,
-                aes(ymin=lower.CL,ymax=upper.CL,
-                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
-    geom_line(data=newdata,
-              aes(y=response, x=O2LEVEL, color=BREATH)) +
-    theme_classic()
-
-mullens <- mullens %>%
-    mutate(resid=resid(mullens.glmmTMB2b),
-           fitted=fitted(mullens.glmmTMB2b),
-           obs=fitted+resid
-           )
-
-ggplot() +
-    geom_point(data=mullens, aes(y=obs, x=O2LEVEL, color=BREATH)) +
-    geom_ribbon(data=newdata,
-                aes(ymin=lower.CL,ymax=upper.CL,
-                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
-    geom_line(data=newdata,
-              aes(y=response, x=O2LEVEL, color=BREATH)) +
-    theme_classic()
-```
-
-
-
-```{r name, results='markdown', eval=FALSE, hidden=FALSE}
-mullens.glmmTMB = glmmTMB(pzBUC ~ BREATH*poly(O2LEVEL, 3) + (1|TOAD), data=mullens,
-                          family=beta_family(link = "logit"))
-
-#mullens.glmmTMB1 = glmmTMB(pzBUC ~ BREATH*poly(scale(O2LEVEL), 3) +
-#                               (poly(scale(O2LEVEL), 3)|TOAD), data=mullens,
-#                          family=beta_family(link = "logit"))
-
-mullens.glmmTMB1 = glmmTMB(pzBUC ~ BREATH*poly(O2LEVEL, 3) + (O2LEVEL|TOAD), data=mullens,
-                           family=beta_family(link = "logit"))
-AIC(mullens.glmmTMB, mullens.glmmTMB1)
-
-
-## library(lme4)
-## mullens.glmer = glmer(pBUC ~ BREATH*poly(O2LEVEL, 3) + (1|TOAD),
-##                       data=mullens, family=Beta(link='logit'))
-## mullens.glmer1 = glmer(pBUC ~ BREATH*poly(O2LEVEL, 3) + (BREATH|TOAD),
-##                       data=mullens, family=binomial(link='logit'))
-## AIC(mullens.glmer,mullens.glmer1)
-##                                         # Try this trick instead
-## mullens.glmer = glmer(cbind(FREQBUC,100-FREQBUC) ~ BREATH*poly(O2LEVEL, 3) + (1|TOAD),
-##                       data=mullens, family=binomial(link='logit'))
-
-## mullens.glmer1 = glmer(cbind(FREQBUC,100-FREQBUC) ~ BREATH+poly(O2LEVEL, 3) + (1|TOAD),
-##                       data=mullens, family=binomial(link='logit'))
-## AICc(mullens.glmer, mullens.glmer1)
-
-#ggplot() +
-#    geom_point(data=NULL, aes(y=resid(mullens.glmmTMB), x=fitted(mullens.glmmTMB)))
-
-
-#plot(mullens.glmmTMB)
-
-
-plot_model(mullens.glmmTMB1, type='diag')
-performance::check_model(mullens.glmmTMB1)
-mullens.resid = simulateResiduals(mullens.glmmTMB1,  plot=TRUE)
-
-plot(allEffects(mullens.glmmTMB1))
-plot(allEffects(mullens.glmmTMB1),  multiline=TRUE,  ci.style='bands')
-plot_model(mullens.glmmTMB1, type='eff', terms=c('O2LEVEL', 'BREATH')) 
-
-
-summary(mullens.glmmTMB1)
-tidy(mullens.glmmTMB1, conf.int=TRUE,  exponentiate=TRUE)
-
-#model.matrix(~BREATH*poly(O2LEVEL,3), mullens)
-emtrends(mullens.glmmTMB1,  ~BREATH,  var='O2LEVEL',  max.degree=3) 
-
-emmeans(mullens.glmmTMB1, ~O2LEVEL|BREATH) #%>% as.data.frame
-
-emmeans(mullens.glmmTMB1, ~O2LEVEL|BREATH,type='response')
-#contrast(emmeans(mullens.glmmTMB, ~O2LEVEL|BREATH,type='response'),interaction='poly')
-
-mullens.grid = with(mullens,
-   list(BREATH=levels(BREATH),
-     O2LEVEL=seq(min(O2LEVEL), max(O2LEVEL), len=100)
-   )
-)
-newdata = emmeans(mullens.glmmTMB1, ~O2LEVEL|BREATH,
-        at=mullens.grid, type='response') %>% as.data.frame
-head(newdata)
-
-ggplot() +
-    geom_ribbon(data=newdata,
-                aes(ymin=lower.CL,ymax=upper.CL,
-                    x=O2LEVEL, fill=BREATH), alpha=0.3)+    
-    geom_line(data=newdata,
-              aes(y=response, x=O2LEVEL, color=BREATH)) +
-    theme_classic()
-
-r.squaredGLMM(mullens.glmmTMB1)
-performance::r2_nakagawa(mullens.glmmTMB1)
-
-
-```
 
 
 

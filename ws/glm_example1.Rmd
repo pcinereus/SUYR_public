@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 options(tinytex.engine = 'xelatex')
 ```
    
@@ -68,13 +68,12 @@ library(tidyverse) #for data wrangling
 
 # Scenario
 
-Here is an example from @Fowler-1998-1998. An agriculturalist was
-interested in the effects of fertilizer load on the yield of grass.
-Grass seed was sown uniformly over an area and different quantities of
-commercial fertilizer were applied to each of ten 1 m<sup>2</sup>
-randomly located plots.  Two months later the grass from each plot was
-harvested, dried and weighed.  The data are in the file
-**fertilizer.csv** in the **data** folder.
+Here is an example from @Fowler-1998-1998. An agriculturalist was interested in
+the effects of fertiliser load on the yield of grass.  Grass seed was sown
+uniformly over an area and different quantities of commercial fertiliser were
+applied to each of ten 1 m<sup>2</sup> randomly located plots.  Two months later
+the grass from each plot was harvested, dried and weighed.  The data are in the
+file **fertilizer.csv** in the **data** folder.
 
 ![](../resources/turf.jpg){width=70%}
 
@@ -88,13 +87,13 @@ harvested, dried and weighed.  The data are in the file
 | \...         | \...    |
 
 ---------------- ---------------------------------------------------
-**FERTILIZER**:  Mass of fertilizer (g.m^-2^) - Predictor variable
+**FERTILIZER**:  Mass of fertiliser (g.m^-2^) - Predictor variable
 **YIELD**:       Yield of grass (g.m^-2^) - Response variable
 ---------------- ---------------------------------------------------
 
  
-The aim of the analysis is to investigate the relationship between
-fertilizer concentration and grass yield.
+The aim of the analysis is to investigate the relationship between fertiliser
+concentration and grass yield.
 
 # Read in the data
 
@@ -125,19 +124,7 @@ represent the intercept and slope respectively, and $\sigma^2$ represents the
 estimated variance.
 
 
-
-```{r EDA, results='markdown', eval=TRUE, hidden=TRUE, message=FALSE}
-ggplot(fert, aes(y = YIELD, x = FERTILIZER)) +
-  geom_point() +
-  geom_smooth()
-ggplot(fert, aes(y = YIELD, x = FERTILIZER)) +
-  geom_point() +
-  geom_smooth(method = "lm")
-ggplot(fert, aes(y = YIELD)) +
-  geom_boxplot(aes(x = 1))
-```
-
-
+ 
 
 
 # Fit the model
@@ -146,10 +133,6 @@ ggplot(fert, aes(y = YIELD)) +
 
 
 
-```{r fitModel, results='markdown', eval=TRUE, hidden=TRUE}
-fert.lm <- lm(YIELD~1+FERTILIZER, data = fert)
-fert.lm <- lm(YIELD~FERTILIZER, data = fert)
-```
 
 
 # Model validation {.tabset .tabset-faded}
@@ -177,6 +160,30 @@ fert.lm <- lm(YIELD~FERTILIZER, data = fert)
  
 # Summary figures {.tabset .tabset-faded}
 
+Although there are numerous easy to use routines that will generate partial
+plots (see above), it is also useful to be able to produce the data behind the
+figures yourself.  That way, you can have more control over the type and style of
+the figures.
+
+Producing a summary figure is essentially plotting the results of predictions.
+In the case of a trend, we want a series of predictions associated with a
+sequence of predictor values.  Hence, we establish a prediction grid that
+contains the sequence of values for the predictor we would like to display.
+
+There are a number of functions we can use to generate different sequences of
+prediction values.  For example, we may want a sequence of values from the
+lowest to the highest observed predictor value.  Alternatively, we may just want
+to explore predictions at the first, third and fifth quantiles.  The following
+table indicates some of the functions that are helpful for these purposes.
+
+| Function                   | Values returned                                         |
+|----------------------------|---------------------------------------------------------|
+| `modelr::seq_range()`      | equal increment values from smallest to largest         |
+| `Hmisc::smean_sdl()`       | mean as well as mean plus/minus one standard deviation  |
+| `Hmisc::smedian_hilow()`   | median as well as min and max                           |
+| `Hmisc::smean.cl.normal()` | mean as well as lower and upper 95% confidence interval |
+
 # References
+ 
  
  

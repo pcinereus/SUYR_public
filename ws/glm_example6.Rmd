@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE,  warning=FALSE,  message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -71,17 +71,20 @@ library(scales)    #for more scales
 
 # Scenario
 
-An ecologist studying a rocky shore at Phillip Island, in southeastern Australia, was interested in how
-clumps of intertidal mussels are maintained [@Quinn-1988-137]. In particular, he wanted to know how densities of adult
-mussels affected recruitment of young individuals from the plankton. As with most marine invertebrates,
-recruitment is highly patchy in time, so he expected to find seasonal variation, and the interaction
-between season and density - whether effects of adult mussel density vary across seasons - was the aspect
-of most interest.
+An ecologist studying a rocky shore at Phillip Island, in southeastern
+Australia, was interested in how clumps of intertidal mussels are maintained
+[@Quinn-1988-137]. In particular, he wanted to know how densities of adult
+mussels affected recruitment of young individuals from the plankton. As with
+most marine invertebrates, recruitment is highly patchy in time, so he expected
+to find seasonal variation, and the interaction between season and density -
+whether effects of adult mussel density vary across seasons - was the aspect of
+most interest.
 
-The data were collected from four seasons, and with two densities of adult mussels. The experiment
-consisted of clumps of adult mussels attached to the rocks. These clumps were then brought back to the
-laboratory, and the number of baby mussels recorded. There were 3-6 replicate clumps for each density
-and season combination.
+The data were collected from four seasons, and with two densities of adult
+mussels. The experiment consisted of clumps of adult mussels attached to the
+rocks. These clumps were then brought back to the laboratory, and the number of
+baby mussels recorded. There were 3-6 replicate clumps for each density and
+season combination.
 
 Format of quinn.csv data files
 
@@ -117,12 +120,8 @@ summary(quinn)
 ```
 
 Since we intend to model both SEASON and DENSITY as categorical variables, 
-we need to explicitly declair them as factors.
+we need to explicitly declare them as factors.
 
-```{r dataprep, results='markdown', eval=TRUE, hidden=TRUE}
-quinn = quinn %>% mutate(SEASON = factor(SEASON, levels=c('Spring', 'Summer', 'Autumn', 'Winter')),
-                         DENSITY = factor(DENSITY))
-```
 
 # Exploratory data analysis
 
@@ -134,13 +133,10 @@ ln(\mu_i) &= \boldsymbol{\beta} \bf{X_i}\\[1em]
 \end{align}
 $$
                                            
-where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$
-is a model matrix representing the intercept and effects of season, density and their interaction on mussel recruitment.
+where $\boldsymbol{\beta}$ is a vector of effects parameters and $\bf{X}$ is a
+model matrix representing the intercept and effects of season, density and their
+interaction on mussel recruitment.
 
-```{r eda, hidden=TRUE}
-ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
-     geom_boxplot()
-```
 
 **Conclusions:**
 
@@ -154,11 +150,6 @@ ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
 
 Lets mimic the effect of using a log link, by using log scaled y-axis.
 
-```{r eda1, hidden=TRUE}
-ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
-  geom_boxplot() +
-  scale_y_log10()
-```
 
 **Conclusions:**
 
@@ -173,7 +164,7 @@ ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
 
 # Different model {.tabset .tabset-faded}
 
-# Parial plots {.tabset .tabset-faded}
+# Partial plots {.tabset .tabset-faded}
 
 
 # Model investigation / hypothesis testing {.tabset .tabset-faded}
@@ -183,26 +174,10 @@ ggplot(quinn, aes(y=RECRUITS, x=SEASON, fill=DENSITY)) +
 
 
 # Summary figures
+As these summarise only involve categorical predictors, there is no need to
+define a prediction grid.  For categorical predictors, the default grid will
+assume that you are interested in all the levels of the categorical predictors.
 
 
-
-```{r zeroinflate, results='markdown', eval=TRUE, hidden=TRUE}
-library(pscl)
-quinn.zip <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='poisson')
-#quinn.resid <- simulateResiduals(quinn.zip,  plot=TRUE)
-summary(quinn.zip)
-#tidy(quinn.zip,  conf.int=TRUE, exponentiate = TRUE)
-exp(-3.0037)
-quinn.zip1 <- zeroinfl(RECRUITS ~ DENSITY*SEASON | SEASON, data=quinn,  dist='poisson')
-                                        #quinn.resid <- simulateResiduals(quinn.zip)
-summary(quinn.zip1)
-exp(-3.0037)
-
-quinn.zinb <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='negbin')
-AICc(quinn.zip,  quinn.zinb)
-
-summary(quinn.zinb)
-exp(-15.29)
-```
 
 # References

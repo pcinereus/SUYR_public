@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -52,7 +52,7 @@ Load the necessary libraries
 ```{r libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE}
 library(car)       #for regression diagnostics
 library(broom)     #for tidy output
-library(broom.mixed)
+library(broom.mixed) ## for tidying mixed effects models
 library(ggfortify) #for model diagnostics
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
@@ -74,7 +74,15 @@ library(tidyverse) #for data wrangling
  
 # Scenario
 
-A plant pathologist wanted to examine the effects of two different strengths of tobacco virus on the number of lesions on tobacco leaves.  She knew from pilot studies that leaves were inherently very variable in response to the virus.  In an attempt to account for this leaf to leaf variability, both treatments were applied to each leaf.  Eight individual leaves were divided in half, with half of each leaf inoculated with weak strength virus and the other half inoculated with strong virus.  So the leaves were blocks and each treatment was represented once in each block.  A completely randomised design would have had 16 leaves, with 8 whole leaves randomly allocated to each treatment.  
+A plant pathologist wanted to examine the effects of two different strengths of
+tobacco virus on the number of lesions on tobacco leaves.  She knew from pilot
+studies that leaves were inherently very variable in response to the virus.  In
+an attempt to account for this leaf to leaf variability, both treatments were
+applied to each leaf.  Eight individual leaves were divided in half, with half
+of each leaf inoculated with weak strength virus and the other half inoculated
+with strong virus.  So the leaves were blocks and each treatment was represented
+once in each block.  A completely randomised design would have had 16 leaves,
+with 8 whole leaves randomly allocated to each treatment.
 
 ![Tobacco plant](../resources/TobaccoPlant.jpg){height="300"}
 
@@ -102,7 +110,7 @@ LEAF   TREAT    NUMBER
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-tobacco = read_csv('../data/tobacco.csv', trim_ws=TRUE)
+tobacco <- read_csv('../data/tobacco.csv', trim_ws = TRUE)
 glimpse(tobacco)
 ```
 
@@ -116,98 +124,12 @@ y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
 \mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
-where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the  model matrix representing the overall intercept and effects of the treatment on the number of lesions.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with leaves.
+where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed
+and random effects parameters respectively and $\bf{X}$ is the model matrix
+representing the overall intercept and effects of the treatment on the number of
+lesions.  $\bf{Z}$ represents a cell means model matrix for the random
+intercepts associated with leaves.
 
-We will start by explicitly declaring the categorical variable (TREATMENT) as a
-factor.  In addition, random effects (in this case LEAF) should also be declared
-as factors.
-
-```{r tobaccoEDA1, results='markdown', eval=TRUE, hidden=TRUE}
-tobacco <- tobacco %>%
-  mutate(LEAF=factor(LEAF),
-         TREATMENT=factor(TREATMENT))
-```
-
-To explore the assumptions of homogeneity of variance and normality, a boxplot
-of each Treatment level is appropriate.
-
-```{r tobaccoEDA2, results='markdown', eval=TRUE, hidden=TRUE}
-ggplot(tobacco,  aes(y=NUMBER,  x=TREATMENT)) +
-  geom_boxplot()
-```
-
-**Conclusions:**
-
-- both normality and homogeneity of variance seem satisfied
-
-It can also be useful to get a sense of the consistency across blocks (LEAF).
-That is, do all Leaves have a similar baseline level of lesion susceptibility
-and do they respond similarly to the treatment.
-
-```{r tobaccoEDA3, results='markdown', eval=TRUE, hidden=TRUE}
-ggplot(tobacco,  aes(y=NUMBER,  x=as.numeric(LEAF))) +
-  geom_line(aes(linetype=TREATMENT))
-
-## If we want to retain the original LEAF labels
-ggplot(tobacco,  aes(y=NUMBER,  x=as.numeric(LEAF))) +
-  geom_blank(aes(x=LEAF)) +
-  geom_line(aes(linetype=TREATMENT))
-```
-
-**Conclusions:**
-
-- it is clear that some leaves are more susceptible to lesions (e.g. Leaf 7)
-  than other leaves (e.g. Leaf 4)
-- most leaves (other than Leaf 4 and 6) have a similar response to the
-  Treatments - that is most have higher number of lesions from the Strong
-  Treatment than the Weak Treatment.
-
-Given that there are only two levels of Treatment (Strong and Weak), it might be
-easier to visualise the differences in baselines and effect consistency by
-plotting as:
-
-```{r tobaccoEDA4, results='markdown', eval=TRUE, hidden=TRUE}
-ggplot(tobacco,  aes(y=NUMBER,  x=TREATMENT,  group=LEAF)) +
-  geom_point() +
-  geom_line(aes(x=as.numeric(TREATMENT))) 
-```
-
-**Conclusions:**
-
-- this figure reiterates the points made earlier about the varying baselines and
-  effect consistency.
-
-The above figure also serves as a good way to visualise certain aspects of mixed
-effects models.  When we fit a mixed effects model that includes a random
-blocking effect (in this case LEAF), we are indicating that we are allowing
-there to be a different intercept for each block (LEAF).  In the current case,
-the intercept will represent the first Treatment level (Strong).  So the random
-effect is specifying that the intercept can vary from Leaf to Leaf.
-
-We can think of the model as having two tiers (a hierarchy), where the tiers of
-the hierarchy represent progressively smaller (typically) spatial scales.  In
-the current example, the largest spatial units are the leaves (blocking factor).
-Within the leaves, there are the two Treatments (Strong and Weak) and within the
-Treatments are the individual observations.
-
-We tend to represent this hierarchy upside down in the model formula:
-
-$$
-y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
-\mu_i =\beta_0 + \boldsymbol{\beta} \bf{X_i}\\
-\beta_0 = \boldsymbol{\gamma} \bf{Z_i}
-$$
-
-In addition to allowing there to be a different intercept per leaf, we could
-allow there to be a different magnitude of effect (difference between Strong and
-Week Treatment) per leaf.  That is considered a random slope. From the figure
-above, there is some evidence that the effects (slopes) may vary from Leaf to Leaf.
-
-Incorporating a random slope (in addition to a random intercept), may reduce the
-amount of unexplained variance and thus improve the power of the main effect
-(Treatment effect).
 
 # Fit the model {.tabset .tabset-faded}
 

@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE, warnings=FALSE, message=FALSE----------------------
-knitr::opts_chunk$set(echo = TRUE,  warning=FALSE,  message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 
 
 ## ----libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE----
@@ -54,20 +54,20 @@ quinn.glm <- glm(RECRUITS ~ DENSITY*SEASON, data=quinn,
 
 
 ## ----ValidateModel1a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-autoplot(quinn.glm,which=1:6)
+quinn.glm %>% autoplot(which=1:6)
 
 
 ## ----ValidateModel1b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-performance::check_model(quinn.glm)
-performance::check_overdispersion(quinn.glm)
-performance::check_zeroinflation(quinn.glm)
+quinn.glm %>% performance::check_model()
+quinn.glm %>% performance::check_overdispersion()
+quinn.glm %>% performance::check_zeroinflation()
 
 
 ## ----ValidateModel1c, results='markdown', eval=TRUE, fig.width=8, fig.height=5, hidden=TRUE----
-quinn.resid = simulateResiduals(quinn.glm,  plot=TRUE)
-testResiduals(quinn.resid)
-testDispersion(quinn.resid)
-testZeroInflation(quinn.resid)
+quinn.resid <- quinn.glm %>% simulateResiduals(plot=TRUE)
+quinn.resid %>% testResiduals()
+quinn.resid %>% testDispersion()
+quinn.resid %>% testZeroInflation()
 #testTemporalAutocorrelation(quinn.glm1)
 
 
@@ -80,43 +80,42 @@ quinn.glm$deviance/quinn.glm$df.residual
 
 ## ----modelValidation3, results='markdown', eval=TRUE, hidden=TRUE-------------
 quinn %>% group_by(SEASON, DENSITY) %>%
-  summarise(Zeros=sum(RECRUITS==0), 
-            Prop=Zeros/n(),
-            Mean=mean(RECRUITS))
-x=rpois(100000,lambda=2.67)
-tab.1 = table(x==0)
+  summarise(Zeros = sum(RECRUITS==0), 
+            Prop = Zeros/n(),
+            Mean = mean(RECRUITS))
+x <- rpois(100000,lambda = 2.67)
+tab.1 <- table(x == 0)
 tab.1/sum(tab.1)
 
 ## OR,  over the entire data
 ## is this due to excessive zeros (zero-inflation)
-tab=table(quinn$RECRUITS==0)
+tab <- table(quinn$RECRUITS == 0)
 tab/sum(tab)
 ## 5% is not many.. so it cant be zero-inflated
 ## how many 0's would we expect from a poisson distribution with a mean similar to our mean
 mean(quinn$RECRUITS)
-x=rpois(100000,lambda=mean(quinn$RECRUITS))
-tab.1 = table(x==0)
+x <- rpois(100000, lambda = mean(quinn$RECRUITS))
+tab.1 <- table(x == 0)
 tab.1/sum(tab.1)
 
 
 ## ----fitModel2, results='markdown', eval=TRUE, hidden=TRUE--------------------
-library(MASS)
-quinn.nb = glm.nb(RECRUITS ~ DENSITY*SEASON, data=quinn)
+quinn.nb <- MASS::glm.nb(RECRUITS ~ DENSITY*SEASON, data=quinn)
 
 
 ## ----modelValidation4a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-autoplot(quinn.nb,which=1:6)
+quinn.nb %>% autoplot(which=1:6)
 
 
 ## ----modelValidation4b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-performance::check_model(quinn.nb)
+quinn.nb %>% performance::check_model()
 
 
 ## ----modelValidation4c, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-quinn.resid = simulateResiduals(quinn.nb,  plot=TRUE)
-testResiduals(quinn.resid)
-testDispersion(quinn.resid)
-testZeroInflation(quinn.resid)
+quinn.resid <- quinn.nb %>% simulateResiduals(plot=TRUE)
+quinn.resid %>% testResiduals()
+quinn.resid %>% testDispersion()
+quinn.resid %>% testZeroInflation()
 
 
 ## ----modelValidation5, results='markdown', eval=TRUE, hidden=TRUE-------------
@@ -131,103 +130,119 @@ AICc(quinn.glm, quinn.nb)
 
 
 ## ----partialplots1a, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot_model(quinn.nb, type='eff',  terms=c('SEASON', 'DENSITY'))
+quinn.nb %>% plot_model(type='eff',  terms=c('SEASON', 'DENSITY'))
 
 
 ## ----partialplots1b, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot(allEffects(quinn.nb),multiline=TRUE, ci.style='bar')
-plot(allEffects(quinn.nb),multiline=TRUE, ci.style='bar', type='link')
+quinn.nb %>% allEffects() %>% plot(multiline=TRUE, ci.style='bar')
+quinn.nb %>% allEffects() %>% plot(multiline=TRUE, ci.style='bar', type='link')
 
 
 ## ----partialplots1c, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggpredict(quinn.nb, c('SEASON', 'DENSITY')) %>% plot()
+quinn.nb %>% ggpredict(c('SEASON', 'DENSITY')) %>% plot()
 
 
 ## ----partialplots1d, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggemmeans(quinn.nb,  ~SEASON*DENSITY) %>% plot()
+quinn.nb %>% ggemmeans(~SEASON*DENSITY) %>% plot()
 
 
 ## ----summarys1a, results='markdown', eval=TRUE, hidden=TRUE-------------------
-summary(quinn.nb)
+quinn.nb %>% summary()
 
 
 ## ----summarys1b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-tidy(quinn.nb, conf.int=TRUE)
+quinn.nb %>% tidy(conf.int=TRUE)
 
 
 ## ----summarys1c, results='markdown', eval=TRUE, hidden=TRUE-------------------
-tidy(quinn.nb, conf.int=TRUE, exponentiate=TRUE)
+quinn.nb %>% tidy(conf.int=TRUE, exponentiate=TRUE)
 
 
 ## ----summarys1d, results='markdown', eval=TRUE, hidden=TRUE-------------------
-tidy(quinn.glm, conf.int=TRUE, exponentiate=TRUE)
+quinn.glm %>% tidy(conf.int=TRUE, exponentiate=TRUE)
 
 
 ## ----mainEffects1a, results='markdown', eval=TRUE, hidden=TRUE----------------
-quinn.nb %>% emmeans(pairwise~DENSITY|SEASON)
+quinn.nb %>% emmeans(~DENSITY|SEASON) %>% pairs() %>% summary(infer=TRUE)
 
 
 ## ----mainEffects1a1, results='markdown', eval=TRUE, echo=FALSE, hidden=TRUE----
-eff <- (quinn.nb %>%
-        emmeans(pairwise~DENSITY|SEASON,  type='link') %>%
-        confint)$contrasts %>%
-               as.data.frame
+eff <- quinn.nb %>%
+    emmeans(~DENSITY|SEASON, type='link') %>%
+    pairs() %>%
+    as.data.frame()
 
 
 ## ----mainEffects1b, results='markdown', eval=TRUE, hidden=TRUE----------------
-quinn.nb %>% emmeans(pairwise~DENSITY|SEASON, type='response')
+quinn.nb %>% emmeans(~DENSITY|SEASON, type='response') %>% pairs()
+
+
+## ----mainEffects1b2, results='markdown', eval=TRUE, hidden=TRUE---------------
+quinn.nb %>% emmeans(~DENSITY|SEASON, type='response') %>% regrid() %>% pairs()
 
 
 ## ----mainEffects1c, results='markdown', eval=TRUE, hidden=TRUE----------------
-quinn.nb %>% emmeans(pairwise~DENSITY|SEASON,  type='response') %>%
-  confint
+quinn.nb %>% emmeans(~DENSITY|SEASON,  type='response') %>% pairs() %>% summary(infer=TRUE)
 
 
 ## ----mainEffects1d, results='markdown', eval=TRUE, hidden=TRUE----------------
-eff <- (quinn.nb %>%
-        emmeans(pairwise~DENSITY|SEASON,  type='response') %>%
-        confint)$contrasts %>%
-               as.data.frame
+eff <- quinn.nb %>%
+    emmeans(~DENSITY|SEASON,  type='response') %>%
+    pairs() %>%
+    summary(infer=TRUE) %>%
+    as.data.frame
 
 eff %>%
-  ggplot(aes(y=ratio, x=SEASON)) +
-  geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL)) +
-  geom_hline(yintercept=1, linetype='dashed') +
-  scale_x_discrete(name='') +
-  scale_y_continuous(name='Density effect (High vs Low)', trans=scales::log2_trans(),
-                     breaks=scales::breaks_log(base=2)) +
-  coord_flip(ylim=c(0.25, 4)) +
-  theme_classic()
+    ggplot(aes(y=ratio, x=SEASON)) +
+    geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL)) +
+    geom_text(aes(label=sprintf("p=%.2f", p.value)), nudge_x=0.25) +
+    geom_hline(yintercept=1, linetype='dashed') +
+    scale_x_discrete(name='') +
+    scale_y_continuous(name='Density effect (High vs Low)', trans=scales::log2_trans(),
+                       breaks=scales::breaks_log(base=2)) +
+    coord_flip(ylim=c(0.25, 4)) +
+    theme_classic()
 
 
 ## ----summaryFig, results='markdown', eval=TRUE, hidden=TRUE-------------------
-newdata = emmeans(quinn.nb, ~DENSITY|SEASON, type='response') %>% as.data.frame
+newdata <- emmeans(quinn.nb, ~DENSITY|SEASON, type = 'response') %>% as.data.frame
 head(newdata)
-ggplot(newdata, aes(y=response, x=SEASON, fill=DENSITY)) +
-  geom_pointrange(aes(ymin=asymp.LCL, ymax=asymp.UCL, shape=DENSITY),
-                  position=position_dodge(width=0.2)) +
-  theme_classic() +
-  theme(axis.title.x=element_blank(),
-        legend.position=c(0.01,1), legend.justification = c(0,1)) +
-  annotate(geom='text', x='Summer', y=70, label='*', size=7) +
-  scale_shape_manual(values=c(21, 22))
+ggplot(newdata, aes(y = response, x = SEASON, fill = DENSITY)) +
+    geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL, shape = DENSITY),
+                    position = position_dodge(width = 0.2)) +
+    theme_classic() +
+    theme(axis.title.x = element_blank(),
+          legend.position = c(0.01,1), legend.justification = c(0,1)) +
+    annotate(geom = 'text', x = 'Summer', y = 70, label = '*', size = 7) +
+    scale_shape_manual(values = c(21, 22))
 
 
-## ----zeroinflate, results='markdown', eval=TRUE, hidden=TRUE------------------
+## ----zeroinflate, results='markdown', eval=TRUE, hidden=TRUE, fig.width=10, fig.height=5----
 library(pscl)
+library(glmmTMB)
 quinn.zip <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='poisson')
-#quinn.resid <- simulateResiduals(quinn.zip,  plot=TRUE)
-summary(quinn.zip)
+quinn.zip <- glmmTMB(RECRUITS ~ DENSITY*SEASON, zi=~1, data=quinn,  family=poisson())
+quinn.resid <- quinn.zip %>% simulateResiduals(plot=TRUE)
+## The following does not work due to a lack of pearson residuals for glmmTMB
+## quinn.zip %>% performance::check_overdispersion()
+
+quinn.zip %>% summary()
 #tidy(quinn.zip,  conf.int=TRUE, exponentiate = TRUE)
 exp(-3.0037)
-quinn.zip1 <- zeroinfl(RECRUITS ~ DENSITY*SEASON | SEASON, data=quinn,  dist='poisson')
-                                        #quinn.resid <- simulateResiduals(quinn.zip)
-summary(quinn.zip1)
-exp(-3.0037)
 
-quinn.zinb <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='negbin')
-AICc(quinn.zip,  quinn.zinb)
+## quinn.zip1 <- zeroinfl(RECRUITS ~ DENSITY*SEASON | SEASON, data=quinn,  dist='poisson')
+quinn.zip1 <- glmmTMB(RECRUITS ~ DENSITY*SEASON, zi=~SEASON, data=quinn,  family=poisson())
+quinn.resid <- quinn.zip1 %>% simulateResiduals(plot=TRUE)
 
-summary(quinn.zinb)
-exp(-15.29)
+quinn.zip1 %>% summary()
+plogis(-20.468)
+plogis(-20.468 + 19.214)
+
+
+## quinn.zinb <- zeroinfl(RECRUITS ~ DENSITY*SEASON | 1, data=quinn,  dist='negbin')
+quinn.zinb <- glmmTMB(RECRUITS ~ DENSITY*SEASON, zi=~SEASON, data=quinn,  family=nbinom2())
+quinn.resid <- quinn.zinb %>% simulateResiduals(plot=TRUE)
+AICc(quinn.zip,  quinn.zip1, quinn.zinb)
+
+quinn.zinb %>% summary()
 

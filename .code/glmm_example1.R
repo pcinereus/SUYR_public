@@ -1,11 +1,11 @@
 ## ----setup, include=FALSE, warnings=FALSE, message=FALSE----------------------
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 
 
 ## ----libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE----
 library(car)       #for regression diagnostics
 library(broom)     #for tidy output
-library(broom.mixed)
+library(broom.mixed) ## for tidying mixed effects models
 library(ggfortify) #for model diagnostics
 library(sjPlot)    #for outputs
 library(knitr)     #for kable
@@ -26,14 +26,14 @@ library(tidyverse) #for data wrangling
 
 
 ## ----readData, results='markdown', eval=TRUE----------------------------------
-tobacco = read_csv('../data/tobacco.csv', trim_ws=TRUE)
+tobacco <- read_csv('../data/tobacco.csv', trim_ws = TRUE)
 glimpse(tobacco)
 
 
 ## ----tobaccoEDA1, results='markdown', eval=TRUE, hidden=TRUE------------------
 tobacco <- tobacco %>%
-  mutate(LEAF=factor(LEAF),
-         TREATMENT=factor(TREATMENT))
+  mutate(LEAF = factor(LEAF),
+         TREATMENT = factor(TREATMENT))
 
 
 ## ----tobaccoEDA2, results='markdown', eval=TRUE, hidden=TRUE------------------
@@ -42,26 +42,26 @@ ggplot(tobacco,  aes(y=NUMBER,  x=TREATMENT)) +
 
 
 ## ----tobaccoEDA3, results='markdown', eval=TRUE, hidden=TRUE------------------
-ggplot(tobacco,  aes(y=NUMBER,  x=as.numeric(LEAF))) +
-  geom_line(aes(linetype=TREATMENT))
+ggplot(tobacco,  aes(y = NUMBER,  x = as.numeric(LEAF))) +
+  geom_line(aes(linetype = TREATMENT))
 
 ## If we want to retain the original LEAF labels
-ggplot(tobacco,  aes(y=NUMBER,  x=as.numeric(LEAF))) +
-  geom_blank(aes(x=LEAF)) +
-  geom_line(aes(linetype=TREATMENT))
+ggplot(tobacco,  aes(y = NUMBER,  x = as.numeric(LEAF))) +
+  geom_blank(aes(x = LEAF)) +
+  geom_line(aes(linetype = TREATMENT))
 
 
 ## ----tobaccoEDA4, results='markdown', eval=TRUE, hidden=TRUE------------------
-ggplot(tobacco,  aes(y=NUMBER,  x=TREATMENT,  group=LEAF)) +
+ggplot(tobacco,  aes(y = NUMBER, x = TREATMENT,  group = LEAF)) +
   geom_point() +
-  geom_line(aes(x=as.numeric(TREATMENT))) 
+  geom_line(aes(x = as.numeric(TREATMENT))) 
 
 
 ## ----fitModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ## Fit the random intercepts model
-tobacco.lme <- lme(NUMBER ~ TREATMENT,  random=~1|LEAF,  data=tobacco,  method='REML')
+tobacco.lme <- lme(NUMBER ~ TREATMENT,  random = ~1|LEAF,  data = tobacco,  method = 'REML')
 ## Fit the random intercepts/slope model
-tobacco.lme1 <- lme(NUMBER ~ TREATMENT,  random=~TREATMENT|LEAF,  data=tobacco,  method='REML')
+tobacco.lme1 <- lme(NUMBER ~ TREATMENT,  random = ~TREATMENT|LEAF,  data = tobacco,  method = 'REML')
 
 
 ## ----fitModel1b, results='markdown', eval=TRUE, hidden=TRUE-------------------
@@ -74,11 +74,17 @@ anova(tobacco.lme,  tobacco.lme1) %>% print
 
 ## ----fitModel2a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ## Fit the random intercepts model
-tobacco.lmer <- lmer(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco, REML=TRUE)
+tobacco.lmer <- lmer(NUMBER ~ TREATMENT + (1|LEAF),  data = tobacco, REML = TRUE)
 ## Fit the random intercepts/slope model
 ## Note the following could not be run in lmer as there was not enough observations
 ## to estimate all of the effects and random effects.
-#tobacco.lmer1 <- lmer(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco, REML=TRUE)
+## tobacco.lmer1 <- lmer(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco, REML=TRUE)
+## tobacco.lmer1 <- lmer(NUMBER ~ TREATMENT + (TREATMENT|LEAF),  data=tobacco, REML=TRUE,
+##                       control = lmerControl(
+##                           check.nobs.vs.nRE = "ignore",
+##                           optimizer = 'optim',
+##                           optCtrl = list(method = 'BFGS'))
+##                       )
 
 
 ## ----fitModel2b, results='markdown', eval=TRUE, hidden=TRUE-------------------
@@ -92,17 +98,17 @@ tobacco.lmer <- lmer(NUMBER ~ TREATMENT + (1|LEAF),  data=tobacco, REML=TRUE)
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ## Fit the random intercepts model
 tobacco.glmmTMB <- glmmTMB(NUMBER ~ TREATMENT + (1|LEAF),
-                           data=tobacco, REML=TRUE)
+                           data = tobacco, REML = TRUE)
 ## Fit the random intercepts/slope model
 ## Note the following model did not converge - probably due to insufficient data.
 tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),
-                            data=tobacco, REML=TRUE)
+                            data = tobacco, REML = TRUE)
 ## Try a different optimizer (BFGS)
 tobacco.glmmTMB1 <- glmmTMB(NUMBER ~ TREATMENT + (TREATMENT|LEAF),
-                            data=tobacco, REML=TRUE,
-                            control=glmmTMBControl(optimizer='optim',
-                                                   optArgs='Nelder-Mead'))
-                                                   ## optArgs='BFGS'))
+                            data = tobacco, REML = TRUE,
+                            control = glmmTMBControl(optimizer = 'optim',
+                                                   optArgs='BFGS'))
+                                                   ## optArgs = 'Nelder-Mead'))
 
 
 ## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
@@ -115,11 +121,11 @@ anova(tobacco.glmmTMB,  tobacco.glmmTMB1) %>% print
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
 #autoplot(tobacco.lme)
-plot_grid(plot_model(tobacco.lme,  type='diag'))
+tobacco.lme %>% plot_model(type='diag') %>%  plot_grid()
 
 
 ## ----modelValidation1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
-performance::check_model(tobacco.lme)
+tobacco.lme %>% performance::check_model()
 
 
 ## ----modelValidation1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
@@ -128,27 +134,27 @@ performance::check_model(tobacco.lme)
 
 
 ## ----modelValidation2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
-plot_grid(plot_model(tobacco.lmer,  type='diag')[-2])
+plot_model(tobacco.lmer, type='diag')[-2] %>% plot_grid()
 
 
 ## ----modelValidation2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
-performance::check_model(tobacco.lmer)
+tobacco.lmer %>% performance::check_model()
 
 
 ## ----modelValidation2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tobacco.resid = simulateResiduals(tobacco.lmer,  plot=TRUE)
+tobacco.resid <- tobacco.lmer %>% simulateResiduals(plot=TRUE)
 
 
 ## ----modelValidation3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
-plot_grid(plot_model(tobacco.glmmTMB,  type='diag')[-2])
+plot_model(tobacco.glmmTMB,  type='diag')[-2] %>% plot_grid()
 
 
 ## ----modelValidation3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=8----
-performance::check_model(tobacco.glmmTMB)
+tobacco.glmmTMB %>% performance::check_model()
 
 
 ## ----modelValidation3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tobacco.resid = simulateResiduals(tobacco.glmmTMB,  plot=TRUE)
+tobacco.resid <- tobacco.glmmTMB %>% simulateResiduals(plot=TRUE)
 
 
 ## ----partialPlots1a, results='markdown', eval=TRUE, hidden=TRUE---------------
@@ -156,123 +162,126 @@ tobacco.resid = simulateResiduals(tobacco.glmmTMB,  plot=TRUE)
 
 
 ## ----partialPlots1b, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot(allEffects(tobacco.lme))
+tobacco.lme %>% allEffects() %>% plot()
 
 
 ## ----partialPlots1c, results='markdown', eval=TRUE, hidden=TRUE---------------
-#ggpredict(tobacco.lme, terms='TREATMENT')
+tobacco.lme1 <- update(tobacco.lme, data=as.data.frame(tobacco))
+tobacco.lme1 %>% ggpredict(terms='TREATMENT') %>% plot()
 
 
 ## ----partialPlots1d, results='markdown', eval=TRUE, hidden=TRUE---------------
-#ggemmeans(tobacco.lme, ~TREATMENT)
+tobacco.lme1 <- update(tobacco.lme, data=as.data.frame(tobacco))
+tobacco.lme1 %>% ggemmeans(~TREATMENT) %>% plot()
 
 
 ## ----partialPlots2a, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot_model(tobacco.lmer,  type='eff')
+tobacco.lmer %>% plot_model(type='eff')
 
 
 ## ----partialPlots2b, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot(allEffects(tobacco.lmer))
+tobacco.lmer %>% allEffects() %>% plot()
 
 
 ## ----partialPlots2c, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggpredict(tobacco.lmer, terms='TREATMENT') %>% plot
+tobacco.lmer %>% ggpredict(terms='TREATMENT') %>% plot
 
 
 ## ----partialPlots2d, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggemmeans(tobacco.lmer, ~TREATMENT) %>% plot
+tobacco.lmer %>% ggemmeans(~TREATMENT) %>% plot
 
 
 ## ----partialPlots3a, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot_model(tobacco.glmmTMB,  type='eff')
+tobacco.glmmTMB %>% plot_model(type='eff')
 
 
 ## ----partialPlots3b, results='markdown', eval=TRUE, hidden=TRUE---------------
-plot(allEffects(tobacco.glmmTMB))
+tobacco.glmmTMB %>% allEffects() %>% plot()
 
 
 ## ----partialPlots3c, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggpredict(tobacco.glmmTMB, terms='TREATMENT') %>% plot
+tobacco.glmmTMB %>% ggpredict(terms='TREATMENT') %>% plot
 
 
 ## ----partialPlots3d, results='markdown', eval=TRUE, hidden=TRUE---------------
-ggemmeans(tobacco.glmmTMB, ~TREATMENT) %>% plot
+tobacco.glmmTMB %>% ggemmeans(~TREATMENT) %>% plot
 
 
 ## ----investigateModel1a, results='markdown', eval=TRUE, hidden=TRUE-----------
-summary(tobacco.lme)
+tobacco.lme %>% summary()
 ## to get confidence intervals
-intervals(tobacco.lme)
+tobacco.lme %>% intervals()
 
 
 ## ----investigateModel1b, results='markdown', eval=TRUE, hidden=TRUE-----------
-tidy(tobacco.lme,  effects='fixed', conf.int=TRUE)
+tobacco.lme %>% tidy(effects='fixed', conf.int=TRUE)
 ## including the random effects
-tidy(tobacco.lme, conf.int=TRUE)
+tobacco.lme %>% tidy(conf.int=TRUE)
 
 
 ## ----investigateModel1c, results='markdown', eval=TRUE, hidden=TRUE-----------
 # warning this is only appropriate for html output
-sjPlot::tab_model(tobacco.lme,show.se=TRUE,show.aic=TRUE)
+tobacco.lme %>% sjPlot::tab_model(show.se=TRUE,show.aic=TRUE)
 
 
 ## ----investigateModel1d, results='markdown', eval=TRUE, hidden=TRUE-----------
-r.squaredGLMM(tobacco.lme)
+tobacco.lme %>% r.squaredGLMM()
 ## Nakagawa's R2
-performance::r2_nakagawa(tobacco.lme)
+tobacco.lme %>% performance::r2_nakagawa()
 
 
 ## ----investigateModel2a, results='markdown', eval=TRUE, hidden=TRUE-----------
-summary(tobacco.lmer)
+tobacco.lmer %>% summary()
 ## to get confidence intervals
-confint(tobacco.lmer)
+tobacco.lmer %>% confint()
 
 
 ## ----investigateModel2b, results='markdown', eval=TRUE, hidden=TRUE-----------
-tidy(tobacco.lmer,  effects='fixed', conf.int=TRUE)
+tobacco.lmer %>% tidy(effects='fixed', conf.int=TRUE)
 ## including the random effects
-tidy(tobacco.lmer, conf.int=TRUE)
+tobacco.lmer %>% tidy(conf.int=TRUE)
 
 
 ## ----investigateModel2c, results='markdown', eval=TRUE, hidden=TRUE-----------
 # warning this is only appropriate for html output
-sjPlot::tab_model(tobacco.lmer,show.se=TRUE,show.aic=TRUE)
+tobacco.lmer %>% sjPlot::tab_model(show.se=TRUE, show.aic=TRUE)
 
 
 ## ----investigateModel2d, results='markdown', eval=TRUE, hidden=TRUE-----------
-r.squaredGLMM(tobacco.lmer)
+tobacco.lmer %>% r.squaredGLMM()
 ## Nakagawa's R2
-performance::r2_nakagawa(tobacco.glmmTMB)
+tobacco.glmmTMB %>% performance::r2_nakagawa()
 
 
 ## ----investigateModel3a, results='markdown', eval=TRUE, hidden=TRUE-----------
-summary(tobacco.glmmTMB)
-vcov(tobacco.glmmTMB)
+tobacco.glmmTMB %>% summary()
+tobacco.glmmTMB %>% vcov()
+## the following is not compatible with piping
 cov2cor(vcov(tobacco.glmmTMB)$cond)
 ## to get confidence intervals
-confint(tobacco.glmmTMB)
-ranef(tobacco.glmmTMB)
+tobacco.glmmTMB %>% confint()
+tobacco.glmmTMB %>% ranef()
 
 
 ## ----investigateModel3b, results='markdown', eval=TRUE, hidden=TRUE-----------
-tidy(tobacco.glmmTMB,  effects='fixed', conf.int=TRUE)
+tobacco.glmmTMB %>% tidy(effects='fixed', conf.int=TRUE)
 ## including the random effects
-tidy(tobacco.glmmTMB, conf.int=TRUE)
+tobacco.glmmTMB %>% tidy(conf.int=TRUE)
 
 
 ## ----investigateModel3c, results='markdown', eval=TRUE, hidden=TRUE-----------
 # warning this is only appropriate for html output
-sjPlot::tab_model(tobacco.glmmTMB,show.se=TRUE,show.aic=TRUE)
+tobacco.glmmTMB %>% sjPlot::tab_model(show.se=TRUE,show.aic=TRUE)
 
 
 ## ----investigateModel3d, results='markdown', eval=TRUE, hidden=TRUE-----------
-r.squaredGLMM(tobacco.glmmTMB)
+tobacco.glmmTMB %>% r.squaredGLMM()
 ## Nakagawa's R2
-performance::r2_nakagawa(tobacco.glmmTMB)
+tobacco.glmmTMB %>% performance::r2_nakagawa()
 
 
 ## ----prediction1a, results='markdown', eval=TRUE------------------------------
-multcomp::glht(tobacco.lme, linfct=c('TREATMENTWeak==-2')) %>% summary
+tobacco.lme %>% multcomp::glht(linfct=c('TREATMENTWeak=-2')) %>% summary
 
 
 ## ----prediction1b, cache=TRUE, results='markdown', eval=TRUE------------------
@@ -281,38 +290,38 @@ multcomp::glht(tobacco.lme, linfct=c('TREATMENTWeak==-2')) %>% summary
 
 
 ## ----prediction2a, results='markdown', eval=TRUE------------------------------
-multcomp::glht(tobacco.lmer, linfct=c('TREATMENTWeak==-2')) %>% summary
+tobacco.lmer %>% multcomp::glht(linfct=c('TREATMENTWeak=-2')) %>% summary
 
 
 ## ----prediction2b, cache=TRUE, results='markdown', eval=TRUE------------------
-brms::hypothesis(tobacco.lmer, 'TREATMENTWeak < -2')
+tobacco.lmer %>% brms::hypothesis('TREATMENTWeak < -2')
 
 
 ## ----prediction3a, results='markdown', eval=TRUE------------------------------
-multcomp::glht(tobacco.glmmTMB, linfct=c('TREATMENTWeak==-2')) %>% summary
+tobacco.glmmTMB %>% multcomp::glht(linfct=c('TREATMENTWeak=-2')) %>% summary
 
 
 ## ----prediction3b, cache=TRUE, results='markdown', eval=TRUE------------------
 ## Does not appear to work for glmmTMB?
-#brms::hypothesis(tobacco.glmmTMB, 'TREATMENTWeak < -2')
+                                        #brms::hypothesis(tobacco.glmmTMB, 'TREATMENTWeak < -2')
 
 
 ## ----summaryFigure1a, results='markdown', eval=TRUE, hidden=TRUE--------------
-emmeans(tobacco.lme,  ~TREATMENT) %>%
+tobacco.lme %>% emmeans(~TREATMENT) %>%
   as.data.frame %>%
   ggplot() +
   geom_pointrange(aes(y=emmean,  x=TREATMENT,  ymin=lower.CL,  ymax=upper.CL))
 
 
 ## ----summaryFigure2a, results='markdown', eval=TRUE, hidden=TRUE--------------
-emmeans(tobacco.lmer,  ~TREATMENT) %>%
+tobacco.lmer %>% emmeans(~TREATMENT) %>%
   as.data.frame() %>%
   ggplot() +
   geom_pointrange(aes(y=emmean,  x=TREATMENT,  ymin=lower.CL,  ymax=upper.CL))
 
 
 ## ----summaryFigure3a, results='markdown', eval=TRUE, hidden=TRUE--------------
-emmeans(tobacco.glmmTMB,  ~TREATMENT) %>%
+tobacco.glmmTMB %>% emmeans(~TREATMENT) %>%
   as.data.frame() %>%
   ggplot() +
   geom_pointrange(aes(y=emmean,  x=TREATMENT,  ymin=lower.CL,  ymax=upper.CL))

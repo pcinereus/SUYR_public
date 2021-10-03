@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE, warnings=FALSE, message=FALSE----------------------
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 options(tinytex.engine = 'xelatex')
 
 ## ----customEngine, results='markdown', eval=TRUE, echo=FALSE, hidden=TRUE-----
@@ -240,221 +240,227 @@ ggplot(starling, aes(y=MASS, x=MONTH, group=BIRD)) +
     facet_grid(~SITUATION) 
 
 
-## ----fitModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------------
-##Multiplicative and additive models
-starling.lme1 = lme(MASS ~ MONTH*SITUATION,  random=~1|BIRD, data=starling, method='ML')
-starling.lme2 <- update(starling.lme1, .~.-MONTH:SITUATION)
+## ----fitModel1b, results='markdown', eval=TRUE, hidden=TRUE-------------------
+starling.lme1 <- lme(MASS ~ 1, random=~1|BIRD, data=starling, method='REML')
+starling.lme2 <- lme(MASS ~ 1, random=~MONTH|BIRD, data=starling, method='REML')
 AICc(starling.lme1, starling.lme2)
 
 
-## ----fitModel1b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-starling.lme2a <- update(starling.lme2, method='REML')
-starling.lme2b <- update(starling.lme2a, random=~MONTH|BIRD)
-AICc(starling.lme2a, starling.lme2b)
+## ----fitModel1a, results='markdown', eval=TRUE, hidden=TRUE-------------------
+##Multiplicative and additive models
+starling.lme1a <- update(starling.lme1, .~.+MONTH*SITUATION, method='ML')
+starling.lme1b <- update(starling.lme1, .~.+MONTH+SITUATION, method='ML')
+AICc(starling.lme1a, starling.lme1b)
+## Finally, run as REML
+starling.lme1a <- update(starling.lme1a, method='ML')
+
+
+## ----fitModel2b, results='markdown', eval=TRUE, hidden=TRUE-------------------
+starling.lmer1 <- lmer(MASS ~ 1 + (1|BIRD), data = starling, REML=TRUE)
+starling.lmer2 <- lmer(MASS ~ 1 + (MONTH|BIRD), data = starling, REML=TRUE, control = lmerControl(check.nobs.vs.nRE = 'ignore'))
+AICc(starling.lmer1, starling.lmer2)
 
 
 ## ----fitModel2a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ##Multiplicative and additive models
-starling.lmer1 = lmer(MASS ~ MONTH*SITUATION +(1|BIRD), data=starling, REML=TRUE)
-starling.lmer2 <- update(starling.lmer1, .~.-MONTH:SITUATION)
-AICc(starling.lmer1, starling.lmer2)
+starling.lmer1a <- update(starling.lmer1, .~.+MONTH*SITUATION, REML=FALSE)
+starling.lmer1b <- update(starling.lmer1, .~.+MONTH+SITUATION, REML=FALSE)
+AICc(starling.lmer1a, starling.lmer1b)
+## Finally, run as REML
+starling.lmer1a <- update(starling.lmer1a, REML=TRUE)
 
 
-## ----fitModel2b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-starling.lmer2a <- update(starling.lmer2, REML=TRUE)
-#starling.lmer2b <- update(starling.lmer2a, ~ . - (1|BIRD) + (MONTH|BIRD))
-#AICc(starling.lmer2a, starling.lmer2b)
+## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
+starling.glmmTMB1 = glmmTMB(MASS ~ 1 + (1|BIRD), data=starling, REML=TRUE)
+starling.glmmTMB2 = glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE)
+starling.glmmTMB2 = glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE,
+                            control=glmmTMBControl(optimizer=optim,
+                                                   optArgs = list(method='BFGS'))
+                            )
+AICc(starling.glmmTMB1, starling.glmmTMB2)
 
 
 ## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE-------------------
 ##Multiplicative and additive models
-starling.glmmTMB1 = glmmTMB(MASS ~ MONTH*SITUATION +(1|BIRD), data=starling, REML=FALSE)
-starling.glmmTMB2 = glmmTMB(MASS ~ MONTH+SITUATION +(1|BIRD), data=starling, REML=FALSE)
-# OR
-starling.glmmTMB2 <- update(starling.glmmTMB1, .~.-MONTH:SITUATION)
-AICc(starling.glmmTMB1, starling.glmmTMB2)
-
-
-## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-starling.glmmTMB2a <- update(starling.glmmTMB2, REML=TRUE)
-starling.glmmTMB2b = glmmTMB(MASS ~ MONTH+SITUATION +(MONTH|BIRD), data=starling, REML=TRUE)
-# OR
-starling.glmmTMB2b <- update(starling.glmmTMB2a, ~ . - (1|BIRD) + (MONTH|BIRD))
-AICc(starling.glmmTMB2a, starling.glmmTMB2b)
+starling.glmmTMB1a <- update(starling.glmmTMB1, .~.+MONTH*SITUATION, REML=FALSE)
+starling.glmmTMB1b <- update(starling.glmmTMB1, .~.+MONTH+SITUATION, REML=FALSE)
+AICc(starling.glmmTMB1a, starling.glmmTMB1b)
+## Finally, run as REML
+starling.glmmTMB1a <- update(starling.glmmTMB1a, REML=TRUE)
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_grid(plot_model(starling.lme2a,  type='diag')[-2])
+plot_model(starling.lme1a, type='diag')[-2] %>% plot_grid()
 
 
 ## ----modelValidation1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-performance::check_model(starling.lme2a)
+starling.lme1a %>% performance::check_model()
 
 
 ## ----modelValidation1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-#starling.resid = simulateResiduals(starling.lme2a,  plot=TRUE)
+#starling.resid = simulateResiduals(starling.lme1a,  plot=TRUE)
 
 
 ## ----modelValidation2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_grid(plot_model(starling.lmer2a,  type='diag')[-2])
+plot_model(starling.lmer1a,  type='diag')[-2] %>% plot_grid()
 
 
 ## ----modelValidation2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-performance::check_model(starling.lmer2a)
+starling.lmer1a %>% performance::check_model()
 
 
 ## ----modelValidation2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-starling.resid = simulateResiduals(starling.lmer2a,  plot=TRUE)
+starling.resid <- starling.lmer1a %>% simulateResiduals(plot=TRUE)
 
 
 ## ----modelValidation3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_grid(plot_model(starling.glmmTMB2a,  type='diag')[-2])
+plot_model(starling.glmmTMB1a,  type='diag')[-2] %>% plot_grid()
 
 
 ## ----modelValidation3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-performance::check_model(starling.glmmTMB2a)
+starling.glmmTMB1a %>% performance::check_model()
 
 
 ## ----modelValidation3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-starling.resid = simulateResiduals(starling.glmmTMB2a,  plot=TRUE)
+starling.resid <- starling.glmmTMB1a %>% simulateResiduals(plot=TRUE)
 
 
 ## ----partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_model(starling.lme2a,  type='eff',  terms=c('SITUATION', 'MONTH'))
-plot_model(starling.lme2a,  type='est')
+starling.lme1a %>% plot_model(type='eff',  terms=c('SITUATION', 'MONTH'))
+starling.lme1a %>% plot_model(type='est')
 
 
 ## ----partialPlot1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=4----
-plot(allEffects(starling.lme2a) , multiline=TRUE,  ci.style='bars')
+starling.lme1a %>% allEffects() %>% plot(multiline=TRUE,  ci.style='bars')
 
 
 ## ----partialPlot1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-ggpredict(starling.lme2a,  terms=c('SITUATION', 'MONTH')) %>% plot()
+starling.lme1a %>% ggpredict(terms=c('SITUATION', 'MONTH')) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlot1d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-#ggemmeans(starling.lme2a,  ~SITUATION*MONTH) %>% plot()
+starling.lme1a %>% ggemmeans(~SITUATION*MONTH) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlot2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_model(starling.lmer2a,  type='eff',  terms=c('SITUATION', 'MONTH'))
-plot_model(starling.lmer2a,  type='est')
+starling.lmer1a %>% plot_model(type='eff',  terms=c('SITUATION', 'MONTH'), show.data=TRUE)
+starling.lmer1a %>% plot_model(type='est')
 
 
 ## ----partialPlot2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=4----
-plot(allEffects(starling.lmer2a) , multiline=TRUE,  ci.style='bars')
+starling.lmer1a %>% allEffects() %>% plot(multiline=TRUE,  ci.style='bars')
 
 
 ## ----partialPlot2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-ggpredict(starling.lmer2a,  terms=c('SITUATION', 'MONTH')) %>% plot()
+starling.lmer1a %>% ggpredict(terms=c('SITUATION', 'MONTH')) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlot2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-ggemmeans(starling.lmer2a,  ~SITUATION*MONTH) %>% plot()
+starling.lmer1a %>% ggemmeans(~SITUATION*MONTH) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlot3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-plot_model(starling.glmmTMB2a,  type='eff',  terms=c('SITUATION', 'MONTH'))
-plot_model(starling.glmmTMB2a,  type='est')
+starling.glmmTMB1a %>% plot_model(type='eff',  terms=c('SITUATION', 'MONTH'), show.data=TRUE)
+starling.glmmTMB1a %>% plot_model(type='est')
 
 
 ## ----partialPlot3b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=4----
-plot(allEffects(starling.glmmTMB2a) , multiline=TRUE,  ci.style='bars')
+starling.glmmTMB1a %>% allEffects() %>% plot(multiline=TRUE,  ci.style='bars')
 
 
 ## ----partialPlot3c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-ggpredict(starling.glmmTMB2a,  terms=c('SITUATION', 'MONTH')) %>% plot()
+starling.glmmTMB1a %>% ggpredict(terms=c('SITUATION', 'MONTH')) %>% plot(add.data=TRUE)
 
 
 ## ----partialPlot3d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=7, fig.height=7----
-ggemmeans(starling.glmmTMB2a,  ~SITUATION*MONTH) %>% plot()
+starling.glmmTMB1a %>% ggemmeans(~SITUATION*MONTH) %>% plot(add.data=TRUE)
 
 
 ## ----summarise1a, results='markdown', eval=TRUE, hidden=TRUE------------------
-summary(starling.lme2a)
+starling.lme1a %>% summary()
 
 
 ## ----summarise1b, results='markdown', eval=TRUE, hidden=TRUE------------------
-fixef(starling.lme2a)
+starling.lme1a %>% fixef()
 
 
 ## ----summarise1c, results='markdown', eval=TRUE, hidden=TRUE------------------
-tidy(starling.lme2a,  conf.int=TRUE)
-tidy(starling.lme2a,  conf.int=TRUE) %>% kable
+starling.lme1a %>% tidy(conf.int=TRUE)
+starling.lme1a %>% tidy(conf.int=TRUE) %>% kable
 
 
 ## ----summarise1d, results='markdown', eval=TRUE, hidden=TRUE------------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(starling.lme2a, show.se=TRUE, show.aic=TRUE)
+starling.lme1a %>% sjPlot::tab_model(show.se=TRUE, show.aic=TRUE)
 
 
 ## ----summarise2a, results='markdown', eval=TRUE, hidden=TRUE------------------
-summary(starling.lmer2a)
+starling.lmer1a %>% summary()
 
 
 ## ----summarise2b, results='markdown', eval=TRUE, hidden=TRUE------------------
-confint(starling.lmer2a)
+confint(starling.lmer1a)
 
 
 ## ----summarise2c, results='markdown', eval=TRUE, hidden=TRUE------------------
-tidy(starling.lmer2a,  conf.int=TRUE)
-tidy(starling.lmer2a,  conf.int=TRUE) %>% kable
+starling.lmer1a %>% tidy(conf.int=TRUE)
+starling.lmer1a %>% tidy(conf.int=TRUE) %>% kable
 
 
 ## ----summarise2d, results='markdown', eval=TRUE, hidden=TRUE------------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(starling.lmer2a, show.se=TRUE, show.aic=TRUE)
+starling.lmer1a %>% sjPlot::tab_model(show.se=TRUE, show.aic=TRUE)
 
 
 ## ----summarise3a, results='markdown', eval=TRUE, hidden=TRUE------------------
-summary(starling.glmmTMB2a)
+starling.glmmTMB1a %>% summary()
 
 
 ## ----summarise3b, results='markdown', eval=TRUE, hidden=TRUE------------------
-confint(starling.glmmTMB2a)
+starling.glmmTMB1a %>% confint()
 
 
 ## ----summarise3c, results='markdown', eval=TRUE, hidden=TRUE------------------
-tidy(starling.glmmTMB2a,  conf.int=TRUE)
-tidy(starling.glmmTMB2a,  conf.int=TRUE) %>% kable
+starling.glmmTMB1a %>% tidy(conf.int=TRUE)
+starling.glmmTMB1a %>% tidy(conf.int=TRUE) %>% kable
 
 
 ## ----summarise3d, results='markdown', eval=TRUE, hidden=TRUE------------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(starling.glmmTMB2a, show.se=TRUE, show.aic=TRUE)
+starling.glmmTMB1a %>% sjPlot::tab_model(show.se=TRUE, show.aic=TRUE)
 
 
 ## ----postHoc1a, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-emmeans(starling.lme2a,  pairwise~SITUATION)
-starling.emm <- emmeans(starling.lme2a,  pairwise~SITUATION)$contrasts %>% data.frame
+starling.lme1a %>% emmeans(~SITUATION) %>% pairs() %>% summary(infer=TRUE)
+starling.emm <- starling.lme1a %>% emmeans(~SITUATION) %>% pairs() %>% summary(infer=TRUE) %>% data.frame
 
 
 ## ----postHoc1b, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-r.squaredGLMM(starling.lme2a)
-performance::r2_nakagawa(starling.lme2a)
+starling.lme1a %>% r.squaredGLMM()
+starling.lme1a %>% performance::r2_nakagawa()
 
 
 ## ----postHoc2a, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-emmeans(starling.lmer2a,  pairwise~SITUATION)
-starling.emm <- emmeans(starling.lmer2a,  pairwise~SITUATION)$contrasts %>% data.frame
+starling.lmer1a %>% emmeans(~SITUATION) %>% pairs() %>% summary(infer=TRUE)
+starling.emm <- starling.lmer1a %>% emmeans(~SITUATION) %>% pairs() %>% summary(infer=TRUE) %>% data.frame
 
 
 ## ----postHoc2b, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-r.squaredGLMM(starling.lmer2a)
-performance::r2_nakagawa(starling.lmer2a)
+starling.lmer1a %>% r.squaredGLMM()
+starling.lmer1a %>% performance::r2_nakagawa()
 
 
 ## ----postHoc3a, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-emmeans(starling.glmmTMB2a,  pairwise~SITUATION)
+starling.glmmTMB1a %>% emmeans(~SITUATION) %>% pairs() %>% summary(infer=TRUE)
 
 
 ## ----postHoc3b, results='markdown', eval=TRUE, echo=1,hidden=TRUE-------------
-r.squaredGLMM(starling.glmmTMB2a)
-performance::r2_nakagawa(starling.glmmTMB2a)
+starling.glmmTMB1a %>% r.squaredGLMM()
+starling.glmmTMB1a %>% performance::r2_nakagawa()
 
 
 ## ----summaryPlot1a, results='markdown', eval=TRUE, hidden=TRUE----------------
-newdata = emmeans(starling.lme2a, ~SITUATION*MONTH) %>%
+newdata <- starling.lme1a %>% emmeans(~SITUATION*MONTH) %>%
     as.data.frame
 ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
     geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL), shape=21,
@@ -463,7 +469,7 @@ ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
 
 
 ## ----summaryPlot2a, results='markdown', eval=TRUE, hidden=TRUE----------------
-newdata = emmeans(starling.lmer2a, ~SITUATION*MONTH) %>%
+newdata <- starling.lmer1a %>% emmeans(~SITUATION*MONTH) %>%
     as.data.frame
 ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
     geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL), shape=21,
@@ -472,7 +478,7 @@ ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
 
 
 ## ----summaryPlot3a, results='markdown', eval=TRUE, hidden=TRUE----------------
-newdata = emmeans(starling.glmmTMB2a, ~SITUATION*MONTH) %>%
+newdata <- starling.glmmTMB1a %>% emmeans(~SITUATION*MONTH) %>%
     as.data.frame
 ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
     geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL), shape=21,

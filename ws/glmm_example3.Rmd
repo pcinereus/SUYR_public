@@ -42,83 +42,8 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 options(tinytex.engine = 'xelatex')
-```
-```{r customEngine, results='markdown', eval=TRUE, echo=FALSE, hidden=TRUE}
-copy_img = function(path,  options) {
-  print(path)
-  print(options$label)
-    print(options$fig.path)
-    print(options$fig.ext)
-    src_file = paste0(options$fig.path, options$label, '-1.', options$fig.ext)
-    out_file = paste0('figures/', options$label, '.', options$fig.ext)
-    print(src_file)
-    print(out_file)
-    print(file.exists(paste0(options$fig.path, options$label, '-1', options$fig.ext)))
-    file.rename(paste0(options$fig.path, options$label, '-1', options$fig.ext),  paste0('figures/', options$label, options$fig.ext)) 
-}
-
-## knitr::knit_hooks$set(copy_tikz_img=function(before,  options,  envir) {
-##   if (!before){
-##     if(!dir.exists('figures')) dir.create('figures')
-##     print(options$label)
-##     print(options$fig.path)
-##     print(options$fig.ext)
-##     src_file = paste0(options$fig.path, options$label, '-1.', options$fig.ext)
-##     out_file = paste0('figures/', options$label, '.', options$fig.ext)
-##     print(src_file)
-##     print(out_file)
-##     print(file.exists(paste0(options$fig.path, options$label, '-1', options$fig.ext)))
-##     file.rename(paste0(options$fig.path, options$label, '-1', options$fig.ext),  paste0('figures/', options$label, options$fig.ext)) 
-##   }
-## })
-
-knitr::knit_engines$set(mytikz = function(options) {
-  `%n%` = function(x, y) {
-    ifelse(!is.null(x),  x,  y)
-  }
-  if (!options$eval) 
-    return(engine_output(options, options$code, ""))
-  lines = xfun::read_utf8(options$engine.opts$template %n% system.file("misc", 
-                                                                 "tikz2pdf.tex", package = "knitr"))
-  i = grep("%% TIKZ_CODE %%", lines)
-  if (length(i) != 1L) 
-    stop("Couldn't find replacement string; or the are multiple of them.")
-  s = append(lines, options$code, i)
-  xfun::write_utf8(s, texf <- knitr:::wd_tempfile("tikz", ".tex"))
-  on.exit(unlink(texf), add = TRUE)
-  ext = tolower(options$fig.ext %n% knitr:::dev2ext(options$dev))
-  to_svg = ext == "svg"
-  outf = if (to_svg) 
-           tinytex::latexmk(texf, "latex")
-         else tinytex::latexmk(texf)
-  fig = knitr:::fig_path(if (to_svg) 
-                   ".dvi"
-                 else ".pdf", options)
-  dir.create(dirname(fig), recursive = TRUE, showWarnings = FALSE)
-  file.rename(outf, fig)
-  fig2 = xfun:::with_ext(fig, ext)
-  if (to_svg) {
-    if (Sys.which("dvisvgm") == "") 
-      tinytex::tlmgr_install("dvisvgm")
-    if (system2("dvisvgm", c("-o", shQuote(fig2), fig)) != 
-        0) 
-      stop("Failed to compile ", fig, " to ", fig2)
-  }
-  else {
-    if (ext != "pdf") 
-      magick::image_write(do.call(magick::image_convert, 
-                                  c(list(magick::image_read_pdf(fig), ext), options$engine.opts$convert.opts)), 
-                          fig2)
-  }
-  fig = fig2
-  options$fig.num = 1L
-  options$fig.cur = 1L
-  extra = (knit_hooks$get("plot"))(fig, options)
-  options$engine = "tex"
-  engine_output(options, options$code, "", extra)
-})
 ```
 # Preparations
 
@@ -178,16 +103,17 @@ tree        Jan     85     tree1
 
 <!-- ![Sampling design](../docs/figures/samplingDesign-1.png){width="700"} -->
 
-This is a split-plot (or repeated measures) design.  The individual birds are the blocks, the Situation
-is the between block effect and the Month is the within block effect.  Repeated
-measures analyses involve a within block effect that represents time (in this
-case Month).  Since it is not possible to randomize the order of time, repeated
-measures designs have the potential for the residuals to be autocorrelated.
-That is, rather than being independent, residuals from observations that are
-closer in time, tend to be more similar (correlated) than the residuals
-associated with observations that are further apart in time.
+This is a split-plot (or repeated measures) design.  The individual birds are
+the blocks, the Situation is the between block effect and the Month is the
+within block effect.  Repeated measures analyses involve a within block effect
+that represents time (in this case Month).  Since it is not possible to
+randomise the order of time, repeated measures designs have the potential for
+the residuals to be auto-correlated.  That is, rather than being independent,
+residuals from observations that are closer in time, tend to be more similar
+(correlated) than the residuals associated with observations that are further
+apart in time.
 
-That said, with only two time points, autocorrelation is not possible.
+That said, with only two time points, auto-correlation is not possible.
 
 # Read in the data
 
@@ -198,12 +124,6 @@ glimpse(starling)
 
 Lets prepare the data:
 
-```{r dataPrep, results='markdown', eval=TRUE, hidden=TRUE}
-starling = starling %>% mutate(MONTH=factor(MONTH,levels=c('Nov','Jan')),
-                               SITUATION=factor(SITUATION),
-                               BIRD=factor(BIRD)
-                               )
-```
 
 # Exploratory data analysis
 
@@ -213,28 +133,14 @@ y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
 \mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
-where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the model matrix representing the overall intercept and effects of roosting situation and month on starling mass.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual birds.
+where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed
+and random effects parameters respectively and $\bf{X}$ is the model matrix
+representing the overall intercept and effects of roosting situation and month
+on starling mass.  $\bf{Z}$ represents a cell means model matrix for the random
+intercepts associated with individual birds.
 
 ## Exploratory data analysis
 
-```{r eda1, results='markdown', eval=TRUE, hidden=TRUE}
-ggplot(starling, aes(y=MASS, x=MONTH)) +
-    geom_boxplot() +
-    facet_grid(~SITUATION)
-## Better still
-ggplot(starling, aes(y=MASS, x=MONTH, group=BIRD)) +
-    geom_point() +
-    geom_line() +
-    facet_grid(~SITUATION) 
-```
-
-**Conclusions:**
-
-- it is clear that the Nov mass of each bird is different - so random intercepts
-- the degree to which they change between Nov and Dec is also relatively
-  different per bird - perhaps random intercept/random slope
 
 # Fit the model {.tabset .tabset-faded}
 

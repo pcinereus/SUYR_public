@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 
 
 ## ----libraries, results='markdown', eval=TRUE, message=FALSE, warning=FALSE----
@@ -52,7 +52,7 @@ polis.glm <- glm(PA ~ RATIO, family=binomial(link='logit'), data=polis)
 
 
 ## ----validateModel, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE----
-autoplot(polis.glm, which=1:6, label.repel=TRUE)
+polis.glm %>% autoplot(which=1:6, label.repel=TRUE)
 ## there does seem to be an outlier that is influential - obs #3
 ## Perhaps we should redo the scatterplot but with text so that we can see which obs is #3
 
@@ -73,23 +73,23 @@ polis %>% mutate(n=1:nrow(.)) %>%
 
 
 ## ----validateModela1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-influence.measures(polis.glm)
+polis.glm %>% influence.measures()
 
 
 ## ----validateModela1b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE----
-performance::check_model(polis.glm)
+polis.glm %>% performance::check_model()
 
 
 ## ----validateModela1a1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=3, message=FALSE, warning=FALSE----
-performance::check_outliers(polis.glm)
-performance::check_outliers(polis.glm) %>% plot
+polis.glm %>% performance::check_outliers()
+polis.glm %>% performance::check_outliers() %>% plot
 ## These are probabilities of exceedance rather than actual Cook's D values
 #https://easystats.github.io/performance/reference/check_outliers.html
-performance::check_heteroscedasticity(polis.glm)
+polis.glm %>% performance::check_heteroscedasticity()
 
 
 ## ----validateModela1c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=6, message=FALSE, warning=FALSE----
-polis.resid <- simulateResiduals(polis.glm, plot=TRUE)
+polis.resid <- polis.glm %>% simulateResiduals(plot=TRUE)
 
 
 ## ----validateModel2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
@@ -105,29 +105,30 @@ polis.ss <- sum(resid(polis.glm, type="pearson")^2)
 
 
 ## ----validateModel3, results='markdown', eval=TRUE, hidden=TRUE, fig.width=3, fig.height=3----
-augment(polis.glm) %>%
+polis.glm %>%
+    augment() %>%
     ggplot() +
     geom_point(aes(y=.resid, x=.fitted))
 
 
-## ----validateModel5, results='markdown', eval=TRUE, hidden=TRUE, fig.width=3, fig.height=3----
-plot_model(polis.glm, type='eff', show.data=TRUE)
+## ----validateModel5, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
+polis.glm %>% plot_model(type='eff', show.data=TRUE)
 
 
-## ----validateModel4, results='markdown', eval=TRUE, hidden=TRUE, fig.width=3, fig.height=3----
-plot(allEffects(polis.glm, residuals=TRUE), type='response')
+## ----validateModel4, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
+polis.glm %>% allEffects(residuals=TRUE) %>% plot(type='response')
 
 
-## ----validateModel6, results='markdown', eval=TRUE, hidden=TRUE, fig.width=3, fig.height=3----
-ggpredict(polis.glm) %>% plot(add.data=TRUE)
+## ----validateModel6, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
+polis.glm %>% ggpredict() %>% plot(add.data=TRUE, jitter=FALSE)
 
 
-## ----validateModel7, results='markdown', eval=TRUE, hidden=TRUE, fig.width=3, fig.height=3----
-ggemmeans(polis.glm,  ~RATIO) %>% plot(add.data=TRUE)
+## ----validateModel7, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
+polis.glm %>% ggemmeans(~RATIO) %>% plot(add.data=TRUE, jitter=FALSE)
 
 
 ## ----summaryModel2, results='markdown', eval=TRUE, hidden=TRUE----------------
-summary(polis.glm)
+polis.glm %>% summary()
 
 
 ## ----summaryModel2d, results='markdown', echo=FALSE, eval=FALSE, hidden=TRUE----
@@ -146,14 +147,14 @@ summary(polis.glm)
 
 ## ----summaryModel2a, results='markdown', eval=TRUE, hidden=TRUE---------------
 ## on link scale (log odds)
-confint(polis.glm)
+polis.glm %>% confint()
 ## or on odds (ratio) scale
 polis.glm %>% confint() %>% exp
 
 
 ## ----summaryModel2c, results='markdown', eval=TRUE, hidden=TRUE---------------
-tidy(polis.glm, conf.int=TRUE)
-glance(polis.glm)
+polis.glm %>% tidy(conf.int=TRUE)
+polis.glm %>% glance()
 
 
 ## ----summaryModel2b, results='asis', eval=TRUE, hidden=TRUE-------------------
@@ -162,7 +163,7 @@ polis.glm %>% tidy(conf.int=TRUE) %>% kable
 
 ## ----summaryModel3, results='markdown', eval=TRUE, hidden=TRUE----------------
 # warning this is only appropriate for html output
-sjPlot::tab_model(polis.glm,show.se=TRUE,show.aic=TRUE)
+polis.glm %>% sjPlot::tab_model(show.se=TRUE,show.aic=TRUE)
 
 
 ## ----predictModel1, results='markdown', eval=TRUE, hidden=TRUE----------------
@@ -170,65 +171,93 @@ sjPlot::tab_model(polis.glm,show.se=TRUE,show.aic=TRUE)
 1-(polis.glm$deviance/polis.glm$null)
 
 
+## ----predictModel1a, results='markdown', eval=TRUE, hidden=TRUE---------------
+#R2 for binomial outcomes
+polis.glm %>% performance::r2_tjur()
+#R2 for binomial outcomes
+polis.glm %>% r2()
+
+## Likelihood ratio based
+polis.glm %>% MuMIn::r.squaredLR()
+
+
 ## ----predictModel2, results='markdown', eval=TRUE, hidden=TRUE----------------
 #LD50
 (ld50 <- -polis.glm$coef[1]/polis.glm$coef[2])
 ## What about other points (not just 50%) along with confidence intervals..
-ld=MASS::dose.p(polis.glm, p=c(0.5,0.9))
-ld.SE = attr(ld, "SE")
-ld = data.frame(LD = attr(ld,'p'),
-                Dose = as.vector(ld),
-                SE = ld.SE) %>%
-    mutate(lower=Dose-SE*qnorm(0.975),
-           upper=Dose+SE*qnorm(0.975))
+ld <- polis.glm %>% MASS::dose.p(p=c(0.5,0.9))
+ld.SE <- attr(ld, "SE")
+ld <- data.frame(LD = attr(ld,'p'),
+                 Dose = as.vector(ld),
+                 SE = ld.SE) %>%
+    mutate(lower = Dose-SE*qnorm(0.975),
+           upper = Dose+SE*qnorm(0.975))
 ld
 
 
 ## ----figureModel1a, results='markdown', eval=TRUE, hidden=TRUE----------------
 ## Using emmeans
-polis.grid = with(polis, list(RATIO = seq(min(RATIO), max(RATIO), len=100)))
-polis.grid = polis %>% data_grid(RATIO=seq_range(RATIO,  n=100))
+polis.grid <- with(polis, list(RATIO = seq(min(RATIO), max(RATIO), len=100)))
+#OR
+polis.grid <- polis %>% data_grid(RATIO=seq_range(RATIO,  n=100))
 
-newdata=emmeans(polis.glm, ~RATIO,at=polis.grid, type='response') %>%
+newdata <- polis.glm %>% emmeans(~RATIO, at = polis.grid, type = 'response') %>%
     as.data.frame
 
-ggplot(newdata, aes(y=prob, x=RATIO))+
-    geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), fill='blue',alpha=0.2)+
+ggplot(newdata, aes(y = prob, x = RATIO))+
+    geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL), fill = 'blue', alpha = 0.2)+
     geom_line() +
     theme_classic()
 
 
 ## ----figureModel1b, results='markdown', eval=TRUE, hidden=TRUE----------------
-ggplot(newdata, aes(y=prob, x=RATIO))+
-    geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), fill='blue',alpha=0.2)+
+ggplot(newdata, aes(y = prob, x = RATIO))+
+    geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL), fill = 'blue', alpha = 0.2)+
     geom_line() +
-    geom_point(data=polis, aes(y=PA, x=RATIO))+
+    geom_point(data = polis, aes(y = PA, x = RATIO))+
     theme_classic()
 
 
 ## ----figureModel1c, results='markdown', eval=TRUE, hidden=TRUE----------------
-ggplot(newdata, aes(y=prob, x=RATIO))+
-    geom_line(aes(y=asymp.LCL), linetype='dashed') +
-    geom_line(aes(y=asymp.UCL), linetype='dashed') +
+ggplot(newdata, aes(y = prob, x = RATIO))+
+    geom_line(aes(y = asymp.LCL), linetype = 'dashed') +
+    geom_line(aes(y = asymp.UCL), linetype = 'dashed') +
     geom_line() +
-    geom_point(data=polis, aes(y=PA, x=RATIO))+
+    geom_point(data = polis, aes(y = PA, x = RATIO))+
     theme_classic()
 
 
 ## ----figureModel1d, results='markdown', eval=TRUE, hidden=TRUE----------------
-# Partial will represent the fitted values plus the residuals back transformed onto the probability scale
-# Partial1 then backtransforms these onto the response scale [0,1]
-partial.obs = polis %>%
-  mutate(Fit=predict(polis.glm,  newdata=polis,  type='link'),
-         Partial = Fit + resid(polis.glm,  type='pearson'),
-         Partial = plogis(Partial),
-         Partial1 = qbinom(Partial, 1, 0.5))
+polis.partial <- polis.glm %>%
+    emmeans(~RATIO, at=polis, type="response") %>% as.data.frame() %>%
+    mutate(
+        Resid = stats::residuals(polis.glm, type="response"),
+        Partial.obs = prob + Resid
+    )
+ggplot(newdata, aes(x=RATIO)) +
+    geom_point(data = polis.partial, aes(y=Partial.obs), color='black') +
+    geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL), fill = 'blue', alpha = 0.2)+
+    geom_line(aes(y=prob)) +
+    geom_vline(xintercept = ld50, linetype='dashed') +
+    theme_classic()
 
-ggplot(newdata, aes(y=prob, x=RATIO))+geom_line() +
-    geom_ribbon(aes(ymin=asymp.LCL, ymax=asymp.UCL), fill='blue',alpha=0.2)+
-    geom_point(data=polis, aes(y=PA, x=RATIO))+
-    geom_point(data=partial.obs, aes(y=Partial1), color='green') + 
-    geom_vline(xintercept=ld50, linetype='dashed') +
+
+## ----figureModel1d2, results='markdown', eval=TRUE, hidden=TRUE---------------
+# Partial will represent the fitted values plus the residuals back transformed onto the probability scale
+# Partial.obs then backtransforms these onto the response scale [0,1]
+polis.partial <- polis.glm %>%
+    emmeans(~RATIO, at=polis, type="link") %>% as.data.frame() %>%
+    mutate(
+        Resid = stats::residuals(polis.glm, type="working"),
+        Partial = plogis(emmean + Resid),
+        Partial.obs = qbinom(Partial, 1, 0.5)
+    )
+ggplot(newdata, aes(x=RATIO)) +
+    geom_point(data = polis.partial, aes(y=Partial), color='gray') +
+    geom_point(data = polis.partial, aes(y=Partial.obs), color='black') +
+    geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL), fill = 'blue', alpha = 0.2)+
+    geom_line(aes(y=prob)) +
+    geom_vline(xintercept = ld50, linetype='dashed') +
     theme_classic()
 
 

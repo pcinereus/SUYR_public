@@ -69,7 +69,10 @@ library(tidyverse) #for data wrangling
 
 # Scenario
 
-Here is a modified example from @Peake-1993-269.  @Peake-1993-269 investigated the relationship between the number of individuals of invertebrates living in amongst clumps of mussels on a rocky intertidal shore and the area of those mussel clumps.
+Here is a modified example from @Peake-1993-269.  @Peake-1993-269 investigated
+the relationship between the number of individuals of invertebrates living in
+amongst clumps of mussels on a rocky intertidal shore and the area of those
+mussel clumps.
 
 ![](../resources/mussels.jpg)
 
@@ -91,7 +94,9 @@ Format of peakquinn.csv data files
 
 
 
-The aim of the analysis is to investigate the relationship between mussel clump area and the number of non-mussel invertebrate individuals supported in the mussel clump.
+The aim of the analysis is to investigate the relationship between mussel clump
+area and the number of non-mussel invertebrate individuals supported in the
+mussel clump.
 
 # Read in the data
 
@@ -108,12 +113,13 @@ $$
 y_i \sim{} \mathcal{Pois}(\lambda_i)\\
 ln(\lambda_i) = \beta_0 + \beta_1 ln(x_i)
 $$
+
 where the number of individuals in the $i^th$ observation is assumed to be drawn
 from a Poisson distribution with a $\lambda$ (=mean) of $\lambda_i$.  The
 natural log of these expected values is modelled against a linear predictor that
 includes an intercept ($\beta_0$) and slope ($\beta_i$) for natural log
-transformed area.
-expected values are 
+transformed area.  expected values are
+
 
 # Fit the model
 
@@ -124,6 +130,81 @@ expected values are
 
 
 # Predictions {.tabset .tabset-faded}
+
+In simple regression, the $R^{2}$ value (coefficient of determination)
+is interpreted as the amount of variation in the response that can be
+explained by its relationship with the predictor(s) and is calculated
+as the sum of squares explained divided by the sum of squares total.
+It is considered a measure of the strength of a relationship ans is
+calculated as:
+
+$$
+R^2 = 1 - \frac{\sum_i=1^N (y_i - \hat(y_i)^2)}{\sum_i=1^N (y_i - \bar(y))^2}
+$$
+where $y_{i}$ and $\hat{y_{i}}$ are the $i^{th}$ observed and predicted value
+respectively, $\bar{y}$ is the mean of the observed values and $N$ is the total
+number of observations.
+
+This is really only appropriate for OLS.  For other models there are alternative
+measures (**pseudo R-squared**) that can be applied depending on how they are to
+be interpreted:
+
+1. **Explained variance**.  If we consider the numerator as a measure of the
+   unexplained variance and the denominator as a measure of the total variance,
+   then their one minus the ratio is the proportion of the variance explained by
+   the model.
+2. **Improvement of a fitted model over a null model**.  The numerator is a
+   measure of the variance unexplained after fitting the model and the
+   denominator is the amount of variance unexplained after fitting a null model
+   (model with only an intercept - essentially just the response mean).  The
+   ratio therefore reflects the improvement. 
+3. **Square of correlation**. The squared correlation between the predicted and
+   observed values.
+
+There are many different ways to calculate $R^2$ values from GLM's.  The
+following table provides some guidance as to which method is appropriate for
+which type of model and how they should be interpreted..
+
+One very simple calculation is based on deviance (a measure of the
+total amount unexplained) as:
+
+$$
+1-\frac{Deviance}{Deviance_{NULL}}
+$$
+
+where $Deviance_{NULL}$ is the deviance of a null model 
+(e.g. `glm(PA ~ 1, data=polis, family='binomial')`)
+
+Alternatively, there are many different ways to calculate $R^2$ values
+from GLM's.  The following table provides some guidance as to which
+method is appropriate for which type of model and how they should be
+interpreted..
+
+| Model             | Appropriate $R^2$ | Formula                          | Interpreted as | Function                        |
+| ----------------- | ----------------- | -------------------------------- | -------------- | ---------------------------     |
+| Logistic          | Tjur's R2         | $\dagger$                        |                | `performace::r2_tjur()`         |
+| Multinomial Logit | McFadden's R2     | $\ddagger$                       | 1 & 2          | `performace::r2_mcfadden()`     |
+| GLM               | Nagelkerke's R2   | $\S$                             | 2              | `performace::r2_nagelkerke()`   |
+| GLM               | Likelihood ratio  | Adjusted Nagelkerke - see below  |                | `MuMIn::r2.squaredLR()`         |
+| Mixed models      | Nakagawa's R2     | Too complex                      |                | `performace::r2_nakagawa()`     |
+| Mixed models      |                   |                                  |                | `MuMIn::r.suaredGLMM()`         |
+| ZI models         | Zero-inflated R2  | Too complex                      |                | `performace::r2_zeroinflated()` |
+| Bayesian models   | Bayes R2          | Too complex                      |                | `performace::r2_bayes()`        |
+ 
+$\dagger$: $R^2=\frac{1}{n_{1}}\sum \hat{\pi}(y=1) - \frac{1}{n_{0}}\sum \hat{\pi}(y=0)$
+
+$\ddagger$: $R^2=1-\frac{logL(x)}{logL(0)}$
+
+$\S$: $R^2=\frac{1-(\frac{logL(0)}{logL(x)})^{2/N}}{1-logl(0)^{2/N}}$
+
+where $n_1$ and $n_0$ are the number of 1's and 0's in the response and
+$\hat{\pi}$ is the predicted probability. $logL(x)$ and $logL(0)$ are the
+log-likelihoods of the fitted and null models respectively and $N$ is the number
+of observations.
+
+Note, if you run `performance::r2()`, the function will work out what
+type of model has been fit and then use the appropriate function from
+the above table.
 
 # Summary figures
 

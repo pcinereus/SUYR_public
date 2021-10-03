@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE, warnings=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE,  message=FALSE,  warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
   
 # Preparations
@@ -69,21 +69,25 @@ library(glmmTMB)   #for glmmTMB
 library(DHARMa)   #for residuals and diagnostics
 library(performance) #for diagnostic plots
 library(see)         #for diagnostic plots
+library(patchwork)  #for multiplot layouts
 ```
 
 # Scenario
 
-To investigate differential metabolic plasticity in barramundi (*Lates calcarifer*),
-@Norin-2016-369 exposed juvenile barramundi to various environmental changes (increased temperature,
-decreased salinity and increased hypoxia) as well as control conditions.
-Metabolic plasticity was calculated as the percentage difference in standard metabolic rate between
-the various treatment conditions and the standard metabolic rate under control conditions.
-They were interested in whether there was a relationship between metabolic plasticity and typical (control) metabolism and
-how the different treatment conditions impact on this relationship.
+To investigate differential metabolic plasticity in barramundi (*Lates
+calcarifer*), @Norin-2016-369 exposed juvenile barramundi to various
+environmental changes (increased temperature, decreased salinity and increased
+hypoxia) as well as control conditions.  Metabolic plasticity was calculated as
+the percentage difference in standard metabolic rate between the various
+treatment conditions and the standard metabolic rate under control conditions.
+They were interested in whether there was a relationship between metabolic
+plasticity and typical (control) metabolism and how the different treatment
+conditions impact on this relationship.
 
-A total of 60 barramundi juveniles were subject to each of the three conditions (high temperature,
-low salinity and hypoxia) in addition to control conditions.
-Fish mass was also recorded as a covariate as this is known to influence metabolic parameters.
+A total of 60 barramundi juveniles were subject to each of the three conditions
+(high temperature, low salinity and hypoxia) in addition to control conditions.
+Fish mass was also recorded as a covariate as this is known to influence
+metabolic parameters.
 
 ![Barramundi](../resources/barramundi.png){width="310"}
 
@@ -131,162 +135,15 @@ y_i \sim{} \mathcal{N}(\mu_i, \sigma^2)\\
 \mu_i =\boldsymbol{\beta} \bf{X_i} + \boldsymbol{\gamma} \bf{Z_i}
 $$
 
-where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed and random effects parameters respectively 
-and $\bf{X}$ is the  model matrix representing the overall intercept and effects of temperature and (centered) mean fish size on SDA peak.
-$\bf{Z}$ represents a cell means model matrix for the random intercepts associated with individual fish.
+where $\boldsymbol{\beta}$ and $\boldsymbol{\gamma}$ are vectors of the fixed
+and random effects parameters respectively and $\bf{X}$ is the model matrix
+representing the overall intercept and effects of temperature and (centred)
+mean fish size on SDA peak.  $\bf{Z}$ represents a cell means model matrix for
+the random intercepts associated with individual fish.
 
 
 # Fit the model {.tabset .tabset-faded}
 
-<div class='HIIDEN'>
-For each of the following modelling alternatives, we will:
-
-- establish whether MASS is a useful covariate (based on AICc).  This step
-  involves evaluating alternative fixed effects structures.  When doing so, we
-  must use Maximum Likelihood (ML) rather than Residual Maximum Likelihood (REML).
-- establish whether a random intercept/slope model is useful (based on AICc).
-  This step involves evaluating alternative random effects structures.  When
-  doing so, we should use Restricted Maximum Likelihood (REML)
-
-## lme (nlme) {.tabset .tabset-faded}
-
-### fixed structures
-
-```{r fitModel1a, results='markdown', eval=TRUE, hidden=TRUE}
-##Compare models that estimate partial slope for MASS vs an offset for MASS
-##must use ML to compare models that vary in fixed effects
-norin.lme1 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                      offset(MASS), random=~1|FISHID, data=norin,
-                  method='ML')
-## Unfortunately,  update() does not remove offset().
-## We will just have to write the other model out in full as well.
-norin.lme2 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS,  random=~1|FISHID, data=norin, method='ML')
-## Now without MASS altogether
-norin.lme3 <- lme(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE),  random=~1|FISHID, data=norin, method='ML')
-
-## Compare these models via AICc
-AICc(norin.lme1,norin.lme2, norin.lme3)
-## Alternatively,  we can use sequential Likelihood Ratio Tests (LRT)
-anova(norin.lme1, norin.lme2, norin.lme3)
-```
-
-**Conclusions:**
-
-- on the basis of AICc, the model without MASS is considered the most
-  parsimonious (lowest AICc)
-- we will proceed with the fixed structure of model 3
-
-### random structures
-
-```{r fitModel1b, results='markdown', eval=TRUE, hidden=TRUE}
-norin.lme3a = update(norin.lme3, method='REML')
-norin.lme3b = update(norin.lme3a, random=~TRIAL|FISHID)
-AICc(norin.lme3a,  norin.lme3b)
-anova(norin.lme3a, norin.lme3b)
-```
-
-**Conclusions:**
-
-- the AICc of the random intercept/slope model is lowest
-- therefore we will proceed with a random intercept/slope model
-
-## lmer (lme4) {.tabset .tabset-pills}
-
-### fixed structure
-
-```{r fitModel2a, results='markdown', eval=TRUE, hidden=TRUE}
-##Compare models that estimate partial slope for MASS vs an offset for MASS
-##must use ML to compare models that vary in fixed effects
-norin.lmer1 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + offset(MASS) + (1|FISHID), data=norin, REML=FALSE)
-## Unfortunately,  update() does not remove offset().
-## We will just have to write the other model out in full as well.
-norin.lmer2 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) + MASS + (1|FISHID), data=norin, REML=FALSE)
-## Now without MASS altogether
-norin.lmer3 <- lmer(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE)+ (1|FISHID), data=norin, REML=FALSE)
-
-## Compare these models via AICc
-AICc(norin.lmer1,norin.lmer2, norin.lmer3)
-## Alternatively,  we can use sequential Likelihood Ratio Tests (LRT)
-anova(norin.lmer1, norin.lmer2, norin.lmer3)
-```
-
-**Conclusions:**
-
-- on the basis of AICc, the model without MASS is considered the most
-  parsimonious (lowest AICc)
-- we will proceed with the fixed structure of model 3
-
-### random structure
-
-```{r fitModel2b, results='markdown', eval=TRUE, hidden=TRUE}
-norin.lmer3a = update(norin.lmer3, REML=TRUE)
-## unfortunately,  the following random intercept/slope model cannot be fit
-##norin.lmer3b = update(norin.lmer3a, ~ . -(1|FISHID) +(TRIAL|FISHID))
-##AICc(norin.lmer3a,  norin.lmer3b)
-##anova(norin.lmer3a, norin.lmer3b)
-```
-
-**Conclusions:**
-
-- unfortunately, we are unable to fit a model with random intercept/slope
-- therefore we will proceed with a random intercept model
-
-## glmmTMB {.tabset .tabset-pills}
-
-### fixed structure
-
-```{r fitModel3a, results='markdown', eval=TRUE, hidden=TRUE}
-##Compare models that estimate partial slope for MASS vs an offset for MASS
-norin.glmmTMB1 = glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                             offset(MASS) + (1|FISHID), data=norin,
-                         REML=FALSE)
-## Unfortunately,  update() does not remove offset().
-## We will just have to write the other model out in full as well.
-norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                              scale(MASS, scale=FALSE) + (1|FISHID),
-                          data=norin, REML=FALSE)
-norin.glmmTMB2 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                              scale(MASS, scale=FALSE) + (1|FISHID), data=norin, REML=FALSE,
-                          control=glmmTMBControl(optimizer=optim,
-                                                 optArgs=list(methods='Nelder-Mead')))
-## Now without MASS altogether
-norin.glmmTMB3 <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                           (1|FISHID), data=norin, REML=FALSE)
-
-## Compare these models via AICc
-AICc(norin.glmmTMB1, norin.glmmTMB2, norin.glmmTMB3)
-```
-
-**Conclusions:**
-
-- on the basis of AICc, the model without MASS is considered the most
-  parsimonious (lowest AICc)
-- we will proceed with the fixed structure of model 3
-
-## random structure
-```{r fitModel3b, results='markdown', eval=TRUE, hidden=TRUE}
-norin.glmmTMB3a <- update(norin.glmmTMB3, REML=TRUE)
-## unfortunately,  the following random intercept/slope model cannot be fit
-norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                           (TRIAL|FISHID), data=norin, REML=TRUE)
-
-norin.glmmTMB3b <- update(norin.glmmTMB3a, ~ . - (1|FISHID)+ (TRIAL|FISHID),
-                          control=glmmTMBControl(optimizer='optim'))
-norin.glmmTMB3b <- glmmTMB(CHANGE ~ TRIAL*scale(SMR_contr, scale=FALSE) +
-                            (TRIAL|FISHID), data=norin, REML=TRUE,
-                           control=glmmTMBControl(optimizer=optim,
-                                                  ## optArgs=list(method='Nelder-Mead')))
-                                                  optArgs=list(method='BFGS')))
-                                                  ## optArgs='SANN'))
-AICc(norin.glmmTMB3a,  norin.glmmTMB3b)
-```
-
-**Conclusions:**
-
-- unfortunately, we are unable to fit a model with random intercept/slope
-- therefore we will proceed with a random intercept model
-
-</div>
 
 # Model validation {.tabset .tabset-faded}
 

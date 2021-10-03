@@ -113,10 +113,11 @@ glimpse(leathwick)
 ```
 
 ```{r preparation, results='markdown', eval=TRUE, hidden=TRUE}
-leathwick = leathwick %>% mutate(Method=factor(Method),
-                                 LocSed = as.numeric(LocSed)) %>% 
-                                 LocSed=factor(LocSed)) %>%
-  as.data.frame
+leathwick <- leathwick %>%
+    mutate(Method=factor(Method),
+           LocSed = as.numeric(LocSed)) %>% 
+    ## LocSed=factor(LocSed)) %>%
+    as.data.frame
 ```
 
 
@@ -126,8 +127,9 @@ glimpse(leathwick_test)
 ```
 
 ```{r preparation1, results='markdown', eval=TRUE, hidden=TRUE}
-leathwick_test = leathwick_test %>% mutate(Method=factor(Method), 
-                                          LocSed=as.numeric(LocSed)) %>%
+leathwick_test = leathwick_test %>%
+    mutate(Method=factor(Method), 
+           LocSed=as.numeric(LocSed)) %>%
   as.data.frame()
 ```
 
@@ -163,7 +165,7 @@ Method = as.data.frame(Method)
 fit <- predict(leathwick.grid, leathwick.gbm,  const=Method,
                n.trees=best.iter,  type='response')
 #fit <- mask(fit,  raster(leathwick.grid, 1))
-
+library(stars)
 fit= stars::st_as_stars(fit)
 
 

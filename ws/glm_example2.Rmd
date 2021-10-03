@@ -40,9 +40,9 @@ monofont: DejaVu Sans Mono
 classoption: a4paper
 bibliography: ../resources/references.bib
 ---
-
+ 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -67,7 +67,9 @@ library(tidyverse) #for data wrangling
 
 # Scenario
 
-@Polis-1998-490 were intested in modelling the presence/absence of lizards (<i>Uta sp.</i>) against the perimeter to area ratio of 19 islands in the Gulf of California.
+@Polis-1998-490 were interested in modelling the presence/absence of lizards
+(<i>Uta sp.</i>) against the perimeter to area ratio of 19 islands in the Gulf
+of California.
 
 ![Uta lizard](../resources/uta.jpg){width="200" height="137"}
 
@@ -87,7 +89,8 @@ Coronadito   15.17   0
 **PA**       Presence (1) or absence (0) of *Uta* lizards on island.
 ------------ -----------------------------------------------------------------------------------------
 
-The aim of the analysis is to investigate the relationship between island parimeter to area ratio and the presence/absence of Uta lizards.
+The aim of the analysis is to investigate the relationship between island
+perimeter to area ratio and the presence/absence of Uta lizards.
 
 # Read in the data
 
@@ -112,25 +115,58 @@ $$
 
 where $y_i$ represents the $i$ observed values, $n$ represents the number of
 trials (in the case of logistic, this is always 1), $p_i$ represents the
-probability of lizards being present in the $i^{th}$ poluation, and $\beta_0$ and $\beta_1$
-represent the intercept and slope respectively.
+probability of lizards being present in the $i^{th}$ population, and $\beta_0$
+and $\beta_1$ represent the intercept and slope respectively.
 
-```{r EDA, results='markdown', eval=TRUE, hidden=TRUE}
-ggplot(polis, aes(y=PA, x=RATIO))+
-  geom_point()
-ggplot(polis, aes(y=PA, x=RATIO))+
-  geom_point()+
-  geom_smooth(method='glm', formula=y~x,
-              method.args=list(family='binomial'))
-```
 
 # Fit the model {.tabset .tabset-faded}
 
 # Model validation {.tabset .tabset-faded}
 
+Model validation routines draw heavily upon patterns in residuals.
+For OLS models, the residuals are fairly straight forward.  They are
+the difference between the observed and predicted and are the property
+that are minimised during optimisation (least squares refers to
+minimising the sum of square residuals).
+
+This is not the case for models based on maximum likelihood.  Rather
+than minimising the sum of residuals, GLM's maximise likelihood.
+Hence residuals are not directly calculated as part of the
+optimisation process.  Nevertheless, residual patterns are useful
+diagnostics.
+
+For GLM's there are numerous different residual formulations:
+
+| Residual type | Description                                                 | Function                     |
+|---------------|-------------------------------------------------------------|------------------------------|
+| Working       | Residuals on the link scale transformed back to link scale.  | `residuals(mod, "working")`  |
+|               | `(y - mu)/mu.eta(eta)`                                      |                              |
+| Deviance      | Signed square-root of the deviance due to each observation. | `residuals(mod, "deviance")` |
+|               | The sum of the deviance residuals is the total deviance.    |                              |
+| Pearson       | The difference between observed and expected scaled by the  | `residuals(mod, "pearson")`  |
+|               | standard deviation so they are on the response scale        |                              |
+| Partial       | Working residuals added to the fitted values. Vector per    | `residuals(mod, "partial")`  |
+|               | Predictor                                                   |                              |
+| Response      | Raw residuals - difference between observed and expected    | `residuals(mod, "response")` |
+|               | These are only appropriate for Gaussian                     |                              |
+
+
 
 
 # Partial plots {.tabset .tabset-faded}
+
+There are also numerous routines and packages to support these fitted trends
+(partial plots).
+
+| Package     | Function                   | Type              | Notes             |
+|-------------|----------------------------|-------------------|-------------------|
+| `sjPlot`    | `plot_model(type = 'eff')` | Marginal means    |                   |
+| `effects`   | `allEffects()`             | Marginal means    |                   |
+| `ggeffects` | `ggeffects()`              | Marginal means    | calls `effects()` |
+| `ggeffects` | `ggpredict()`              | Conditional means | calls `predict()` |
+| `ggeffects` | `ggemmeans()`              | Marginal means    | calls `emmeans()` |
+|             |                            |                   |                   |
+
 
 # Model investigation / hypothesis testing {.tabset .tabset-faded}
 
@@ -138,8 +174,124 @@ ggplot(polis, aes(y=PA, x=RATIO))+
 
 # Predictions {.tabset .tabset-faded}
 
+## $R^2$
+
+In simple regression, the $R^{2}$ value (coefficient of determination)
+is interpreted as the amount of variation in the response that can be
+explained by its relationship with the predictor(s) and is calculated
+as the sum of squares explained divided by the sum of squares total.
+It is considered a measure of the strength of a relationship ans is
+calculated as:
+
+$$
+R^2 = 1 - \frac{\sum_i=1^N (y_i - \hat(y_i)^2)}{\sum_i=1^N (y_i - \bar(y))^2}
+$$
+where $y_{i}$ and $\hat{y_{i}}$ are the $i^{th}$ observed and predicted value
+respectively, $\bar{y}$ is the mean of the observed values and $N$ is the total
+number of observations.
+
+This is really only appropriate for OLS.  For other models there are alternative
+measures (**psuedo R-squared**) that can be appled depending on how they are to
+be interpreted:
+
+1. **Explained variance**.  If we consider the numerator as a measure of the
+   unexplained variance and the denominator as a measure of the total variance,
+   then their one minus the ratio is the proportion of the variance explained by
+   the model.
+2. **Improvement of a fitted model over a null model**.  The numerator is a
+   measure of the variance unexplained after fitting the model and the
+   denominator is the amount of variance unexplained after fitting a null model
+   (model with only an intercept - essentially just the response mean).  The
+   ratio therefore reflects the improvement. 
+3. **Square of correlation**. The squared correlation between the predicted and
+   observed values.
+
+There are many different ways to calculate $R^2$ values from GLM's.  The
+following table provides some guidance as to which method is appropriate for
+which type of model and how they should be interpreted..
+
+One very simple calculation is based on deviance (a measure of the
+total amount unexplained) as:
+
+$$
+1-\frac{Deviance}{Deviance_{NULL}}
+$$
+
+where $Deviance_{NULL}$ is the deviance of a null model 
+(e.g. `glm(PA ~ 1, data=polis, family='binomial')`)
+
+Alternatively, there are many different ways to calculate $R^2$ values
+from GLM's.  The following table provides some guidance as to which
+method is appropriate for which type of model and how they should be
+interpreted..
+
+| Model             | Appropriate $R^2$ | Formula                         | Interpreted as | Function                        |
+| ----------------- | ----------------- | ------------------------------- | -------------- | ---------------------------     |
+| Logisitic         | Tjur's R2         | $\dagger$                       |                | `performace::r2_tjur()`         |
+| Multinomial Logit | McFadden's R2     | $\ddagger$                      | 1 & 2          | `performace::r2_mcfadden()`     |
+| GLM               | Nagelkerke's R2   | $\S$                            | 2              | `performace::r2_nagelkerke()`   |
+| GLM               | Likelihood ratio  | Adjusted Nagelkerke - see below |                | `MuMIn::r2.squaredLR()`         |
+| Mixed models      | Nakagawa's R2     | Too complex                     |                | `performace::r2_nakagawa()`     |
+| Mixed models      |                   |                                 |                | `MuMIn::r.suaredGLMM()`         |
+| ZI models         | Zero-inflated R2  | Too complex                     |                | `performace::r2_zeroinflated()` |
+| Bayesian models   | Bayes R2          | Too complex                     |                | `performace::r2_bayes()`        |
+ 
+$\dagger$: $R^2=\frac{1}{n_{1}}\sum \hat{\pi}(y=1) - \frac{1}{n_{0}}\sum \hat{\pi}(y=0)$
+
+$\ddagger$: $R^2=1-\frac{logL(x)}{logL(0)}$
+
+$\S$: $R^2=\frac{1-(\frac{logL(0)}{logL(x)})^{2/N}}{1-logl(0)^{2/N}}$
+
+where $n_1$ and $n_0$ are the number of 1's and 0's in the response and
+$\hat{\pi}$ is the predicted probability. $logL(x)$ and $logL(0)$ are the
+log-likelihoods of the fitted and null models respectively and $N$ is the number
+of observations.
+
+Note, if you run `performance::r2()`, the function will work out what
+type of model has been fit and then use the appropriate function from
+the above table.
+
+
+## LD50
+In some disciplines it is useful to be able to calculate an LD50.  This is the
+value along the x-axis that corresponds to a probability of 50% - e.g. the
+switch-over point in Island perimeter to area Ratio at which the lizards go
+from more likely to be present to more likely to be absent.  It is the
+inflection point.
+
+It is also the point at which the slope (when back-transformed) is at its
+steepest and can be calculated as:
+
+$$
+-\frac{Intercept}{Slope}
+$$
 
 # Summary figures {.tabset .tabset-faded}
+
+Useful summary figures to accompany statistical models typically
+depict the modelled trend(s) overlayed onto the data used to fit the
+model.  When there is only a single predictor, the data should be the
+raw data.  However, when there are numerous predictors and the
+modelled trend represents a trend associated with one (or more
+predictors) marginalising over other predictor(s), then displaying the
+raw data may not be satisfying.  The reason for this is that the
+modelled _partial trend_ depicts the trend between the response and
+the focal predictor(s) holding the other predictor(s) constant - that
+is, standardising for the other predictor(s).  Plotting of raw data
+will not reflect this standardisation.
+
+Hence, rather than plot the raw data, we can instead plot the partial
+observations (partial residuals).  To do so, add the (working)
+residuals onto predictions associated with the observed predictor
+values.
+
+Unfortunately, this technique is not as straight forward for logistic
+regression.  After adding the residuals to the predictions and
+back-transforming to the response scale, it is necessary to transform
+again to binomial.
+
+In this case, since we just have a single predictor, we might as well
+just add the raw data.
 
 # References
 
