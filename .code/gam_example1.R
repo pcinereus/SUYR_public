@@ -50,6 +50,7 @@ data.frame(smoothCon(s(x, k=3),  data=data_gam)[[1]]$X) %>%
 
 ## ----fitModel2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
 basis(s(x, k=3),  data=data_gam) %>% draw
+basis(s(x, k=3, bs='cr'),  data=data_gam) %>% draw
 
 
 ## ----fitModel3, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
@@ -63,17 +64,17 @@ ggplot(newdata,  aes(x=x)) +
 
 
 ## ----fitModel14, results='markdown', eval=TRUE, hidden=TRUE,error=TRUE--------
-data_gam.gam <- gam(y~s(x), data=data_gam)
+data_gam.gam <- gam(y~s(x), data = data_gam, method = 'REML')
 
 
 ## ----fitModel15, results='markdown', eval=TRUE, hidden=TRUE-------------------
-data_gam.gam <- gam(y~s(x,k=3), data=data_gam, method='REML')
-#data.gp.gam <- gam(y~s(x,k=3, bs='cr'), data=data.gp)
+data_gam.gam <- gam(y~s(x, k = 3), data=data_gam, method = 'REML')
+#data.gp.gam <- gam(y~s(x,k=3, bs='cr'), data=data.gp, method=)
 #data.gp.gam <- gam(y~s(x,k=3, bs='ps'), data=data.gp)
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
-gam.check(data_gam.gam, pch=19)
+gam.check(data_gam.gam, pch = 19)
 
 
 ## ----modelValidation1b, results='markdown', eval=TRUE, fig.width=7, fig.height=7, hidden=TRUE----
@@ -169,9 +170,9 @@ d %>% summarise(Value=data[which.max(abs(derivative))],
 
 
 ## ----SummaryFig, results='markdown', eval=TRUE, hidden=TRUE-------------------
-data_gam.list=with(data_gam, list(x=seq(min(x), max(x), len=100)))
+data_gam.list <- with(data_gam, list(x = modelr::seq_range(x, n = 100)))
 
-newdata = emmeans(data_gam.gam, ~x, at=data_gam.list) %>%
+newdata = emmeans(data_gam.gam, ~x, at = data_gam.list) %>%
     as.data.frame
 head(newdata)
 
@@ -180,7 +181,12 @@ ggplot(newdata, aes(y=emmean, x=x)) +
     geom_line() +
     geom_point(data=data_gam, aes(y=y,x=x))+
     theme_bw()
-
+newdata <- newdata %>% mutate(Peak = between(emmean, 7.91, 9.48))
+ggplot(newdata, aes(y=emmean, x=x)) +
+    geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
+    geom_line(aes(color=Peak)) +
+    geom_point(data=data_gam, aes(y=y,x=x))+
+    theme_bw()
 ## Partials
 #resid.list = list(x=data_gam$x)
 newdata.partial = data_gam %>%

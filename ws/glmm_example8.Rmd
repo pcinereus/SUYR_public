@@ -134,31 +134,45 @@ ggplot(elston, aes(y=TICKS, x=ALTITUDE, color=fYear)) +
   geom_point() +
   scale_y_log10()
 
-elston.glmmTMB <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (1|LOCATION/BROOD),
-                          data=elston,  family=poisson(link='log'),  REML=FALSE)
-elston.glmmTMB1 <- glmmTMB(TICKS ~ fYear+scale(ALTITUDE) + (1|LOCATION/BROOD),
-                           data=elston,  family=poisson(link='log'),  REML=FALSE)
-AICc(elston.glmmTMB,  elston.glmmTMB1)
+elston.glmmTMB1a <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (1|LOCATION/BROOD),
+                          data=elston,
+                          family=poisson(link='log'),
+                          REML=TRUE)
+elston.glmmTMB1b <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (fYear|LOCATION/BROOD),
+                          data=elston,
+                          family=poisson(link='log'),
+                          REML=TRUE,
+                          control=glmmTMBControl(optimizer = optim,
+                                                 optArgs = list(method = 'BFGS')))
+elston.glmmTMB1c <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (scale(ALTITUDE)|LOCATION/BROOD),
+                          data=elston,
+                          family=poisson(link='log'),
+                          REML=TRUE,
+                          control=glmmTMBControl(optimizer = optim,
+                                                 optArgs = list(method = 'BFGS')))
+elston.glmmTMB1d <- glmmTMB(TICKS ~ fYear*scale(ALTITUDE) + (fYear*scale(ALTITUDE)|LOCATION/BROOD),
+                          data=elston,
+                          family=poisson(link='log'),
+                          REML=TRUE,
+                          control=glmmTMBControl(optimizer = optim,
+                                                 optArgs = list(method = 'BFGS')))
+AICc(elston.glmmTMB1a,  elston.glmmTMB1b, elston.glmmTMB1c, elston.glmmTMB1d)
 
-elston.glmmTMB <- update(elston.glmmTMB,  REML=TRUE)
-elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(fYear|LOCATION/BROOD))
-elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(scale(ALTITUDE)|LOCATION/BROOD))
-#elston.glmmTMB1 <- update(elston.glmmTMB, .~.-(1|LOCATION/BROOD)+(ALTITUDE|LOCATION/BROOD))
-AICc(elston.glmmTMB,  elston.glmmTMB1)
 
-plot_model(elston.glmmTMB, type='diag') %>% plot_grid
-performance::check_model(elston.glmmTMB)
-elston.resid <- simulateResiduals(elston.glmmTMB,  plot=TRUE)
 
-plot(allEffects(elston.glmmTMB),  multiline=TRUE,  ci.style='bands')
+plot_model(elston.glmmTMB1a, type='diag') %>% plot_grid
+performance::check_model(elston.glmmTMB1b)
+elston.resid <- elston.glmmTMB1b %>% simulateResiduals(plot=TRUE)
+
+plot(allEffects(elston.glmmTMB1a),  multiline=TRUE,  ci.style='bands')
 ##plot_model(elston.glmmTMB, type='eff', terms=c('ALTITUDE', 'fYear'))
 
-summary(elston.glmmTMB)
-tidy(elston.glmmTMB,  conf.int=TRUE,  exponentiate=TRUE)
+summary(elston.glmmTMB1a)
+tidy(elston.glmmTMB1a,  conf.int=TRUE,  exponentiate=TRUE)
 
-emmeans(elston.glmmTMB,  pairwise~fYear|ALTITUDE,  type='response',
+emmeans(elston.glmmTMB1b,  pairwise~fYear|ALTITUDE,  type='response',
         at=list(ALTITUDE= quantile(elston$ALTITUDE)))
-emmeans(elston.glmmTMB,  pairwise~fYear|ALTITUDE,  type='response',
+emmeans(elston.glmmTMB1b,  pairwise~fYear|ALTITUDE,  type='response',
         at=list(ALTITUDE= quantile(elston$ALTITUDE)))$contrasts %>%
   confint() %>% 
   as.data.frame %>%
@@ -169,7 +183,7 @@ emmeans(elston.glmmTMB,  pairwise~fYear|ALTITUDE,  type='response',
   coord_flip()
 
 elston.grid = with(elston,  list(ALTITUDE=modelr::seq_range(ALTITUDE,  n=100)))
-newdata = emmeans(elston.glmmTMB,  ~ALTITUDE|fYear, type='response',
+newdata = emmeans(elston.glmmTMB1b,  ~ALTITUDE|fYear, type='response',
                   at = elston.grid) %>%
   as.data.frame
 head(newdata)

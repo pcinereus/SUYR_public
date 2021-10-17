@@ -271,9 +271,9 @@ starling.lmer1a <- update(starling.lmer1a, REML=TRUE)
 
 
 ## ----fitModel3b, results='markdown', eval=TRUE, hidden=TRUE-------------------
-starling.glmmTMB1 = glmmTMB(MASS ~ 1 + (1|BIRD), data=starling, REML=TRUE)
-starling.glmmTMB2 = glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE)
-starling.glmmTMB2 = glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE,
+starling.glmmTMB1 <- glmmTMB(MASS ~ 1 + (1|BIRD), data=starling, REML=TRUE)
+starling.glmmTMB2 <- glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE)
+starling.glmmTMB2 <- glmmTMB(MASS ~ 1 + (MONTH|BIRD), data=starling, REML=TRUE,
                             control=glmmTMBControl(optimizer=optim,
                                                    optArgs = list(method='BFGS'))
                             )
@@ -483,5 +483,16 @@ newdata <- starling.glmmTMB1a %>% emmeans(~SITUATION*MONTH) %>%
 ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
     geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL), shape=21,
                     position=position_dodge(0.2)) +
+  theme_classic()
+
+obs <- starling %>%
+    mutate(Pred=predict(starling.glmmTMB1a, re.form=NA),
+           Resid = residuals(starling.glmmTMB1a, type='response'),
+           Fit = Pred + Resid)
+
+ggplot(newdata, aes(y=emmean, x=SITUATION, fill=MONTH)) +
+    geom_pointrange(aes(ymin=lower.CL, ymax=upper.CL), shape=21,
+                    position=position_dodge(0.2)) +
+    geom_point(data=obs, aes(y=Fit, color=MONTH), alpha=0.5, position = position_jitter(height=0)) +
   theme_classic()
 

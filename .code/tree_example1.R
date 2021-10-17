@@ -71,7 +71,7 @@ abalone.gbm = gbm(RINGS ~ SEX + LENGTH + DIAMETER + HEIGHT +
                   n.trees=5000,
                   interaction.depth=5,
                   bag.fraction=0.5,
-                  shrinkage=0.005,
+                  shrinkage=0.001,
                   train.fraction=1,
                   cv.folds=3)
 
@@ -88,10 +88,11 @@ summary(abalone.gbm, n.trees=best.iter)
 ## ----partialEffects1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=6----
 attr(abalone.gbm$Terms,"term.labels")
 plot(abalone.gbm, 8, n.tree=best.iter)
-abalone.gbm %>% pdp::partial(pred.var='SHELL_WEIGHT',
-                        n.trees=best.iter,
-                        recursive=FALSE,
-                        inv.link=exp) %>%
+abalone.gbm %>%
+    pdp::partial(pred.var='SHELL_WEIGHT',
+                 n.trees=best.iter,
+                 recursive=FALSE,
+                 inv.link=exp) %>%
     autoplot()
 
 
@@ -108,17 +109,19 @@ for (nm in nms) {
                                  type='regression') %>%
     autoplot() + ylim(0, 20)
 }
- 
+patchwork::wrap_plots(p) 
 do.call('grid.arrange', p)
 
 
 ## ----partialEffects3, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE----
-abalone.gbm %>% pdp::partial(pred.var=c('SHELL_WEIGHT'),
-                             n.trees=best.iter, recursive=FALSE, inv.link=exp) %>%
+abalone.gbm %>%
+    pdp::partial(pred.var=c('SHELL_WEIGHT'),
+                 n.trees=best.iter, recursive=FALSE, inv.link=exp) %>%
     autoplot()
 
-abalone.gbm %>% pdp::partial(pred.var=c('SHELL_WEIGHT','MEAT_WEIGHT'),
-                             n.trees=best.iter, recursive=TRUE) %>%
+abalone.gbm %>%
+    pdp::partial(pred.var=c('SHELL_WEIGHT','HEIGHT'),
+                 n.trees=best.iter, recursive=TRUE) %>%
     autoplot()
 
 g1 = abalone.gbm %>% pdp::partial(pred.var='SHELL_WEIGHT', n.trees=best.iter,
@@ -134,7 +137,10 @@ g1 + g2
 
 ## ----Accuracy1, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, fig.width=7, fig.height=7----
 abalone.acc <- abalone.test %>%
-  bind_cols(Pred = predict(abalone.gbm,newdata=abalone.test, n.tree=best.iter, type='response'))
+    bind_cols(Pred = predict(abalone.gbm,
+                             newdata=abalone.test,
+                             n.tree=best.iter,
+                             type='response'))
 
 with(abalone.acc,  cor(RINGS, Pred))
 
@@ -149,6 +155,7 @@ abalone.acc %>%
 attr(abalone.gbm$Terms,"term.labels")
  
 interact.gbm(abalone.gbm, abalone,c(1,4), n.tree=best.iter)
+interact.gbm(abalone.gbm, abalone,c(4,8), n.tree=best.iter)
 interact.gbm(abalone.gbm, abalone,c(4,8), n.tree=best.iter)
 interact.gbm(abalone.gbm, abalone,c(1,4,8), n.tree=best.iter)
 

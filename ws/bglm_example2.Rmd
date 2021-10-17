@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -69,7 +69,7 @@ theme_set(theme_grey()) #put the default ggplot theme back
 
 # Scenario
 
-@Polis-1998-490 were intested in modelling the presence/absence of lizards (<i>Uta sp.</i>) against the perimeter to area ratio of 19 islands in the Gulf of California.
+@Polis-1998-490 were interested in modelling the presence/absence of lizards (<i>Uta sp.</i>) against the perimeter to area ratio of 19 islands in the Gulf of California.
 
 ![Uta lizard](../resources/uta.jpg){width="200" height="137"}
 
@@ -92,15 +92,15 @@ Coronadito   15.17   0
 
 
 
-The aim of the analysis is to investigate the relationship between island parimeter to area ratio and the presence/absence of Uta lizards.
+The aim of the analysis is to investigate the relationship between island perimeter to area ratio and the presence/absence of Uta lizards.
 
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-polis = read_csv('../data/polis.csv', trim_ws=TRUE)
-glimpse(polis)
-head(polis)
-str(polis)
+polis <- read_csv('../data/polis.csv', trim_ws = TRUE)
+polis %>% glimpse()
+polis %>% head()
+polis %>% str()
 ```
 
 # Exploratory data analysis

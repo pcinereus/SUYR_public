@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -65,11 +65,12 @@ library(ggeffects)  #for partial plots
 library(broom.mixed)#for summarising models
 library(ggeffects)  #for partial effects plots
 library(tidyverse)  #for data wrangling etc
+library(patchwork)  #for multiple plots
 ```
 
 # Scenario
 
-@Loyn-1987-1987 modeled the abundance of forest birds with six predictor
+@Loyn-1987-1987 modelled the abundance of forest birds with six predictor
 variables (patch area, distance to nearest patch, distance to nearest
 larger patch, grazing intensity, altitude and years since the patch had
 been isolated).
@@ -97,7 +98,7 @@ The aim of the analysis is to investigate the effects of a range of predictors o
 # Read in the data
 
 ```{r readData, results='markdown', eval=TRUE}
-loyn = read_csv('../data/loyn.csv', trim_ws=TRUE)
+loyn <- read_csv('../data/loyn.csv', trim_ws = TRUE)
 glimpse(loyn)
 ```
 
@@ -138,6 +139,13 @@ altitude on the abundance of forest birds.
 
 
 # Further analyses {.tabset .tabset-faded}
+
+
+
+
+## Contrasts {.tabset .tabset-pills}
+
+### brms
 
 
 

@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 
 
 ## ----libraries, results='markdown', eval=TRUE---------------------------------
@@ -22,19 +22,23 @@ theme_set(theme_grey()) #put the default ggplot theme back
 
 
 ## ----readData, results='markdown', eval=TRUE----------------------------------
-fert = read_csv('../data/fertilizer.csv', trim_ws=TRUE)
+fert <- read_csv('../data/fertilizer.csv', trim_ws = TRUE)
 glimpse(fert)
 
 
 ## ----lm, results='markdown', eval=TRUE, hidden=TRUE---------------------------
-summary(lm(YIELD ~ FERTILIZER, data=fert))
-summary(lm(YIELD ~ scale(FERTILIZER, scale=FALSE), data=fert))
+summary(lm(YIELD ~ FERTILIZER, data = fert))
+summary(lm(YIELD ~ scale(FERTILIZER, scale=FALSE), data = fert))
 
 
 ## ----fitModel1a, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
-fert.rstanarm = stan_glm(YIELD ~ FERTILIZER, data=fert,
-                         iter = 5000, warmup = 1000,
-                         chains = 3, thin = 5, refresh = 0)
+fert.rstanarm <- stan_glm(YIELD ~ FERTILIZER,
+                          data=fert,
+                          iter = 5000,
+                          warmup = 1000,
+                          chains = 3,
+                          thin = 5,
+                          refresh = 0)
 
 
 ## ----fitModel1b, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
@@ -93,9 +97,17 @@ ggpredict(fert.rstanarm3) %>% plot(add.data=TRUE)
 
 
 ## ----fitModel2a, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
-fert.brm = brm(bf(YIELD ~ FERTILIZER), data=fert,
-                         iter = 5000, warmup = 1000,
-                         chains = 3, thin = 5, refresh = 0)
+fert.brm <- brm(bf(YIELD ~ FERTILIZER),
+               data = fert,
+               iter = 5000,
+               warmup = 1000,
+               chains = 3,
+               thin = 5,
+               refresh = 0)
+
+
+## ----fitModel2a2, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+fert.brm %>% names
 
 
 ## ----fitModel2b, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80), echo=2----
@@ -110,7 +122,7 @@ mad(fert$YIELD)
 
 
 ## ----student_t_dist, results='markdown', eval=TRUE----------------------------
-standist::visualize("student_t(3,161.5,90.4)", xlim=c(-10,1000))
+standist::visualize("student_t(3,161.5,90.4)", xlim=c(-100,1000))
 
 
 ## ----student_t_dist1, results='markdown', eval=TRUE---------------------------
@@ -118,27 +130,40 @@ standist::visualize("student_t(3,0,90.4)", xlim=c(-10,500))
 
 
 ## ----normal_prior, results='markdown', eval=TRUE------------------------------
-standist::visualize("normal(0,10)", xlim=c(-50,50))
+standist::visualize("normal(0, 10)", xlim = c(-50,50))
+standist::visualize("normal(0, 0.1)", xlim = c(-1,1))
 
 
 ## ----fitModel2d, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
-fert.brm1 = brm(bf(YIELD ~ FERTILIZER), data=fert,
-                prior=prior(normal(0, 10), class='b'), 
-                sample_prior = 'only', 
-                iter = 5000, warmup = 1000,
-                chains = 3, thin = 5, refresh = 0)
+fert.brm1 <- brm(bf(YIELD ~ FERTILIZER),
+                 data = fert,
+                 prior = prior(normal(0, 10), class = 'b'), 
+                 sample_prior = 'only', 
+                 iter = 5000,
+                 warmup = 1000,
+                 chains = 3,
+                 thin = 5,
+                 refresh = 0)
 
 
 ## ----fitModel2e, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
-ggpredict(fert.brm1) %>% plot(add.data=TRUE)
-conditional_effects(fert.brm1) %>%  plot(points=TRUE)
+fert.brm1 %>% ggpredict() %>% plot(add.data=TRUE)
+fert.brm1 %>% ggemmeans(~FERTILIZER) %>% plot(add.data=TRUE)
+fert.brm1 %>% conditional_effects() %>%  plot(points=TRUE)
 
 
 ## ----priors, results='markdown', eval=TRUE------------------------------------
-standist::visualize("normal(164,10)", xlim=c(-100,300))
-standist::visualize("normal(0,1)", xlim=c(-10,10))
-standist::visualize("cauchy(0,2)", xlim=c(-10,10))
-standist::visualize("gamma(2,1)", xlim=c(0,10))
+standist::visualize("normal(164, 10)", xlim = c(-100, 300))
+standist::visualize("normal(0, 1)", xlim = c(-10, 10))
+standist::visualize("cauchy(0, 2)", xlim = c(-10, 10))
+standist::visualize("gamma(2, 1)", xlim = c(0, 10))
+standist::visualize(
+              "student_t(3, 0, 90.4)",
+              "cauchy(0, 2)",
+              "gamma(2, 1)",
+              "gamma(2, 0.5)",
+              "gamma(2, 0.2)",
+              xlim = c(0,20))
 
 
 ## ----fitModel2h, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
@@ -146,17 +171,25 @@ priors <- prior(normal(164, 10),  class='Intercept') +
     prior(normal(0, 1), class='b') +
     prior(gamma(2, 1),  class='sigma')
 
-fert.brm2 = brm(bf(YIELD ~ FERTILIZER), data=fert,
+fert.brm2 = brm(bf(YIELD ~ FERTILIZER),
+                data=fert,
                 prior=priors,
                 sample_prior = 'only', 
-                iter = 5000, warmup = 1000,
-                chains = 3, thin = 5, refresh = 0)
+                iter = 5000,
+                warmup = 1000,
+                chains = 3,
+                thin = 5,
+                refresh = 0)
 
 
 ## ----fitModel2i, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
-ggpredict(fert.brm2) %>%
-  plot(add.data=TRUE)
-conditional_effects(fert.brm2)
+fert.brm2 %>%
+    ggemmeans(~FERTILIZER) %>%
+    plot(add.data = TRUE)
+#OR
+fert.brm2 %>%
+    conditional_effects() %>%
+    plot(points = TRUE)
 
 
 ## ----fitModel2j, results='markdown', eval=TRUE, hidden=TRUE, cache=TRUE-------
@@ -166,8 +199,9 @@ fert.brm3 <- update(fert.brm2, sample_prior = 'yes', refresh = 0)
 ## ----posterior2, results='markdown', eval=TRUE--------------------------------
 fert.brm3 %>% get_variables()
 ## fert.brm3 %>% hypothesis('Intercept=0', class='b') %>% plot
-fert.brm3 %>% hypothesis('FERTILIZER=0') %>% plot
-fert.brm3 %>% hypothesis('sigma=0', class='') %>% plot
+fert.brm3 %>% hypothesis('FERTILIZER = 0') %>% plot
+## fert.brm3 %>% hypothesis('scaleFERTILIZERscaleEQFALSE=0') %>% plot
+fert.brm3 %>% hypothesis('sigma = 0', class = '') %>% plot
 
 
 ## ----fitModel2k, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
@@ -185,8 +219,8 @@ fert.brm3 %>%
 
 
 ## ----fitModel2l, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
-standata(fert.brm3)
-stancode(fert.brm3)
+fert.brm3 %>% standata()
+fert.brm3 %>% stancode()
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
@@ -264,71 +298,74 @@ available_mcmc()
 
 
 ## ----modelValidation2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-mcmc_plot(fert.brm3, type='combo')
-mcmc_plot(fert.brm3, type='trace')
-mcmc_plot(fert.brm3, type='dens_overlay')
+fert.brm3 %>% mcmc_plot(type = 'combo')
+fert.brm3 %>% mcmc_plot(type = 'trace')
+fert.brm3 %>% mcmc_plot(type = 'dens_overlay')
 
 
 ## ----modelValidation2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-mcmc_plot(fert.brm3, type='acf_bar')
+fert.brm3 %>% mcmc_plot(type = 'acf_bar')
 
 
 ## ----modelValidation2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-mcmc_plot(fert.brm3, type='rhat_hist')
+fert.brm3 %>% mcmc_plot(type = 'rhat_hist')
 
 
 ## ----modelValidation2e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-mcmc_plot(fert.brm3, type='neff_hist')
+fert.brm3 %>% mcmc_plot(type = 'neff_hist')
 
 
 ## ----modelValidation2f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-mcmc_plot(fert.brm3, type='combo')
-mcmc_plot(fert.brm3, type='violin')
+fert.brm3 %>% mcmc_plot(type = 'combo')
+fert.brm3 %>% mcmc_plot(type = 'violin')
 
 
 ## ----modelValidation2g, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-stan_trace(fert.brm3$fit)
+fert.brm3$fit %>% stan_trace()
+fert.brm3$fit %>% stan_trace(inc_warmup = TRUE)
 
 
 ## ----modelValidation2h, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-stan_ac(fert.brm3$fit) 
+fert.brm3$fit %>% stan_ac() 
 
 
 ## ----modelValidation2i, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-stan_rhat(fert.brm3$fit) 
+fert.brm3$fit %>% stan_rhat() 
 
 
 ## ----modelValidation2j, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-stan_ess(fert.brm3$fit)
+fert.brm3$fit %>% stan_ess()
 
 
 ## ----modelValidation2k, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-stan_dens(fert.brm3$fit, separate_chains = TRUE)
+fert.brm3$fit %>% stan_dens(separate_chains = TRUE)
 
 
 ## ----modelValidation2l, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=7----
-fert.ggs <- ggs(fert.brm3, inc_warmup=FALSE)  # does not seem to ignore burnin?
-ggs_traceplot(fert.ggs, original_burnin=FALSE)
+fert.ggs <- fert.brm3$fit %>% ggs(inc_warmup = TRUE, burnin = TRUE)  # does not seem to ignore burnin?
+fert.ggs %>% ggs_traceplot()
+fert.ggs <- fert.brm3$fit %>% ggs(inc_warmup = FALSE, burnin = TRUE)  # does not seem to ignore burnin?
+fert.ggs %>% ggs_traceplot()
 
 
 ## ----modelValidation2m, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=7----
-ggs_autocorrelation(fert.ggs)
+fert.ggs %>% ggs_autocorrelation()
 
 
 ## ----modelValidation2n, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-ggs_Rhat(fert.ggs)
+fert.ggs %>% ggs_Rhat()
 
 
 ## ----modelValidation2o, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-ggs_effective(fert.ggs)
+fert.ggs %>% ggs_effective()
 
 
 ## ----modelValidation2p, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-ggs_crosscorrelation(fert.ggs)
+fert.ggs %>% ggs_crosscorrelation()
 
 
 ## ----modelValidation2q, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-ggs_grb(fert.ggs)
+fert.ggs %>% ggs_grb()
 
 
 ## ----modelValidation3a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
@@ -374,19 +411,19 @@ available_ppc()
 
 
 ## ----modelValidation5b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-pp_check(fert.brm3,  type='dens_overlay')
+fert.brm3 %>% pp_check( type='dens_overlay', nsamples=100)
 
 
 ## ----modelValidation5c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-pp_check(fert.brm3, type='error_scatter_avg')
+fert.brm3 %>% pp_check(type='error_scatter_avg')
 
 
 ## ----modelValidation5d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-pp_check(fert.brm3, x='FERTILIZER', type='error_scatter_avg_vs_x')
+fert.brm3 %>% pp_check(x='FERTILIZER', type='error_scatter_avg_vs_x')
 
 
 ## ----modelValidation5e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
-pp_check(fert.brm3, x='FERTILIZER', type='intervals')
+fert.brm3 %>% pp_check(x='FERTILIZER', type='intervals')
 
 
 ## ----modelValidation5f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
@@ -399,12 +436,12 @@ pp_check(fert.brm3, x='FERTILIZER',type='ribbon')
 
 
 ## ----modelValidation6a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-preds <- posterior_predict(fert.brm3,  nsamples=250,  summary=FALSE)
+preds <- fert.brm3 %>% posterior_predict(nsamples=250,  summary=FALSE)
 fert.resids <- createDHARMa(simulatedResponse = t(preds),
                             observedResponse = fert$YIELD,
                             fittedPredictedResponse = apply(preds, 2, median),
-                            integerResponse = 'gaussian')
-plot(fert.resids)
+                            integerResponse = FALSE)
+fert.resids %>% plot()
 
 
 ## ----partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -424,8 +461,10 @@ fert.rstanarm3 %>% fitted_draws(newdata=fert) %>%
 
 
 ## ----partialPlot2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+fert.brm3 %>% ggemmeans(~FERTILIZER) %>% plot(add.data = TRUE) 
 fert.brm3 %>% conditional_effects() 
-fert.brm3 %>% conditional_effects(spaghetti=TRUE,nsamples=200) 
+fert.brm3 %>% conditional_effects() %>% plot(points = TRUE)
+fert.brm3 %>% conditional_effects(spaghetti = TRUE, nsamples = 200) %>% plot(points = TRUE) 
 
 
 ## ----partialPlot2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -438,15 +477,15 @@ fert.brm3 %>% ggemmeans(~FERTILIZER) %>% plot(add.data=TRUE)
 
 ## ----partialPlot2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
 fert.brm3 %>%
-    fitted_draws(newdata=fert) %>%
+    fitted_draws(newdata = fert) %>%
     median_hdci() %>%
-    ggplot(aes(x=FERTILIZER, y=.value)) +
-    geom_ribbon(aes(ymin=.lower, ymax=.upper), fill='blue', alpha=0.3) + 
+    ggplot(aes(x = FERTILIZER, y=.value)) +
+    geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'blue', alpha = 0.3) + 
     geom_line()
 
 
 ## ----summariseModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-summary(fert.rstanarm3)
+fert.rstanarm3 %>% summary()
 
 
 ## ----summariseModel1a1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=FALSE----
@@ -535,7 +574,7 @@ mcmcpvalue(as.matrix(fert.rstanarm3)[, c("FERTILIZER")])
 
 
 ## ----summariseModel2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-summary(fert.brm3)
+fert.brm3 %>% summary()
 
 
 ## ----summariseModel2a1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=FALSE----
@@ -543,10 +582,25 @@ fert.sum <- summary(fert.brm3)
 
 
 ## ----summariseModel2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-tidyMCMC(fert.brm3$fit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+fert.brm3$fit %>%
+    tidyMCMC(estimate.method = 'median',
+             conf.int = TRUE,
+             conf.method = 'HPDinterval',
+             rhat = TRUE, ess = TRUE)
 
 ## ----summariseModel2b1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
 fert.tidy <- tidyMCMC(fert.brm3$fit, estimate.method='median',  conf.int=TRUE,  conf.method='HPDinterval',  rhat=TRUE, ess=TRUE)
+
+
+## ----summariseModel2d1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+fert.brm3 %>% tidy_draws()
+
+
+## ----summariseModel2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+fert.brm3 %>%
+    tidy_draws() %>%
+    gather_variables() %>%
+    median_hdci()
 
 
 ## ----summariseModel2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -560,36 +614,32 @@ fert.brm3 %>%
     median_hdci
 
 ## ----summariseModel2c1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=FALSE----
-fert.gather <- fert.brm3 %>% gather_draws(b_Intercept,b_FERTILIZER,sigma) %>%
-  median_hdci
+fert.gather <- fert.brm3 %>%
+    gather_draws(b_Intercept, b_FERTILIZER, sigma) %>%
+    median_hdci
 
 
 ## ----summariseModel2c2, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,echo=TRUE----
 fert.brm3 %>% 
   gather_draws(b_Intercept, b_FERTILIZER, sigma) %>% 
   ggplot() + 
-  stat_halfeye(aes(x=.value,  y=.variable)) +
-  facet_wrap(~.variable, scales='free')
+  stat_halfeye(aes(x = .value,  y = .variable)) +
+  facet_wrap(~.variable, scales = 'free')
 
 fert.brm3 %>% 
   gather_draws(b_Intercept, b_FERTILIZER, sigma) %>% 
   ggplot() + 
-  stat_halfeye(aes(x=.value,  y=.variable)) 
-
-
-
-## ----summariseModel2j, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% mcmc_plot(type='intervals') 
-
-
-## ----summariseModel2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% tidy_draws()
+  stat_halfeye(aes(x = .value,  y = .variable)) 
 
 
 ## ----summariseModel2e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
 fert.brm3 %>% spread_draws(b_Intercept, b_FERTILIZER, sigma)
 # OR via regex
 fert.brm3 %>% spread_draws(`b_.*|sigma`,  regex=TRUE)
+
+
+## ----summariseModel2j, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+fert.brm3 %>% mcmc_plot(type='intervals') 
 
 
 ## ----summariseModel2f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -629,7 +679,7 @@ mcmcpvalue(as.matrix(fert.brm3)[, c("b_FERTILIZER")])
 
 ## ----predictions0a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
 ## establish a data set that defines the new data to predict against
-newdata = data.frame(FERTILIZER=110)
+newdata = data.frame(FERTILIZER = 110)
 
 
 ## ----predictions1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -676,37 +726,59 @@ fit %>% median_hdci
 
 
 ## ----predictions2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% fitted_draws(newdata=newdata) %>%
-  median_hdci
+fert.brm3 %>%
+    fitted_draws(newdata = newdata) %>%
+    median_hdci()
+## OR
+newdata %>%
+    add_fitted_draws(fert.brm3) %>%
+    median_hdci()
 
 
 ## ----predictions2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% emmeans(~FERTILIZER,  at=newdata)
+fert.brm3 %>%
+    emmeans(~FERTILIZER, at = newdata)
+## OR
+fert.brm3 %>%
+    emmeans(~FERTILIZER, at = newdata) %>%
+    tidy_draws() %>%
+    median_hdci()
 
 
 ## ----predictions2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% posterior_predict(newdata=newdata) %>% as.mcmc() %>%
-  tidyMCMC(estimate.method='median', conf.int=TRUE, conf.method='HPDinterval')
+fert.brm3 %>%
+    posterior_predict(newdata = newdata) %>%
+    as.mcmc() %>%
+    tidyMCMC(estimate.method = 'median',
+             conf.int = TRUE, conf.method = 'HPDinterval')
 
 
 ## ----predictions2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% posterior_epred(newdata=newdata) %>% as.mcmc() %>%
-  tidyMCMC(estimate.method='median', conf.int=TRUE, conf.method='HPDinterval')
+fert.brm3 %>%
+    posterior_epred(newdata = newdata) %>%
+    as.mcmc() %>%
+    tidyMCMC(estimate.method = 'median',
+             conf.int = TRUE, conf.method = 'HPDinterval')
 
 
 ## ----predictions2e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% posterior_linpred(newdata=newdata) %>% as.mcmc() %>%
-  tidyMCMC(estimate.method='median', conf.int=TRUE, conf.method='HPDinterval')
+fert.brm3 %>%
+    posterior_linpred(newdata = newdata) %>%
+    as.mcmc() %>%
+    tidyMCMC(estimate.method = 'median',
+             conf.int = TRUE, conf.method = 'HPDinterval')
 
 
 ## ----predictions2f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-newdata %>% add_predicted_draws(fert.brm3) %>%
-  median_hdci
+newdata %>%
+    add_predicted_draws(fert.brm3) %>%
+    median_hdci
 
 
 ## ----predictions2g, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-newdata %>% add_fitted_draws(fert.brm3) %>%
-  median_hdci
+newdata %>%
+    add_fitted_draws(fert.brm3) %>%
+    median_hdci
 
 
 ## ----predictions2h, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
@@ -760,35 +832,80 @@ fert.mcmc %>% hypothesis('PEff>50')
 
 
 ## ----Probability2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.brm3 %>% hypothesis('FERTILIZER>0')
+fert.brm3 %>% hypothesis('FERTILIZER > 0')
+fert.brm3 %>% hypothesis('FERTILIZER > 0') %>% plot (ignore_prior= TRUE)
+fert.brm3 %>% hypothesis('FERTILIZER > 0') %>% `[[`('samples') %>% median_hdci()
 
 
 ## ----Probability2b, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,paged.print=FALSE----
-fert.brm3 %>% tidy_draws() %>% summarise(P=sum(b_FERTILIZER>0)/n())
+fert.brm3 %>%
+    gather_draws(b_FERTILIZER) %>%
+    summarise(P=sum(.value>0)/n())
+#OR
+fert.brm3 %>%
+    tidy_draws() %>%
+    summarise(P=sum(b_FERTILIZER>0)/n())
 
 
-## ----Probability2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=1:2----
-newdata = list(FERTILIZER=c(200, 100)) 
-fert.brm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% pairs()
-fert.mcmc <- fert.brm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% pairs() %>% as.data.frame()
+## ----Probability2c, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5,paged.print=FALSE----
+fert.brm3 %>% hypothesis('FERTILIZER>0.9')
+fert.brm3 %>%
+    hypothesis('FERTILIZER>0.9') %>%
+    plot(ignore_prior = TRUE)
+# This returns a list
+fert.brm3 %>%
+    hypothesis('FERTILIZER>0.9') %>%
+    plot(ignore_prior = TRUE) %>%
+    `[[`(1) +
+    geom_vline(xintercept=0, linetype='dashed')
+
+#OR
+fert.brm3 %>%
+    tidy_draws() %>%
+    summarise(P=sum(b_FERTILIZER>0.9)/n())
+fert.brm3 %>%
+    tidy_draws() %>%
+    ggplot(aes(x=b_FERTILIZER)) +
+    geom_density(fill='orange') +
+    geom_vline(xintercept=0.9, linetype='dashed')
+
+
+## ----Probability2c1, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, echo=1:2----
+newdata <- list(FERTILIZER = c(200, 100)) 
+fert.brm3 %>%
+    emmeans(~FERTILIZER,  at = newdata) %>%
+    pairs()
+fert.mcmc <- fert.brm3 %>%
+    emmeans(~FERTILIZER,  at = newdata) %>%
+    pairs() %>%
+    as.data.frame()
 
 
 ## ----Probability2d, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.mcmc <- fert.brm3 %>% emmeans(~FERTILIZER,  at=newdata) %>% 
-  tidy_draws() %>%
-  rename_with(~str_replace(., 'FERTILIZER ', 'p')) %>%
-  mutate(Eff=p200 - p100,
-         PEff=100*Eff/p100)
+fert.mcmc <- fert.brm3 %>%
+    emmeans(~FERTILIZER,  at = newdata) %>% 
+    tidy_draws() %>%
+    rename_with(~str_replace(., 'FERTILIZER ', 'p')) %>%
+    mutate(Eff=p200 - p100,
+           PEff=100*Eff/p100)
 fert.mcmc %>% head
 
 
+
 ## ----Probability2e, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
-fert.mcmc %>% tidyMCMC(estimate.method='median',
-                       conf.int=TRUE, conf.method='HPDinterval')
+fert.mcmc %>%
+    tidyMCMC(estimate.method='median',
+             conf.int=TRUE, conf.method='HPDinterval')
 
 
 ## ----Probability2f, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
 fert.mcmc %>% median_hdci(PEff)
+
+
+## ----Probability2ff, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
+fert.mcmc %>%
+    ggplot() +
+    geom_density(aes(x=PEff))
 
 
 ## ----Probability2g, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5, paged.print=FALSE----
@@ -822,24 +939,24 @@ ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
 
 
 ## ----summaryFig2a, results='markdown', eval=TRUE, hidden=TRUE-----------------
-fert.list = with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len=100)))
-newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>% as.data.frame
+fert.grid <- with(fert, list(FERTILIZER = modelr::seq_range(FERTILIZER, n = 100)))
+newdata <- fert.brm3 %>% emmeans(~FERTILIZER, at=fert.grid) %>% as.data.frame
 head(newdata)
 
 ggplot(newdata, aes(y=emmean, x=FERTILIZER)) + 
-geom_point(data=fert, aes(y=YIELD)) +
-geom_line() + 
-geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
-scale_y_continuous('YIELD') +
-scale_x_continuous('FERTILIZER') +
-theme_classic()
+    geom_point(data=fert, aes(y=YIELD)) +
+    geom_line() + 
+    geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
+    scale_y_continuous('YIELD') +
+    scale_x_continuous('FERTILIZER') +
+    theme_classic()
 
 ## spaghetti plot
-newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>%
-  gather_emmeans_draws()
+newdata = emmeans(fert.brm3, ~FERTILIZER, at = fert.grid) %>%
+    gather_emmeans_draws()
 newdata %>% head
-ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
-  geom_line(aes(group=.draw),  alpha=0.01) +
-  geom_point(data=fert,  aes(y=YIELD))
+ggplot(newdata,  aes(y = .value,  x = FERTILIZER)) +
+    geom_line(aes(group = .draw),  color = 'blue', alpha = 0.01) +
+    geom_point(data = fert,  aes(y = YIELD))
   
 

@@ -139,7 +139,7 @@ For GLM's there are numerous different residual formulations:
 
 | Residual type | Description                                                 | Function                     |
 |---------------|-------------------------------------------------------------|------------------------------|
-| Working       | Residuals on the link scale transformed back to link scale.  | `residuals(mod, "working")`  |
+| Working       | Residuals on the link scale transformed back to link scale. | `residuals(mod, "working")`  |
 |               | `(y - mu)/mu.eta(eta)`                                      |                              |
 | Deviance      | Signed square-root of the deviance due to each observation. | `residuals(mod, "deviance")` |
 |               | The sum of the deviance residuals is the total deviance.    |                              |

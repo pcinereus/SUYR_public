@@ -493,10 +493,14 @@ wq.emmeans <- emmeans(wq.gamm3c,  pairwise~Dt.num|Region,  at=list(Dt.num=c(2016
 
 
 ## ----summaryFigure2a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=5, fig.height=5----
-wq.list = with(wq, list(Dt.num = seq(min(Dt.num), max(Dt.num), len=100),
+wq.list <- with(wq, list(Dt.num = modelr::seq_range(Dt.num, n=100),
                         Region=levels(Region)))
-newdata = emmeans(wq.gamm3c, ~Dt.num, at=wq.list, type='response',
-                  data=wq.gamm3c$model) %>% as.data.frame
+newdata <- wq.gamm3c %>%
+    emmeans(~Dt.num, at=wq.list,
+            type='response',
+            #data=wq.gamm3c$model
+            ) %>%
+    as.data.frame
 head(newdata)
 ggplot(newdata, aes(y=response, x=date_decimal(Dt.num))) +
     geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
@@ -505,8 +509,11 @@ ggplot(newdata, aes(y=response, x=date_decimal(Dt.num))) +
     theme_bw()
 
 ## Partial residuals
-wq.presid = data.frame(
-  wq.gamm3c$model %>% dplyr::select(Dt.num, Mnth), 
+wq.presid <- with(wq.gamm3c$model,
+                  data.frame(Dt.num, Mnth))  %>%
+    mutate(Pred = predict(wq.gamm3c, exclude='s(reef.alias)', type='link'),
+           Resid = wq.gamm3c$resid,
+           Partial.obs = exp(Pred + Resid))
   Resid=exp(
     as.vector(predict(wq.gamm3c,  exclude='s(reef.alias)',  type='link')) +
     wq.gamm3c$residuals
@@ -517,8 +524,8 @@ head(wq.presid)
 ggplot(newdata, aes(y=response, x=date_decimal(Dt.num))) +
   geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
   geom_line() +
-  geom_point(data=wq.presid, aes(y=Resid)) +
-  #geom_point(data=wq,  aes(y=NOx, x=date_decimal(Dt.num)),  color='red') +
+  geom_point(data=wq.presid, aes(y=Partial.obs)) +
+  geom_point(data=wq,  aes(y=NOx, x=date_decimal(Dt.num)),  color='red') +
   scale_x_datetime('') +
   scale_y_continuous(breaks=seq(0,10,by=2), limits=c(0,10))+
   theme_bw() 

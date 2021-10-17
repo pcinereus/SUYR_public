@@ -122,9 +122,9 @@ where $\beta_0$ is the y-intercept, and $f(x)$ indicates an additive smoothing f
 
 
 ```{r SummaryFig, results='markdown', eval=TRUE, hidden=TRUE}
-data_gam.list=with(data_gam, list(x=seq(min(x), max(x), len=100)))
+data_gam.list <- with(data_gam, list(x = modelr::seq_range(x, n = 100)))
 
-newdata = emmeans(data_gam.gam, ~x, at=data_gam.list) %>%
+newdata = emmeans(data_gam.gam, ~x, at = data_gam.list) %>%
     as.data.frame
 head(newdata)
 
@@ -133,7 +133,12 @@ ggplot(newdata, aes(y=emmean, x=x)) +
     geom_line() +
     geom_point(data=data_gam, aes(y=y,x=x))+
     theme_bw()
-
+newdata <- newdata %>% mutate(Peak = between(emmean, 7.91, 9.48))
+ggplot(newdata, aes(y=emmean, x=x)) +
+    geom_ribbon(aes(ymin=lower.CL, ymax=upper.CL), fill='blue', alpha=0.3) +
+    geom_line(aes(color=Peak)) +
+    geom_point(data=data_gam, aes(y=y,x=x))+
+    theme_bw()
 ## Partials
 #resid.list = list(x=data_gam$x)
 newdata.partial = data_gam %>%

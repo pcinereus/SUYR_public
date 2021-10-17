@@ -39,6 +39,12 @@ ggplot(fert, aes(y = YIELD, x = FERTILIZER)) +
   geom_smooth(method = "lm")
 ggplot(fert, aes(y = YIELD)) +
   geom_boxplot(aes(x = 1))
+ggplot(fert, aes(y = YIELD)) +
+  geom_violin(aes(x = 1))
+ggplot(fert, aes(x = YIELD)) +
+  geom_histogram()
+ggplot(fert, aes(x = YIELD)) +
+  geom_density()
 
 
 ## ----name, results='markdown', eval=TRUE--------------------------------------
@@ -212,14 +218,18 @@ fert.lm %>% brms::hypothesis("FERTILIZER > 0.9")
 
 ## ----predictModel5a, results='markdown', eval=TRUE, echo=TRUE, hidden=TRUE----
 newdata <- list(FERTILIZER = c(200, 100))
-fert.lm %>% emmeans(pairwise~FERTILIZER, at = newdata) 
+fert.lm %>% emmeans(~FERTILIZER, at = newdata) 
+fert.lm %>% emmeans(~FERTILIZER, at = newdata) %>% pairs() 
+fert.lm %>% emmeans(~FERTILIZER, at = newdata) %>% pairs() %>% confint 
+fert.lm %>% emmeans(~FERTILIZER, at = newdata) %>% pairs() %>% summary(infer=TRUE)
+fert.lm %>% emmeans(pairwise~FERTILIZER, at = newdata)
 ## or with confidence intervals
 fert.lm %>% emmeans(pairwise~FERTILIZER, at = newdata) %>% confint
 
 
 ## ----figureModel, results='markdown', eval=TRUE, hidden=TRUE------------------
 ## Using emmeans
-fert_grid <- with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len = 100)))
+fert_grid <- with(fert, list(FERTILIZER = seq_range(FERTILIZER, n = 100)))
 ## OR
 fert_grid <- fert %>% data_grid(FERTILIZER = seq_range(FERTILIZER, n = 100))
 newdata <- fert.lm %>%
@@ -231,7 +241,7 @@ ggplot(newdata, aes(y = emmean, x = FERTILIZER))+
     geom_point(data = fert, aes(y = YIELD)) +
     geom_ribbon(aes(ymin = lower.CL, ymax = upper.CL), fill = "blue", alpha = 0.3) + 
     geom_line() +
-    scale_y_continuous(expression(Grass~yield~(g.m^-3)))+
+    scale_y_continuous(expression(Grass~yield~(g.m^-3)), breaks=c(100,150,200,250))+
     scale_x_continuous(expression(Fertilizer~concentration~(g.ml^-1)))+
     theme_classic()
 

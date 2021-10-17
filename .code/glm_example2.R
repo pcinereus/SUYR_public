@@ -116,6 +116,7 @@ polis.glm %>% plot_model(type='eff', show.data=TRUE)
 
 
 ## ----validateModel4, results='markdown', eval=TRUE, hidden=TRUE, fig.width=4, fig.height=4----
+polis.glm %>% allEffects(residuals=TRUE) %>% plot()
 polis.glm %>% allEffects(residuals=TRUE) %>% plot(type='response')
 
 
@@ -154,6 +155,7 @@ polis.glm %>% confint() %>% exp
 
 ## ----summaryModel2c, results='markdown', eval=TRUE, hidden=TRUE---------------
 polis.glm %>% tidy(conf.int=TRUE)
+polis.glm %>% tidy(conf.int=TRUE, exponentiate = TRUE)
 polis.glm %>% glance()
 
 
@@ -183,21 +185,23 @@ polis.glm %>% MuMIn::r.squaredLR()
 
 ## ----predictModel2, results='markdown', eval=TRUE, hidden=TRUE----------------
 #LD50
+-polis.glm$coef[1]/polis.glm$coef[2]
 (ld50 <- -polis.glm$coef[1]/polis.glm$coef[2])
 ## What about other points (not just 50%) along with confidence intervals..
 ld <- polis.glm %>% MASS::dose.p(p=c(0.5,0.9))
 ld.SE <- attr(ld, "SE")
-ld <- data.frame(LD = attr(ld,'p'),
+lds <- data.frame(LD = attr(ld,'p'),
                  Dose = as.vector(ld),
                  SE = ld.SE) %>%
     mutate(lower = Dose-SE*qnorm(0.975),
            upper = Dose+SE*qnorm(0.975))
-ld
+lds
 
 
 ## ----figureModel1a, results='markdown', eval=TRUE, hidden=TRUE----------------
 ## Using emmeans
 polis.grid <- with(polis, list(RATIO = seq(min(RATIO), max(RATIO), len=100)))
+polis.grid <- with(polis, list(RATIO = seq_range(RATIO, n=100)))
 #OR
 polis.grid <- polis %>% data_grid(RATIO=seq_range(RATIO,  n=100))
 

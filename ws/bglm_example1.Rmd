@@ -42,7 +42,7 @@ bibliography: ../resources/references.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,cache.lazy = FALSE, tidy='styler')
 ```
 
 # Preparations
@@ -95,7 +95,7 @@ The aim of the analysis is to investigate the relationship between fertilizer co
 
 
 ```{r readData, results='markdown', eval=TRUE}
-fert = read_csv('../data/fertilizer.csv', trim_ws=TRUE)
+fert <- read_csv('../data/fertilizer.csv', trim_ws = TRUE)
 glimpse(fert)
 ```
 
@@ -122,13 +122,11 @@ $$
 
 # MCMC sampling diagnostics {.tabset .tabset-faded}
 
-
-
 **MCMC sampling behaviour**
 
 `available_mcmc()`
 
-| Package   | Description       | function               | rstanarm                          | brms                               |
+| Package   | Description       | function               | rstanarm                         | brms                               |
 |-----------|-------------------|------------------------|----------------------------------|------------------------------------|
 | bayesplot | Traceplot         | `mcmc_trace`           | `plot(mod, plotfun='trace')`     | `mcmc_plot(mod, type='trace')`     |
 |           | Density plot      | `mcmc_dens`            | `plot(mod, plotfun='dens')`      | `mcmc_plot(mod, type='dens')`      |
@@ -152,7 +150,7 @@ $$
 
 # Model validation {.tabset .tabset-faded}
 
-**Posterior probabilty checks**
+**Posterior probability checks**
 
 `available_ppc()`
 
@@ -162,7 +160,7 @@ $$
 |           | Obs vs Pred error | `ppc_error_scatter_avg`      | `pp_check(mod, plotfun='error_scatter_avg')`          | `pp_check(mod, type='error_scatter_avg')`          |
 |           | Pred error vs x   | `ppc_error_scatter_avg_vs_x` | `pp_check(mod, x=, plotfun='error_scatter_avg_vs_x')` | `pp_check(mod, x=, type='error_scatter_avg_vs_x')` |
 |           | Preds vs x        | `ppc_intervals`              | `pp_check(mod, x=, plotfun='intervals')`              | `pp_check(mod, x=, type='intervals')`              |
-|           | Parial plot       | `ppc_ribbon`                 | `pp_check(mod, x=, plotfun='ribbon')`                 | `pp_check(mod, x=, type='ribbon')`                 |
+|           | Partial plot       | `ppc_ribbon`                 | `pp_check(mod, x=, plotfun='ribbon')`                 | `pp_check(mod, x=, type='ribbon')`                 |
 |           |                   |                              |                                                       |                                                    |
 
 
@@ -174,24 +172,32 @@ $$
 # Model investigation {.tabset .tabset-faded}
 
 
-| Package     | Function              | Description                                                                                                                        |
-| --          | --                    | -----                                                                                                                              |
-|             | `as.matrix()`         | Returns $n\times p$ matrix                                                                                                         |
-| `tidybayes` | `tidy_draws()`        | Returns $n\times p$ tibble with addition info about the chain, iteration and draw                                                  |
-| `tidybayes` | `spread_draws()`      | Returns $n\times r$ tibble (where $r$ is the number of requested parameters) with additional info about chain, iteraction and draw |
-| `tidybayes` | `gather_draws()`      | Returns a gathered `spread_draws` tibble with additional info about chain, iteraction and draw                                     |
-| `brms`      | `posterior_samples()` | Returns $n\times p$ data.frame                                                                                                     |
-|             |                       |                                                                                                                                    |
-|             |                       |                                                                                                                                    |
-where $n$ is the number of MCMC samples and $p$ is the number of parameters to
-estimate.
+| Package     | Function                | Description                                                                                                                        |
+| --          | --                      | -----                                                                                                                              |
+|             | `as.matrix()`           | Returns $n\times p$ matrix                                                                                                         |
+| `tidybayes` | `fitted_draws(newdata)` | Returns $n\times p$ tibble with additional info about the chains, iteration and draw.  Predictions of `newdata`                    |
+| `tidybayes` | `linpred_draws()        | Returns $n\times p$ tibble with additional info about the chains, interaction and draw.  Predictions on link scale                  |
+| `tidybayes` | `tidy_draws()`          | Returns $n\times p$ tibble with addition info about the chain, iteration and draw                                                  |
+| `tidybayes` | `spread_draws()`        | Returns $n\times r$ tibble (where $r$ is the number of requested parameters) with additional info about chain, interaction and draw |
+| `tidybayes` | `gather_draws()`        | Returns a gathered `spread_draws` tibble with additional info about chain, interaction and draw                                     |
+| `brms`      | `posterior_samples()`   | Returns $n\times p$ data.frame                                                                                                     |
 
-| Function      | Description                                                |
-| ---           | ---                                                        |
-| `median_qi`   | Median and quantiles                                       |
-| `median_hdi`  | Median and Highest Probability Density Interval            |
-| `median_hdci` | Median and continuous Highest Probability Density Interval |
-|               |                                                            |
+where $n$ is the number of MCMC samples and $p$ is the number of
+parameters to estimate.  For the `tidybayes` versions in the table
+above, the function expects a model to be the first parameter (and a
+dataframe to be the second).  There are also `add_` versions which
+expect a dataframe to be the first argument and the model to be the
+second.  These alternatives facilitate pipings with different starting
+objects.
+
+
+| Function      | Description                                                                    |
+| ---           | ---                                                                            |
+| `median_qi`   | Median and quantiles of specific columns                                       |
+| `median_hdi`  | Median and Highest Probability Density Interval of specific columns            |
+| `median_hdci` | Median and continuous Highest Probability Density Interval of specific columns |
+| `tidyMCMC`    | Median/mean and quantiles/hpd of all columns                                   |
+|               |                                                                                |
 
 
 
@@ -207,63 +213,6 @@ estimate.
 
 
 # Summary figures {.tabset .tabset-faded}
-
-## rstanarm {.tabset .tabset-pills}
-
-```{r summaryFig1a, results='markdown', eval=TRUE, hidden=TRUE}
-fert.list = with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len=100)))
-newdata = emmeans(fert.rstanarm3, ~FERTILIZER, at=fert.list) %>% as.data.frame
-head(newdata)
-
-ggplot(newdata, aes(y=emmean, x=FERTILIZER)) + 
-geom_point(data=fert, aes(y=YIELD)) +
-geom_line() + 
-geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
-scale_y_continuous('YIELD') +
-scale_x_continuous('FERTILIZER') +
-theme_classic()
-
-## spaghetti plot
-newdata = emmeans(fert.rstanarm3, ~FERTILIZER, at=fert.list) %>%
-  gather_emmeans_draws()
-newdata %>% head
-ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
-  geom_line(aes(group=.draw),  alpha=0.01) +
-  geom_point(data=fert,  aes(y=YIELD))
-```
-
-## brms {.tabset .tabset-pills}
-
-
-```{r summaryFig2a, results='markdown', eval=TRUE, hidden=TRUE}
-fert.list = with(fert, list(FERTILIZER = seq(min(FERTILIZER), max(FERTILIZER), len=100)))
-newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>% as.data.frame
-head(newdata)
-
-ggplot(newdata, aes(y=emmean, x=FERTILIZER)) + 
-geom_point(data=fert, aes(y=YIELD)) +
-geom_line() + 
-geom_ribbon(aes(ymin=lower.HPD, ymax=upper.HPD), fill='blue', alpha=0.3) +
-scale_y_continuous('YIELD') +
-scale_x_continuous('FERTILIZER') +
-theme_classic()
-
-## spaghetti plot
-newdata = emmeans(fert.brm3, ~FERTILIZER, at=fert.list) %>%
-  gather_emmeans_draws()
-newdata %>% head
-ggplot(newdata,  aes(y=.value,  x=FERTILIZER)) +
-  geom_line(aes(group=.draw),  alpha=0.01) +
-  geom_point(data=fert,  aes(y=YIELD))
-  
-```
-
-
-
-
-
-
-
 
 
 # References

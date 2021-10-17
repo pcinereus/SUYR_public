@@ -20,10 +20,11 @@ glimpse(leathwick)
 
 
 ## ----preparation, results='markdown', eval=TRUE, hidden=TRUE------------------
-leathwick = leathwick %>% mutate(Method=factor(Method),
-                                 LocSed = as.numeric(LocSed)) %>% 
-                                 LocSed=factor(LocSed)) %>%
-  as.data.frame
+leathwick <- leathwick %>%
+    mutate(Method=factor(Method),
+           LocSed = as.numeric(LocSed)) %>% 
+    ## LocSed=factor(LocSed)) %>%
+    as.data.frame
 
 
 ## ----readData1, results='markdown', eval=TRUE---------------------------------
@@ -32,8 +33,9 @@ glimpse(leathwick_test)
 
 
 ## ----preparation1, results='markdown', eval=TRUE, hidden=TRUE-----------------
-leathwick_test = leathwick_test %>% mutate(Method=factor(Method), 
-                                          LocSed=as.numeric(LocSed)) %>%
+leathwick_test = leathwick_test %>%
+    mutate(Method=factor(Method), 
+           LocSed=as.numeric(LocSed)) %>%
   as.data.frame()
 
 
@@ -69,6 +71,16 @@ summary(leathwick.gbm, n.trees=best.iter)
 
 
 ## ----partialPlots1, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, fig.width=10, fig.height=10----
+leathwick.gbm %>%
+    pdp::partial(pred.var='SegSumT',
+                 n.trees=best.iter,
+                 inv.link=plogis,
+                 recursive=FALSE,
+                 type='regression') %>%
+    autoplot() +
+    ylim(0,1)
+
+
 nms <- colnames(leathwick)
 p <- vector('list', 12)
 names(p) <- nms[3:14]
@@ -118,7 +130,7 @@ Method = as.data.frame(Method)
 fit <- predict(leathwick.grid, leathwick.gbm,  const=Method,
                n.trees=best.iter,  type='response')
 #fit <- mask(fit,  raster(leathwick.grid, 1))
-
+library(stars)
 fit= stars::st_as_stars(fit)
 
 

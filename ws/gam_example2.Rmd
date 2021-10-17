@@ -117,6 +117,7 @@ where $\beta_0$ is the y-intercept. $f(Year)$ and $f(Rainfall)$ indicate the add
 
 ```{r partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=4}
 draw(reed.gam3)
+draw(reed.gam3, residuals = TRUE, scales = 'free') 
 ```
 
 ## plot
