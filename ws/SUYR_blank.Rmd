@@ -1,0 +1,87 @@
+---
+title: "Blank Template"
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    code_folding: show
+    collapse: no
+    df_print: paged
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: textmate
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    css: ../resources/style.css
+  pdf_document:
+    df_print: default
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    latex_engine: xelatex
+    number_sections: yes
+    toc_depth: 2
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 4
+    highlight: tango
+    toc: yes
+    toc_depth: 2
+bibliography: ../resources/references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+   
+```{r readRScripts, results='markdown', eval=TRUE, echo=FALSE}
+## knitr::read_chunk('01_analysis.R')
+```   
+   
+# Preparations
+
+```{r packages, message=FALSE, echo=FALSE}
+library(knitr)
+library(ggplot2)
+```
+
+Generate 10 _random_ values from a ~~uniform~~**Gaussian** (normal) distribution.
+
+```{r summary}
+x <- rnorm(10)
+summary(x)
+```
+
+Some salty code
+
+```{r}
+camalCase <- mean(c(1:5))
+word.1 <- "Word"
+```
+
+# A section
+
+Bla bla (see Table \@ref(tab:BODData)).
+
+(ref:tab-cap) Biochemical oxygen demand
+
+```{r BODData, echo=FALSE}
+knitr::kable(BOD, caption="(ref:tab-cap)", format='html', booktabs=TRUE)
+```
+
+Bla bla (see Figure \@ref(fig:BODfig)).
+
+(ref:fig-cap) Biochemical oxygen demand
+
+```{r BODfig, echo=FALSE, out.width='60%', fig.cap='(ref:fig-cap)'}
+ggplot(BOD) +
+ geom_point(aes(y=demand, x=Time))
+```
+
+```{r}
+sessionInfo()
+```
