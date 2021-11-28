@@ -173,7 +173,23 @@ slides > slide ul > li:before {
 table.rmdtable  {font-size:50%;background:#e8f1f6;text-align:left;border:0;border-spacing:0;}
 table.rmdtable th {display:table-header;color:white;font-size:1em;font-weight: bold; border:1.0pt solid rgb(0,0,127);padding:3.6pt 5pt;background:rgb(0,120,230) none repeat scroll 0% 50%;}
 table.rmdtable td {font-size:0.8em;padding:3pt;border-left: 1.0pt solid rgb(0,0,127);border-right: 1.0pt solid rgb(0,0,127);border-bottom: 1.0pt solid rgb(0,0,127)}
-  
+table.rmdtable ul {
+    /* margin-left: unset !important; */
+    margin-left: 1.5em;
+    line-height: 1.2em;
+}  
+table.rmdtable ul li {
+    padding: 0em;
+}
+
+table.rmdtable ul li::marker {
+    vertical-align: top;
+    content: "-";
+    font-family:VeteranTypewriter ;
+    font-size: unset !important; 
+    letter-spacing: 10px;
+}
+
 slides > slide strong {
     color: #e17727;
 }
