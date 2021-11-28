@@ -65,6 +65,7 @@ library(ggeffects)  #for partial plots
 library(tidyverse)  #for data wrangling etc
 library(broom.mixed)#for summarising models
 library(ggeffects)  #for partial effects plots
+library(patchwork)  #for multi-panel figures
 theme_set(theme_grey()) #put the default ggplot theme back
 ```
 
@@ -120,6 +121,7 @@ $$
 # Fit the model {.tabset .tabset-faded}
 
 
+
 # MCMC sampling diagnostics {.tabset .tabset-faded}
 
 **MCMC sampling behaviour**
@@ -147,7 +149,6 @@ $$
 |           | Scale reduction   | `ggs_grb`              | `ggs_grb(ggs(mod))`              | `ggs_grb(ggs(mod))`                |
 |           |                   |                        |                                  |                                    |
 
-
 # Model validation {.tabset .tabset-faded}
 
 **Posterior probability checks**
@@ -162,6 +163,7 @@ $$
 |           | Preds vs x        | `ppc_intervals`              | `pp_check(mod, x=, plotfun='intervals')`              | `pp_check(mod, x=, type='intervals')`              |
 |           | Partial plot       | `ppc_ribbon`                 | `pp_check(mod, x=, plotfun='ribbon')`                 | `pp_check(mod, x=, type='ribbon')`                 |
 |           |                   |                              |                                                       |                                                    |
+
 
 
 
@@ -218,3 +220,4 @@ objects.
 # References
 
                                  
+

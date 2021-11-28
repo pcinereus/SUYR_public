@@ -18,6 +18,7 @@ library(ggeffects)  #for partial plots
 library(tidyverse)  #for data wrangling etc
 library(broom.mixed)#for summarising models
 library(ggeffects)  #for partial effects plots
+library(patchwork)  #for multi-panel figures
 theme_set(theme_grey()) #put the default ggplot theme back
 
 
@@ -221,6 +222,110 @@ fert.brm3 %>%
 ## ----fitModel2l, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
 fert.brm3 %>% standata()
 fert.brm3 %>% stancode()
+
+
+## ----INLApackages, results='markdown', eval=TRUE------------------------------
+library(INLA)
+
+
+## ----fitModel3a, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE------
+fert.inla <- inla(YIELD ~ FERTILIZER,
+                  data = fert,
+                  family = 'gaussian',
+                  control.compute = list(config = TRUE, dic = TRUE, waic = TRUE, cpo = TRUE)
+                  )
+
+
+## ----fitModel3a2, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+fert.inla %>% names
+
+
+## ----fitModel3b0, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80), echo=TRUE----
+inla.priors.used(fert.inla)
+
+
+## ----fitModel3b3, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+standist::visualize("gamma(1, 0.00005)", xlim=c(-100,100000))
+
+
+## ----fitModel3b1, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+standist::visualize("normal(0, 31)", xlim=c(-100,100))
+
+
+## ----fitModel3b5, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+standist::visualize("gamma(0.5, 0.31)", xlim=c(-5,20))
+
+
+## ----fitModel3b9, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+min(fert$YIELD)
+median(fert$YIELD)
+mad(fert$YIELD)
+
+
+## ----fitModel3b8, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+standist::visualize("normal(80, 271.32)", xlim=c(-700,1000))
+
+
+## ----fitModel3b4, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, paged.print=FALSE,tidy.opts = list(width.cutoff = 80)----
+standist::visualize("normal(0, 5.102)", xlim=c(-20,20))
+
+
+## ----fitModel3b6, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+fert.inla1 <- inla(YIELD ~ FERTILIZER,
+                  data = fert,
+                  family = 'gaussian',
+                  control.fixed = list(
+                      mean.intercept = 80,
+                      prec.intercept = 0.00001,
+                      mean = 0,
+                      prec = 0.0384),
+                  control.family = list(hyper = list(prec = list(prior = "loggamma",
+                                                                param = c(0.5, 0.31)))),
+                  control.compute = list(config = TRUE, dic = TRUE, waic = TRUE, cpo = TRUE)
+                  )
+
+
+## ----fitModel3b7, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+## Fixed effects
+rbind(Model.1 = fert.inla$summary.fixed, Model.2 = fert.inla1$summary.fixed)
+
+## Family hyperpriors (variance)
+rbind(Model.1 = fert.inla$summary.hyperpar, Model.2 = fert.inla1$summary.hyperpar)
+
+
+## ----fitModel3d0, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+print(plot(fert.inla1,
+     plot.fixed.effects = TRUE,
+     plot.lincomb = FALSE,
+     plot.random.effects = FALSE,
+     plot.hyperparameters = TRUE,
+     plot.predictor = FALSE,
+     plot.q = FALSE,
+     plot.cpo = FALSE,
+     plot.prior = TRUE))
+
+
+## ----fitModel3d1, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+library(INLAutils)
+plot_fixed_marginals(fert.inla1, priors = TRUE)
+
+
+## ----fitModel3d2, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, fig.width=8----
+marg.fix <- fert.inla1$marginals.fixed
+(nm <- names(marg.fix))
+p <- vector('list', length(nm))
+for (wch in 1:length(nm)) {
+    xy <- INLA:::inla.get.prior.xy(section = 'fixed', hyperid = nm[1] ,
+                                   all.hyper = fert.inla1$all.hyper,
+                                   range = 3*range(marg.fix[[wch]][,'x']))
+    p[[wch]] <- ggplot() +
+        geom_density(data=as.data.frame(marg.fix[[wch]]),
+                     aes(x=x, y=y, fill='Posterior'), alpha=0.2,
+                     stat='Identity') +
+        geom_density(data=as.data.frame(xy), aes(x=x, y=y, fill='Prior'), alpha = 0.2,
+                     stat='Identity')
+}
+patchwork::wrap_plots(p)
 
 
 ## ----modelValidation1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=6, fig.height=4----
@@ -444,6 +549,55 @@ fert.resids <- createDHARMa(simulatedResponse = t(preds),
 fert.resids %>% plot()
 
 
+## ----fitModel3e0, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+fert.inla1$cpo$cpo
+sum(fert.inla1$cpo$cop)
+-mean(log(fert.inla1$cpo$cpo))
+
+
+## ----fitModel3e1, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+fert.inla1$cpo$failure
+
+
+## ----fitModel3e3, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+plot(fert.inla1,
+     plot.fixed.effects = FALSE,
+     plot.lincomb = FALSE,
+     plot.random.effects = FALSE,
+     plot.hyperparameters = FALSE,
+     plot.predictor = FALSE,
+     plot.q = FALSE,
+     plot.cpo = TRUE,
+     plot.prior = FALSE)
+
+
+## ----fitModel3e4, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+ggplot_inla_residuals(fert.inla1, observed = fert$YIELD)
+
+
+## ----fitModel3e5, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE-----
+ggplot_inla_residuals2(fert.inla1, observed = fert$YIELD)
+
+
+## ----fitModel3f, results='markdown', eval=TRUE, hidden=TRUE, cache=FALSE, fig.width = 8----
+## draw 250 samples from the posterior
+draws <- inla.posterior.sample(n=250, result = fert.inla)
+## extract the latent predictions for the observed data
+preds = t(sapply(draws, function(x) x$latent[1:nrow(fert)]))
+## extract the first (family precision) hyperprior
+preds.hyper <- sapply(draws, function(x) 1/sqrt(x$hyperpar[[1]]))
+## use this to generate gaussian noise 
+preds.hyper <- rnorm(length(preds.hyper), mean=0, sd=preds.hyper)
+## add the noise to each prediction
+preds <- sweep(preds, 1, preds.hyper, FUN = "+")
+## generate the DHARMa residuals
+fert.resids <- createDHARMa(simulatedResponse = t(preds),
+                           observedResponse = fert$YIELD,
+                           fittedPredictedResponse = apply(preds, 2, median),
+                           integerResponse = FALSE)
+fert.resids %>% plot()
+
+
 ## ----partialPlot1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----
 fert.rstanarm3 %>% ggpredict() %>% plot(add.data=TRUE)
 
@@ -482,6 +636,46 @@ fert.brm3 %>%
     ggplot(aes(x = FERTILIZER, y=.value)) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'blue', alpha = 0.3) + 
     geom_line()
+
+
+## ----partialPlot3a, results='markdown', eval=TRUE-----------------------------
+plot(fert.inla1,
+     plot.fixed.effects = FALSE,
+     plot.lincomb = FALSE,
+     plot.random.effects = FALSE,
+     plot.hyperparameters = FALSE,
+     plot.predictor =TRUE,
+     plot.q = FALSE,
+     plot.cpo = FALSE,
+     plot.prior = FALSE)
+
+
+## ----partialPlot3a1, results='markdown', eval=TRUE----------------------------
+newdata <- fert %>% tidyr::expand(FERTILIZER = modelr::seq_range(FERTILIZER, n=100))
+Xmat <- model.matrix(~FERTILIZER, newdata)
+
+nms <- colnames(fert.inla1$model.matrix)
+n <- sapply(nms, function(x) 0, simplify=FALSE)
+draws <- inla.posterior.sample(n=250, result = fert.inla1, selection = n)
+coefs <- t(sapply(draws, function(x) x$latent))
+Fit = coefs %*% t(Xmat) %>%
+    as.data.frame() %>%
+    mutate(Rep=1:n()) %>%
+    pivot_longer(cols=-Rep) %>%
+    group_by(name) %>%
+    median_hdci(value) %>%
+    ungroup() %>%
+    mutate(name = as.integer(as.character(name))) %>%
+    arrange(name) 
+newdata <- newdata %>%
+    bind_cols(Fit)
+
+newdata %>%
+    ggplot(aes(x=FERTILIZER)) +
+    geom_ribbon(aes(ymin=.lower, ymax=.upper), fill='orange', color=NA, alpha=0.3) +
+    geom_line(aes(y=value), color='orange') +
+    geom_point(data=fert, aes(y=YIELD)) +
+    theme_classic()
 
 
 ## ----summariseModel1a, results='markdown', eval=TRUE, hidden=TRUE, fig.width=8, fig.height=5----

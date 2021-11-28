@@ -165,13 +165,24 @@ owls.form <- bf(NCalls ~ FoodTreatment*SexParent +
 owls.brm2 <- brm(owls.form, 
                  data = owls,
                  prior = priors,
+                 sample_prior = 'only',
+                 iter = 5000,
+                 warmup =2500,
+                 chains = 3,
+                 cores = 3,
+                 thin = 10
+                 )
+owls.brm2 <- brm(owls.form, 
+                 data = owls,
+                 prior = priors,
                  sample_prior = 'yes',
                  iter = 5000,
                  warmup =2500,
                  chains = 3,
                  cores = 3,
                  thin = 10,
-                 refresh = 0
+                 refresh = 0,
+                 seed = 123
                  )
 
 owls.form <- bf(NCalls ~ FoodTreatment*SexParent +
@@ -187,6 +198,7 @@ owls.brm3 <-  brm(owls.form,
                   cores = 3,
                   thin = 10,
                   refresh = 0,
+                  seed = 123, 
                   control = list(adapt_delta=0.99)
                   )
 
@@ -198,6 +210,7 @@ loo_compare(l.1, l.2)
 ## ----posterior2k, results='markdown', eval=TRUE-------------------------------
 owls.brm3 %>% get_variables()
 owls.brm3 %>% hypothesis('FoodTreatmentSatiated=0') %>% plot
+owls.brm3 %>% hypothesis('SexParentMale=0') %>% plot
 
 
 ## ----posterior2k2, results='markdown', eval=TRUE, fig.width=10, fig.height=4----
@@ -330,7 +343,7 @@ owls.resids <- createDHARMa(simulatedResponse = t(preds),
                             observedResponse = owls$NCalls,
                             fittedPredictedResponse = apply(preds, 2, median),
                             integerResponse = TRUE)
-plot(owls.resids, quantreg = TRUE)
+plot(owls.resids)
 
 
 ## ----validation2g, results='markdown', eval=TRUE, error=TRUE,hidden=TRUE, fig.width=7, fig.height=5, cache=FALSE, message=FALSE, warning=FALSE----
